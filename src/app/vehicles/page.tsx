@@ -1,16 +1,13 @@
+"use client";
+
 import VehicleCard from "@/components/VehicleCard";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 
-export default async function VehiclesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const resolvedSearchParams = await searchParams;
-  const category =
-    typeof resolvedSearchParams.category === "string"
-      ? resolvedSearchParams.category
-      : "all";
+export default function VehiclesPage() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get("category") || "all";
 
   const vehicles = [
     {
@@ -94,28 +91,58 @@ export default async function VehiclesPage({
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24 pb-12">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-        <div className="mb-16 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8">
+    <div className="min-h-screen bg-black text-white pb-12">
+      {/* Hero Section with Video */}
+      <div className="relative h-[85vh] flex items-center justify-center overflow-hidden mb-20">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black z-10"></div>
+        {/* Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
+        >
+          <source src="/Truck_Hero_Video.mp4" type="video/mp4" />
+        </video>
+
+        <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-5xl md:text-8xl font-serif font-bold tracking-tighter mb-6"
+          >
             {category === "all" && "Toda Nuestra Gama"}
             {category === "auto" && "Autos"}
             {category === "suv" && "SUVs"}
             {category === "vans" && "Vans"}
             {category === "sprinter" && "Sprinter"}
             {category === "trucks" && "Trucks"}
-          </h1>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-xl md:text-2xl text-gray-300 font-light tracking-wide"
+          >
+            Ingeniería alemana. Excelencia garantizada.
+          </motion.p>
+        </div>
+      </div>
 
-          {/* Minimalist Filter */}
-          <div className="flex flex-wrap justify-center gap-8 border-b border-white/20 pb-4 inline-flex mx-auto">
+      {/* Category Filter Buttons - Above Grid */}
+      <div className="sticky top-20 z-30 bg-black/95 backdrop-blur-md border-b border-white/10 py-6 mb-12">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+          <div className="flex flex-wrap lg:flex-nowrap justify-center gap-3 lg:gap-4">
             {categories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`/vehicles?category=${cat.id}`}
-                className={`text-sm font-bold tracking-widest uppercase transition-colors hover:text-mb-blue ${
+                className={`text-xs lg:text-sm font-bold tracking-widest uppercase transition-all px-4 py-3 lg:px-8 lg:py-4 border-2 ${
                   category === cat.id
-                    ? "text-white border-b-2 border-white pb-4 -mb-4.5"
-                    : "text-gray-500"
+                    ? "text-black bg-white border-white"
+                    : "text-white bg-transparent border-white/60 hover:bg-white hover:text-black hover:border-white"
                 }`}
               >
                 {cat.name}
@@ -123,7 +150,9 @@ export default async function VehiclesPage({
             ))}
           </div>
         </div>
+      </div>
 
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
           {filteredVehicles.map((vehicle) => (
             <VehicleCard
