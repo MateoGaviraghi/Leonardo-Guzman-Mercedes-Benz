@@ -9,6 +9,7 @@ import { Menu, X, ChevronDown } from "lucide-react";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileVehiclesOpen, setIsMobileVehiclesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -161,21 +162,48 @@ export default function Navbar() {
                 Inicio
               </Link>
 
-              <div className="space-y-4 border-b border-white/10 pb-4">
-                <p className="text-sm text-gray-500 uppercase tracking-widest font-bold">
-                  Vehículos
-                </p>
-                {vehicleCategories.map((cat) => (
-                  <Link
-                    key={cat.name}
-                    href={cat.href}
-                    onClick={() => setIsOpen(false)}
-                    className="block text-xl text-gray-300 hover:text-white"
+              <button
+                onClick={() => setIsMobileVehiclesOpen(!isMobileVehiclesOpen)}
+                className="flex items-center justify-between w-full text-xl font-bold text-white border-b border-white/10 pb-4"
+              >
+                VEHÍCULOS
+                <ChevronDown
+                  size={20}
+                  className={`transition-transform duration-300 ${
+                    isMobileVehiclesOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              <AnimatePresence>
+                {isMobileVehiclesOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
                   >
-                    {cat.name}
-                  </Link>
-                ))}
-              </div>
+                    <div className="flex flex-col space-y-4 py-4 pl-4 border-b border-white/10">
+                      {vehicleCategories.map((cat) => (
+                        <Link
+                          key={cat.name}
+                          href={cat.href}
+                          onClick={() => setIsOpen(false)}
+                          className="block text-lg text-gray-400 hover:text-white"
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
+                      <Link
+                        href="/vehicles"
+                        onClick={() => setIsOpen(false)}
+                        className="block text-lg font-bold text-white pt-2"
+                      >
+                        VER TODOS
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <Link
                 href="/about"

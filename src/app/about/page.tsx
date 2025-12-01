@@ -19,7 +19,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-5 relative"
+            className="lg:col-span-5 relative order-2 lg:order-1"
           >
             <div className="aspect-[3/4] relative overflow-hidden bg-zinc-900">
               <Image
@@ -40,7 +40,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-7 lg:pl-12"
+            className="lg:col-span-7 lg:pl-12 order-1 lg:order-2"
           >
             <h2 className="text-xs font-bold tracking-[0.3em] text-gray-500 mb-6 uppercase">
               Promotor Oficial Mercedes-Benz

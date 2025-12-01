@@ -98,7 +98,12 @@ export default async function VehiclesPage({
       <div className="max-w-[1400px] mx-auto px-6 md:px-12">
         <div className="mb-16 text-center">
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8">
-            Nuestros Vehículos
+            {category === "all" && "Toda Nuestra Gama"}
+            {category === "auto" && "Autos"}
+            {category === "suv" && "SUVs"}
+            {category === "vans" && "Vans"}
+            {category === "sprinter" && "Sprinter"}
+            {category === "trucks" && "Trucks"}
           </h1>
 
           {/* Minimalist Filter */}

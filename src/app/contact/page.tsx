@@ -55,7 +55,7 @@ export default function ContactPage() {
               viaje hacia la excelencia.
             </p>
 
-            <div className="space-y-10">
+            <div className="space-y-10 hidden lg:block">
               <div className="flex items-start gap-6 group">
                 <div className="p-4 bg-white/5 rounded-full group-hover:bg-white/10 transition-colors">
                   <MapPin className="w-6 h-6 text-white" />
