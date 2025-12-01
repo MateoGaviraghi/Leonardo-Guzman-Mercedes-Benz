@@ -32,14 +32,20 @@ export default function UsadosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24 pb-20">
+    <div className="min-h-screen bg-black text-white pb-20">
       {/* Hero Section */}
-      <div className="relative h-[60vh] flex items-center justify-center overflow-hidden mb-20">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/60 to-black z-10"></div>
-        {/* Background Image Placeholder - Replace with a real image of a premium used car lot or detail */}
-        <div className="absolute inset-0 bg-zinc-900">
-          {/* <Image src="/path/to/usados-hero.jpg" fill className="object-cover opacity-50" /> */}
-        </div>
+      <div className="relative h-[85vh] flex items-center justify-center overflow-hidden mb-20">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black z-10"></div>
+        {/* Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
+        >
+          <source src="/SUV_Reveal_Video_Generation.mp4" type="video/mp4" />
+        </video>
 
         <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
           <motion.h1
@@ -71,26 +77,27 @@ export default function UsadosPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-xs font-bold tracking-[0.3em] text-mb-blue mb-8 uppercase">
-              Mercedes-Benz Certified
+              Confianza y Trayectoria
             </h2>
             <h3 className="text-4xl md:text-5xl font-bold mb-10 leading-tight">
-              No es solo un usado.
+              Más que un vehículo,
               <br />
-              Es un Mercedes-Benz.
+              una relación de confianza.
             </h3>
 
             <div className="space-y-8 text-gray-400 text-lg font-light leading-relaxed">
               <p>
-                Cada vehículo de nuestra Selección Premium ha superado una
-                rigurosa inspección de 150 puntos realizada por técnicos
-                especializados. Solo aquellos que cumplen con nuestros estrictos
-                estándares de calidad, seguridad y desempeño merecen llevar la
-                estrella.
+                En Automotores Mega, entendemos que comprar un usado es una
+                decisión importante. Por eso, cada unidad es seleccionada con el
+                compromiso de ofrecerte solo lo mejor. No se trata solo de
+                vender autos, sino de construir relaciones duraderas basadas en
+                la honestidad.
               </p>
               <p>
-                Conocemos la historia de cada unidad. Kilometraje real,
-                mantenimiento oficial y garantía de procedencia. Porque tu
-                tranquilidad es parte del equipamiento de serie.
+                Con el respaldo de Leonardo Guzman y una trayectoria que nos
+                avala, te brindamos la tranquilidad que necesitas. Conocemos lo
+                que vendemos y te lo contamos con total transparencia, para que
+                tu única preocupación sea disfrutar de tu próximo Mercedes-Benz.
               </p>
             </div>
 
@@ -99,10 +106,10 @@ export default function UsadosPage() {
                 <CheckCircle className="text-white w-6 h-6 mt-1" />
                 <div>
                   <h4 className="text-white font-bold uppercase tracking-wider text-sm mb-2">
-                    Garantía Oficial
+                    Atención Personalizada
                   </h4>
                   <p className="text-sm text-gray-500">
-                    Cobertura extendida para tu total respaldo.
+                    Asesoramiento experto para encontrar lo que buscas.
                   </p>
                 </div>
               </div>
@@ -110,10 +117,10 @@ export default function UsadosPage() {
                 <CheckCircle className="text-white w-6 h-6 mt-1" />
                 <div>
                   <h4 className="text-white font-bold uppercase tracking-wider text-sm mb-2">
-                    Asistencia 24hs
+                    Transparencia Total
                   </h4>
                   <p className="text-sm text-gray-500">
-                    Servicio de movilidad en todo el país.
+                    Claridad y honestidad en cada operación.
                   </p>
                 </div>
               </div>
