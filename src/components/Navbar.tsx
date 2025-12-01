@@ -61,7 +61,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Links - Centered */}
-          <div className="hidden md:flex items-center gap-12 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="hidden lg:flex items-center gap-12 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Link
               href="/"
               className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
@@ -144,7 +144,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-white hover:text-mb-blue transition-colors z-10"
+            className="lg:hidden text-white hover:text-mb-blue transition-colors z-10"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -158,7 +158,7 @@ export default function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black pt-24 px-6 md:hidden"
+            className="fixed inset-0 z-40 bg-black pt-24 px-6 lg:hidden"
           >
             <div className="flex flex-col space-y-6">
               <Link
