@@ -6,11 +6,20 @@ import Image from "next/image";
 export default function Template({ children }: { children: React.ReactNode }) {
   return (
     <>
+      {/* Black Background Layer */}
       <motion.div
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
-        transition={{ duration: 1.5, ease: "easeInOut" }}
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-black pointer-events-none"
+        transition={{ delay: 0.8, duration: 0.8, ease: "easeInOut" }}
+        className="fixed inset-0 z-[100] bg-black pointer-events-none"
+      />
+
+      {/* Logo Layer */}
+      <motion.div
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-none"
       >
         <div className="relative w-32 h-32">
           <Image
@@ -22,6 +31,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
           />
         </div>
       </motion.div>
+
       {children}
     </>
   );

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import CategoryCarousel from "@/components/CategoryCarousel";
+import VehicleCard from "@/components/VehicleCard";
 
 export default function Home() {
   const categories = [
@@ -12,42 +13,35 @@ export default function Home() {
       category: "Autos",
       href: "/vehicles?category=auto",
       image:
-        "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop", // Mercedes Sedan
+        "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=2070&auto=format&fit=crop", // Mercedes A-Class / Hatchback
     },
     {
       name: "GLC SUV",
       category: "SUVs",
       href: "/vehicles?category=suv",
       image:
-        "https://images.unsplash.com/photo-1609521263047-f8f205293f24?q=80&w=2070&auto=format&fit=crop", // Mercedes SUV
+        "https://images.unsplash.com/photo-1553440637-d22ed8a0256b?q=80&w=2070&auto=format&fit=crop", // Mercedes GLC / SUV
     },
     {
       name: "Vito",
       category: "Vans",
       href: "/vehicles?category=vans",
       image:
-        "https://images.unsplash.com/photo-1626668893632-6f3a4466d22f?q=80&w=2072&auto=format&fit=crop", // Mercedes Van
+        "https://images.unsplash.com/photo-1626668893632-6f3a4466d22f?q=80&w=2072&auto=format&fit=crop", // Mercedes Vito / V-Class
     },
     {
       name: "Sprinter",
       category: "Sprinter",
       href: "/vehicles?category=sprinter",
       image:
-        "https://images.unsplash.com/photo-1566008885218-90abf9200ddb?q=80&w=2000&auto=format&fit=crop", // Sprinter (using a van placeholder)
+        "https://images.unsplash.com/photo-1618589087798-29a5806e3c3f?q=80&w=2070&auto=format&fit=crop", // Mercedes Sprinter
     },
     {
       name: "Actros",
       category: "Trucks",
       href: "/vehicles?category=trucks",
       image:
-        "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?q=80&w=2072&auto=format&fit=crop", // Truck
-    },
-    {
-      name: "Selección",
-      category: "Usados",
-      href: "/vehicles?category=usados",
-      image:
-        "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop", // Luxury Car
+        "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?q=80&w=2072&auto=format&fit=crop", // Mercedes Actros / Truck
     },
   ];
 
@@ -76,20 +70,23 @@ export default function Home() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="max-w-3xl"
           >
-            <p className="text-sm font-bold tracking-[0.3em] text-white/80 mb-6 uppercase">
-              Automotores Mega
+            <p className="text-xs md:text-sm font-bold tracking-[0.3em] text-white/80 mb-4 uppercase">
+              Leonardo Guzman
             </p>
-            <h1 className="text-6xl md:text-8xl lg:text-9xl font-serif tracking-tight mb-8 leading-[0.9]">
-              The Star <br /> Reborn.
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight mb-6 leading-tight">
+              Concesionario Oficial <br /> Mercedes-Benz
             </h1>
+            <p className="text-lg md:text-2xl lg:text-3xl text-gray-300 font-light tracking-wide mb-10">
+              Automotores Mega SA, Argentina Entre Ríos
+            </p>
 
             <div className="flex items-center gap-8">
               <Link
                 href="/vehicles"
                 className="group flex items-center gap-4 text-white hover:text-gray-300 transition-colors"
               >
-                <span className="text-sm font-bold tracking-widest border-b border-white pb-1 group-hover:border-gray-300">
-                  EXPLORAR GAMA
+                <span className="text-sm font-bold tracking-widest border-b border-white pb-1 group-hover:border-gray-300 uppercase">
+                  CONOCÉ NUESTROS VEHÍCULOS
                 </span>
                 <ArrowRight size={18} />
               </Link>
@@ -100,8 +97,9 @@ export default function Home() {
 
       {/* Editorial Grid Section */}
       <section className="py-32 bg-black">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-24 border-b border-white/10 pb-8">
+        {/* Header - Constrained Width */}
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-8">
             <h2 className="text-4xl md:text-5xl font-serif tracking-tight max-w-xl leading-tight">
               Ingeniería de precisión. <br />
               <span className="text-gray-500">Diseño atemporal.</span>
@@ -113,13 +111,30 @@ export default function Home() {
               VER TODOS LOS MODELOS
             </Link>
           </div>
+        </div>
 
-          {/* Carousel Section */}
-          <div className="mb-24">
-            <CategoryCarousel categories={categories} />
+        {/* Categories Grid - Constrained Width for Better Fit */}
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-24">
+          <div className="flex flex-wrap justify-center gap-4">
+            {categories.map((cat) => (
+              <div
+                key={cat.name}
+                className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.34rem)]"
+              >
+                <VehicleCard
+                  title={cat.name}
+                  category={cat.category}
+                  href={cat.href}
+                  image={cat.image}
+                />
+              </div>
+            ))}
           </div>
+        </div>
 
-          <div className="mt-16 md:hidden text-center">
+        {/* Mobile Link - Constrained Width */}
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+          <div className="md:hidden text-center">
             <Link
               href="/vehicles"
               className="text-sm font-bold tracking-widest text-white border-b border-white pb-1"
@@ -135,10 +150,12 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-16">
           <div className="lg:col-span-5">
             <div className="aspect-[3/4] bg-zinc-800 relative overflow-hidden">
-              {/* Placeholder for Portrait */}
-              <div className="absolute inset-0 flex items-center justify-center text-zinc-600 font-serif text-2xl">
-                Leonardo
-              </div>
+              <Image
+                src="/leonardo-portrait.png"
+                alt="Leonardo Guzman"
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-700"
+              />
             </div>
           </div>
           <div className="lg:col-span-7 flex flex-col justify-center">

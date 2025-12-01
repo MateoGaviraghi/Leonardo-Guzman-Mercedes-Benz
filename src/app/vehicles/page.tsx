@@ -91,19 +91,18 @@ export default async function VehiclesPage({
     { id: "vans", name: "Vans" },
     { id: "sprinter", name: "Sprinter" },
     { id: "trucks", name: "Trucks" },
-    { id: "usados", name: "Usados" },
   ];
 
   return (
     <div className="min-h-screen bg-black text-white pt-24 pb-12">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-        <div className="mb-16">
+        <div className="mb-16 text-center">
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8">
             Nuestros Vehículos
           </h1>
 
           {/* Minimalist Filter */}
-          <div className="flex flex-wrap gap-8 border-b border-white/20 pb-4">
+          <div className="flex flex-wrap justify-center gap-8 border-b border-white/20 pb-4 inline-flex mx-auto">
             {categories.map((cat) => (
               <Link
                 key={cat.id}
@@ -120,7 +119,7 @@ export default async function VehiclesPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
           {filteredVehicles.map((vehicle) => (
             <VehicleCard
               key={vehicle.id}

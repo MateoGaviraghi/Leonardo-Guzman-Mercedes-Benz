@@ -25,7 +25,6 @@ export default function Navbar() {
     { name: "Vans", href: "/vehicles?category=vans" },
     { name: "Sprinter", href: "/vehicles?category=sprinter" },
     { name: "Trucks", href: "/vehicles?category=trucks" },
-    { name: "Usados", href: "/vehicles?category=usados" },
   ];
 
   return (
@@ -37,9 +36,9 @@ export default function Navbar() {
             : "bg-transparent py-6"
         }`}
       >
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex items-center justify-between">
+        <div className="w-full px-6 md:px-12 flex items-center justify-between relative">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-4 group">
+          <Link href="/" className="flex items-center gap-4 group z-10">
             {/* Custom Logo Image */}
             <div className="relative w-12 h-12">
               <Image
@@ -60,13 +59,14 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-10">
+          {/* Desktop Links - Centered */}
+          <div className="hidden md:flex items-center gap-12 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Link
               href="/"
-              className="text-sm font-medium text-gray-300 hover:text-white transition-colors tracking-wide"
+              className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
             >
               Inicio
+              <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
 
             {/* Dropdown */}
@@ -75,10 +75,10 @@ export default function Navbar() {
               onMouseEnter={() => setIsDropdownOpen(true)}
               onMouseLeave={() => setIsDropdownOpen(false)}
             >
-              <button className="flex items-center gap-1 text-sm font-medium text-gray-300 group-hover:text-white transition-colors tracking-wide py-2">
-                Vehículos{" "}
+              <button className="flex items-center gap-2 text-xs font-bold text-gray-300 group-hover:text-white transition-colors tracking-[0.15em] uppercase py-4">
+                Vehículos
                 <ChevronDown
-                  size={14}
+                  size={12}
                   className={`transition-transform duration-300 ${
                     isDropdownOpen ? "rotate-180" : ""
                   }`}
@@ -88,26 +88,26 @@ export default function Navbar() {
               <AnimatePresence>
                 {isDropdownOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-full left-1/2 -translate-x-1/2 pt-4 w-64"
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-56"
                   >
-                    <div className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-lg p-2 shadow-2xl">
+                    <div className="bg-black/90 backdrop-blur-2xl border border-white/10 p-1 shadow-2xl">
                       {vehicleCategories.map((cat) => (
                         <Link
                           key={cat.name}
                           href={cat.href}
-                          className="block px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
+                          className="block px-6 py-3 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all tracking-widest uppercase border-l-2 border-transparent hover:border-white"
                         >
                           {cat.name}
                         </Link>
                       ))}
-                      <div className="h-px bg-white/10 my-2 mx-2"></div>
+                      <div className="h-px bg-white/10 my-1 mx-2"></div>
                       <Link
                         href="/vehicles"
-                        className="block px-4 py-3 text-sm font-bold text-mb-blue hover:text-white hover:bg-mb-blue/10 rounded-md transition-colors text-center"
+                        className="block px-6 py-3 text-xs font-bold text-white hover:bg-white/10 transition-all tracking-widest uppercase text-center"
                       >
                         Ver Todos
                       </Link>
@@ -119,22 +119,24 @@ export default function Navbar() {
 
             <Link
               href="/about"
-              className="text-sm font-medium text-gray-300 hover:text-white transition-colors tracking-wide"
+              className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
             >
               Sobre Mí
+              <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link
               href="/contact"
-              className="text-sm font-medium text-gray-300 hover:text-white transition-colors tracking-wide"
+              className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
             >
               Contacto
+              <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-white hover:text-mb-blue transition-colors"
+            className="md:hidden text-white hover:text-mb-blue transition-colors z-10"
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
