@@ -119,6 +119,14 @@ export default function Navbar() {
             </div>
 
             <Link
+              href="/usados"
+              className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
+            >
+              Usados
+              <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+
+            <Link
               href="/about"
               className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
             >
@@ -204,6 +212,14 @@ export default function Navbar() {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              <Link
+                href="/usados"
+                onClick={() => setIsOpen(false)}
+                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
+              >
+                Usados
+              </Link>
 
               <Link
                 href="/about"
