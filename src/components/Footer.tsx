@@ -11,25 +11,26 @@ export default function Footer() {
             <p className="text-xs text-gray-500 mt-1">
               Concesionario Oficial Mercedes-Benz
             </p>
+            <p className="text-xs text-gray-500 mt-2">
+              Acceso Norte República de Entre Ríos 5660
+              <br />
+              E3100 Paraná, Entre Ríos
+            </p>
           </div>
           <div className="flex space-x-6">
-            {/* Add social icons here later */}
             <a
-              href="#"
+              href="https://www.instagram.com/leoguzmanmbenz/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors"
             >
               <span className="sr-only">Instagram</span>
               Instagram
             </a>
             <a
-              href="#"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <span className="sr-only">LinkedIn</span>
-              LinkedIn
-            </a>
-            <a
-              href="#"
+              href="https://wa.me/5493425037000"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors"
             >
               <span className="sr-only">WhatsApp</span>

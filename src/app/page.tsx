@@ -55,10 +55,12 @@ export default function Home() {
           loop
           muted
           playsInline
-          poster="/hero-poster.jpg" // You might need to add this image or use a color
           className="absolute inset-0 w-full h-full object-cover opacity-60"
         >
-          <source src="/video-home-final.mp4" type="video/mp4" />
+          <source
+            src="/Mercedes_Benz_Reveal_Video_Generated.mp4"
+            type="video/mp4"
+          />
         </video>
 
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30"></div>

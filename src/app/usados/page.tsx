@@ -25,7 +25,7 @@ export default function UsadosPage() {
 
     const whatsappMessage = `Hola Leonardo, estoy interesado en un *Usado Seleccionado*.%0A%0A*Mis datos:*%0A👤 Nombre: ${name}%0A📞 Teléfono: ${phone}%0A📧 Email: ${email}%0A🚗 Vehículo de interés: ${vehicle}%0A%0A*Consulta:*%0A${message}`;
 
-    const phoneNumber = "5491112345678"; // Replace with actual number
+    const phoneNumber = "5493425037000";
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${whatsappMessage}`;
 
     window.open(whatsappUrl, "_blank");

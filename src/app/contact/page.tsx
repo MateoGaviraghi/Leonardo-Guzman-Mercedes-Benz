@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Phone, Mail, Send } from "lucide-react";
+import { MapPin, Phone, Instagram, Send } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ContactPage() {
@@ -26,7 +26,7 @@ export default function ContactPage() {
     const whatsappMessage = `Hola Leonardo, mi nombre es *${name}*.%0A%0A*Mis datos de contacto:*%0A📞 Teléfono: ${phone}%0A📧 Email: ${email}%0A%0A*Mensaje:*%0A${message}`;
 
     // Replace with the actual phone number (e.g., 549xxxxxxxxxx)
-    const phoneNumber = "5491112345678";
+    const phoneNumber = "5493425037000";
 
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${whatsappMessage}`;
 
@@ -66,7 +66,9 @@ export default function ContactPage() {
                   </h3>
                   <p className="text-white text-lg">Automotores Mega S.A.</p>
                   <p className="text-gray-400 font-light">
-                    Av. Example 1234, Buenos Aires
+                    Acceso Norte República de Entre Ríos 5660
+                    <br />
+                    E3100 Paraná, Entre Ríos
                   </p>
                 </div>
               </div>
@@ -77,23 +79,28 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold tracking-widest uppercase mb-2 text-gray-500">
-                    Teléfono / WhatsApp
+                    WhatsApp
                   </h3>
-                  <p className="text-white text-lg">+54 9 11 1234-5678</p>
+                  <p className="text-white text-lg">+54 9 342 503-7000</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-6 group">
                 <div className="p-4 bg-white/5 rounded-full group-hover:bg-white/10 transition-colors">
-                  <Mail className="w-6 h-6 text-white" />
+                  <Instagram className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold tracking-widest uppercase mb-2 text-gray-500">
-                    Email
+                    Instagram
                   </h3>
-                  <p className="text-white text-lg">
-                    leonardo.guzman@example.com
-                  </p>
+                  <a
+                    href="https://www.instagram.com/leoguzmanmbenz/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white text-lg hover:text-mb-blue transition-colors"
+                  >
+                    @leoguzmanmbenz
+                  </a>
                 </div>
               </div>
             </div>
