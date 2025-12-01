@@ -31,7 +31,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-white/5 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
             ? "bg-mb-black/90 backdrop-blur-md py-4"
             : "bg-transparent py-6"
@@ -70,14 +70,13 @@ export default function Navbar() {
               <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
             </Link>
 
-            {/* Dropdown */}
             <div
               className="relative group"
               onMouseEnter={() => setIsDropdownOpen(true)}
               onMouseLeave={() => setIsDropdownOpen(false)}
             >
               <button className="flex items-center gap-2 text-xs font-bold text-gray-300 group-hover:text-white transition-colors tracking-[0.15em] uppercase py-4">
-                Vehículos
+                VEHÍCULOS 0KM
                 <ChevronDown
                   size={12}
                   className={`transition-transform duration-300 ${
@@ -174,7 +173,7 @@ export default function Navbar() {
                 onClick={() => setIsMobileVehiclesOpen(!isMobileVehiclesOpen)}
                 className="flex items-center justify-between w-full text-xl font-bold text-white border-b border-white/10 pb-4"
               >
-                VEHÍCULOS
+                VEHÍCULOS 0KM
                 <ChevronDown
                   size={20}
                   className={`transition-transform duration-300 ${
