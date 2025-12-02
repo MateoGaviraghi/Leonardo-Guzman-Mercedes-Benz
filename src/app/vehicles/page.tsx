@@ -4,8 +4,9 @@ import VehicleCard from "@/components/VehicleCard";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { Suspense } from "react";
 
-export default function VehiclesPage() {
+function VehiclesContent() {
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || "all";
 
@@ -172,5 +173,19 @@ export default function VehiclesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VehiclesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-white text-xl">Cargando...</div>
+        </div>
+      }
+    >
+      <VehiclesContent />
+    </Suspense>
   );
 }
