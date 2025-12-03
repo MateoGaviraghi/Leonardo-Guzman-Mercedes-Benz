@@ -91,6 +91,19 @@ function VehiclesContent() {
     { id: "trucks", name: "Trucks" },
   ];
 
+  // Dynamic video selection based on category
+  const getHeroVideo = () => {
+    const videoMap: { [key: string]: string } = {
+      all: "/heros Vehiculos/MercedesBenz-todos.mp4",
+      auto: "/heros Vehiculos/mercedes benz auto.mp4",
+      suv: "/heros Vehiculos/mercedes benz suv.mp4",
+      vans: "/heros Vehiculos/mercedes benz vans.mp4",
+      sprinter: "/heros Vehiculos/mercedes benz sprinter.mp4",
+      trucks: "/heros Vehiculos/mercedes benz truck.mp4",
+    };
+    return videoMap[category] || videoMap.all;
+  };
+
   return (
     <div className="min-h-screen bg-black text-white pb-12">
       {/* Hero Section with Video */}
@@ -98,13 +111,14 @@ function VehiclesContent() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black z-10"></div>
         {/* Video Background */}
         <video
+          key={category}
           autoPlay
           loop
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-80"
         >
-          <source src="/Truck_Hero_Video.mp4" type="video/mp4" />
+          <source src={getHeroVideo()} type="video/mp4" />
         </video>
 
         <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
