@@ -15,29 +15,29 @@ export default function VehicleCategoryPage({
   useEffect(() => {
     const redirect = async () => {
       const { category } = await params;
-      // Wait for logo to fade out (0.6s) then redirect
+      // Wait for full transition (logo fade + background fade)
       setTimeout(() => {
         router.replace(`/vehicles?category=${category}`);
-      }, 600);
+      }, 1400);
     };
     redirect();
   }, [params, router]);
 
   return (
     <>
-      {/* Black Background Layer - same as template.tsx */}
+      {/* Black Background Layer - fades out slowly */}
       <motion.div
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
-        transition={{ delay: 0.8, duration: 0.8, ease: "easeInOut" }}
+        transition={{ delay: 0.6, duration: 1.0, ease: "easeInOut" }}
         className="fixed inset-0 z-[100] bg-black pointer-events-none"
       />
 
-      {/* Logo Layer - same as template.tsx */}
+      {/* Logo Layer - fades out smoothly */}
       <motion.div
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        transition={{ delay: 0.3, duration: 0.8, ease: "easeInOut" }}
         className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-none"
       >
         <div className="relative w-32 h-32">
