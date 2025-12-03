@@ -21,11 +21,11 @@ export default function Navbar() {
   }, []);
 
   const vehicleCategories = [
-    { name: "Autos", href: "/vehicles?category=auto" },
-    { name: "SUVs", href: "/vehicles?category=suv" },
-    { name: "Vans", href: "/vehicles?category=vans" },
-    { name: "Sprinter", href: "/vehicles?category=sprinter" },
-    { name: "Trucks", href: "/vehicles?category=trucks" },
+    { name: "Autos", href: "/vehicles/auto" },
+    { name: "SUVs", href: "/vehicles/suv" },
+    { name: "Vans", href: "/vehicles/vans" },
+    { name: "Sprinter", href: "/vehicles/sprinter" },
+    { name: "Trucks", href: "/vehicles/trucks" },
   ];
 
   return (

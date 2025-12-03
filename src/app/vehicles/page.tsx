@@ -332,7 +332,7 @@ function VehiclesContent() {
     <div className="min-h-screen bg-black text-white pb-12">
       {/* Hero Section with Video */}
       <div className="relative h-[85vh] flex items-center justify-center overflow-hidden mb-20">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black z-10"></div>
+        <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/40 to-black z-10"></div>
         {/* Video Background */}
         <video
           key={category}
@@ -371,7 +371,7 @@ function VehiclesContent() {
       </div>
 
       {/* Category Filter Buttons - Above Grid */}
-      <div className="bg-black border-b border-white/10 py-6 mb-12">
+      <div className="bg-black border-b border-white/10 py-6 mb-16">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="flex flex-wrap lg:flex-nowrap justify-center gap-3 lg:gap-4">
             {categories.map((cat) => (
@@ -393,9 +393,9 @@ function VehiclesContent() {
 
       {/* Main Content Container */}
       <div
-        className={`w-full ${
+        className={`w-full pt-12 pb-12 ${
           (category === "auto" || category === "suv") && brand === "amg"
-            ? "bg-gradient-to-br from-neutral-800 via-neutral-900 to-black border-y border-[#5AC3B6]/30 shadow-[0_0_40px_rgba(90,195,182,0.2)]"
+            ? "bg-linear-to-br from-neutral-800 via-neutral-900 to-black border-y border-[#5AC3B6]/30 shadow-[0_0_40px_rgba(90,195,182,0.2)]"
             : ""
         }`}
       >
