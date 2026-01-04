@@ -1,11 +1,16 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase environment variables");
-}
+// Create a dummy client for build time, real client for runtime
+export const supabase: SupabaseClient<Database> = createClient<Database>(
+  supabaseUrl || "https://placeholder.supabase.co",
+  supabaseAnonKey || "placeholder-key"
+);
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+// Helper to check if Supabase is configured
+export const isSupabaseConfigured = () => {
+  return Boolean(supabaseUrl && supabaseAnonKey);
+};
