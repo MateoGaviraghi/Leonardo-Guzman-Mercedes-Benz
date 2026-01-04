@@ -25,69 +25,94 @@ export interface Vehicle {
   brand: string; // "Mercedes-Benz"
   is_amg: boolean; // true si es modelo AMG, false si es normal
 
+  // ========== HERO ==========
+  subtitle?: string; // Subtítulo del hero (opcional)
+
   // ========== ASPECTOS GENERALES (4 items en hero) ==========
-  aspecto1?: string; // Ej: "163 CV"
-  aspecto2?: string; // Ej: "270 Nm"
-  aspecto3?: string; // Ej: "0-100 en 8.4s"
-  aspecto4?: string; // Ej: "229 km/h"
+  // Cada aspecto tiene valor + etiqueta (ej: "163 CV" + "Potencia")
+  aspecto1Valor?: string; // Ej: "163 CV"
+  aspecto1Label?: string; // Ej: "Potencia"
+  aspecto2Valor?: string; // Ej: "270 Nm"
+  aspecto2Label?: string; // Ej: "Par motor"
+  aspecto3Valor?: string; // Ej: "8,4 s"
+  aspecto3Label?: string; // Ej: "Aceleración en 0 a 100 km/h"
+  aspecto4Valor?: string; // Ej: "229 km/h"
+  aspecto4Label?: string; // Ej: "Velocidad máxima"
 
-  // ========== EXTERIOR ==========
-  exteriorDescription?: string; // Descripción general del exterior
-  // Captions para cada foto (frontend busca /vehicles/{id}/exterior/1.jpg, 2.jpg, etc)
-  exterior1Caption?: string;
-  exterior2Caption?: string;
-  exterior3Caption?: string;
-  exterior4Caption?: string;
-  exterior5Caption?: string;
-  exterior6Caption?: string;
+  // ========== EXTERIOR (6 imágenes) ==========
+  // Cada imagen tiene título + descripción (igual que equipamiento)
+  exterior1Title?: string; // Ej: "Diseño frontal"
+  exterior1Description?: string; // Descripción de la imagen 1
+  exterior2Title?: string;
+  exterior2Description?: string;
+  exterior3Title?: string;
+  exterior3Description?: string;
+  exterior4Title?: string;
+  exterior4Description?: string;
+  exterior5Title?: string;
+  exterior5Description?: string;
+  exterior6Title?: string;
+  exterior6Description?: string;
 
-  // ========== COLORES ==========
-  // Frontend maneja automáticamente: /vehicles/{id}/colors/1.jpg, 2.jpg, etc
-  color1Name?: string; // Ej: "Blanco Polar"
-  color2Name?: string;
-  color3Name?: string;
-  color4Name?: string;
-  color5Name?: string;
+  // ========== COLORES (5 opciones) ==========
+  // Solo imágenes - el frontend las muestra en un slider
+  // No hay título ni descripción - solo cambio visual del color
+  // Frontend busca: /vehicles/{id}/colors/1.avif, 2.avif, 3.avif, etc.
 
-  // ========== INTERIOR ==========
-  interiorDescription?: string; // Descripción general del interior
-  // Captions para cada foto (frontend busca /vehicles/{id}/interior/1.jpg, 2.jpg, etc)
-  interior1Caption?: string;
-  interior2Caption?: string;
-  interior3Caption?: string;
-  interior4Caption?: string;
-  interior5Caption?: string;
-  interior6Caption?: string;
+  // ========== INTERIOR (6 imágenes) ==========
+  // Cada imagen tiene título + descripción
+  interior1Title?: string; // Ej: "Habitáculo premium"
+  interior1Description?: string; // Descripción de la imagen 1
+  interior2Title?: string;
+  interior2Description?: string;
+  interior3Title?: string;
+  interior3Description?: string;
+  interior4Title?: string;
+  interior4Description?: string;
+  interior5Title?: string;
+  interior5Description?: string;
+  interior6Title?: string;
+  interior6Description?: string;
 
-  // ========== DATOS TÉCNICOS (TODO opcional) ==========
-  // Cada categoría es un array de { label, value }
-  specsConsumo?: SpecItem[]; // Ej: [{ label: "Capacidad tanque", value: "43 L" }]
-  specsMotorizacion?: SpecItem[];
-  specsPotencia?: SpecItem[];
-  specsDimensiones?: SpecItem[];
-  specsPerformance?: SpecItem[];
-  specsCarroceria?: SpecItem[];
-  specsChasis?: SpecItem[];
-  specsPesos?: SpecItem[];
+  // ========== ESPECIFICACIONES TÉCNICAS ==========
+  // 8 categorías fijas, cada una con array de items { valor, label }
+  // Consumo y emisión
+  specsConsumo?: { valor: string; label: string }[];
+  // Motorización
+  specsMotorizacion?: { valor: string; label: string }[];
+  // Potencia y autonomía
+  specsPotencia?: { valor: string; label: string }[];
+  // Dimensiones
+  specsDimensiones?: { valor: string; label: string }[];
+  // Performance
+  specsPerformance?: { valor: string; label: string }[];
+  // Carrocería
+  specsCarroceria?: { valor: string; label: string }[];
+  // Chasis
+  specsChasis?: { valor: string; label: string }[];
+  // Cantidades, dimensiones y pesos
+  specsCantidades?: { valor: string; label: string }[];
+
+  // ========== DIMENSIONES ==========
+  // Carousel de imágenes (diagramas del vehículo con medidas)
+  // Frontend busca: /vehicles/{id}/dimensions/1.avif, 2.avif, etc.
+  // Sin campos de texto - solo imágenes
 
   // ========== EQUIPAMIENTO ==========
-  // Frontend busca imágenes: /vehicles/{id}/equipment/1.jpg, 2.jpg, etc
-  equip1Title?: string;
-  equip1Description?: string;
-  equip2Title?: string;
-  equip2Description?: string;
-  equip3Title?: string;
-  equip3Description?: string;
-  equip4Title?: string;
-  equip4Description?: string;
-  equip5Title?: string;
-  equip5Description?: string;
-  equip6Title?: string;
-  equip6Description?: string;
-  equip7Title?: string;
-  equip7Description?: string;
-  equip8Title?: string;
-  equip8Description?: string;
+  // Título y descripción general
+  equipmentGeneralTitle?: string;
+  equipmentGeneralDescription?: string;
+
+  // 4 categorías fijas, cada una con array de items { title?, description? }
+  // Frontend busca imágenes: /vehicles/{id}/equipment/multimedia/1.avif, 2.avif...
+  // Sistema de multimedias
+  equipMultimedia?: { title?: string; description?: string }[];
+  // Sistemas de asistencia a la conducción
+  equipAsistencia?: { title?: string; description?: string }[];
+  // Confort
+  equipConfort?: { title?: string; description?: string }[];
+  // Tren de rodaje
+  equipTrenRodaje?: { title?: string; description?: string }[];
 }
 
 // ========================================
