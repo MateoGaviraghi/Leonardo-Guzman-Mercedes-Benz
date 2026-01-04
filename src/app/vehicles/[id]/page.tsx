@@ -1163,11 +1163,11 @@ export default function VehicleDetailPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-light mb-6 tracking-tight">
-              Descubrí más
+              ¿Te interesa este vehículo?
             </h2>
             <p className="text-lg md:text-xl text-gray-600 font-light mb-12 max-w-2xl mx-auto">
-              Agendá una cita con nuestros asesores para conocer todas las
-              características de este vehículo
+              Contactame para conocer más detalles, disponibilidad y coordinar
+              una visita personalizada
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -1175,7 +1175,7 @@ export default function VehicleDetailPage() {
                 href="/contact"
                 className="group relative px-10 py-4 bg-black text-white font-light text-sm tracking-wider uppercase overflow-hidden transition-all duration-300 hover:bg-zinc-800"
               >
-                <span className="relative z-10">Contactar</span>
+                <span className="relative z-10">Contactame</span>
               </Link>
 
               <Link
