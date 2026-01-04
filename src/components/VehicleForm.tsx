@@ -212,13 +212,29 @@ export default function VehicleForm({
                 className="w-full px-3 py-2 border rounded-md text-gray-900"
               >
                 <option value="">Seleccionar...</option>
-                <option value="sedanes">Sedanes</option>
-                <option value="suvs">SUVs</option>
-                <option value="coupes">Coupés</option>
-                <option value="convertibles">Convertibles</option>
-                <option value="amg">AMG</option>
-                <option value="electricos">Eléctricos</option>
+                <optgroup label="🚗 Autos">
+                  <option value="sedanes">Sedanes</option>
+                  <option value="compactos">Compactos</option>
+                  <option value="coupes">Coupés</option>
+                  <option value="convertibles">Convertibles</option>
+                  <option value="electricos">Eléctricos</option>
+                  <option value="deportivos">Deportivos</option>
+                </optgroup>
+                <optgroup label="🚙 SUVs">
+                  <option value="suvs">SUVs</option>
+                  <option value="crossovers">Crossovers</option>
+                </optgroup>
+                <optgroup label="🚐 Comerciales">
+                  <option value="vans">Vans</option>
+                  <option value="sprinter">Sprinter</option>
+                </optgroup>
+                <optgroup label="🚛 Camiones">
+                  <option value="trucks">Trucks / Camiones</option>
+                </optgroup>
               </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Categoría principal para la navegación del sitio
+              </p>
             </div>
 
             <div>

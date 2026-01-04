@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
+import type { Vehicle } from "@/data/vehicles";
 
 function VehiclesContent() {
   const searchParams = useSearchParams();
@@ -13,6 +14,41 @@ function VehiclesContent() {
   const brand = searchParams.get("brand") || "mercedes-benz";
   const subcategory = searchParams.get("subcategory") || "all";
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [prevCategory, setPrevCategory] = useState(category);
+
+  // Handle category transition animation
+  useEffect(() => {
+    if (category !== prevCategory) {
+      setIsTransitioning(true);
+      const timer = setTimeout(() => {
+        setIsTransitioning(false);
+        setPrevCategory(category);
+      }, 1600); // Match template.tsx timing (0.8 delay + 0.8 duration)
+      return () => clearTimeout(timer);
+    }
+  }, [category, prevCategory]);
+
+  // Fetch vehicles from API
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const response = await fetch("/api/vehicles");
+        const data = await response.json();
+        if (data.success) {
+          setVehicles(data.vehicles || []);
+        }
+      } catch (error) {
+        console.error("Error fetching vehicles:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicles();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -82,225 +118,99 @@ function VehiclesContent() {
     return [];
   };
 
-  const vehicles = [
-    {
-      id: "1",
-      name: "Clase A Hatchback",
-      category: "auto",
-      brand: "mercedes-benz",
-      subcategory: "clase-a-hatchback",
-      image:
-        "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "2",
-      name: "Clase C Sedán",
-      category: "auto",
-      brand: "mercedes-benz",
-      subcategory: "clase-c",
-      image:
-        "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "13",
-      name: "Clase E Sedán",
-      category: "auto",
-      brand: "mercedes-benz",
-      subcategory: "clase-e",
-      image:
-        "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "14",
-      name: "EQS",
-      category: "auto",
-      brand: "mercedes-benz",
-      subcategory: "eqs",
-      image:
-        "https://images.unsplash.com/photo-1620891549027-942fdc95d3f5?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "15",
-      name: "Mercedes-AMG A 45 S",
-      category: "auto",
-      brand: "amg",
-      subcategory: "a-35-45",
-      image:
-        "https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "16",
-      name: "Mercedes-AMG GT",
-      category: "auto",
-      brand: "amg",
-      subcategory: "amg-gt",
-      image:
-        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "17",
-      name: "Mercedes-AMG C 63 S E PERFORMANCE",
-      category: "auto",
-      brand: "amg",
-      subcategory: "c-43-63",
-      image:
-        "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "3",
-      name: "GLA SUV",
-      category: "suv",
-      brand: "mercedes-benz",
-      subcategory: "gla",
-      image:
-        "https://images.unsplash.com/photo-1609521263047-f8f205293f24?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "4",
-      name: "GLC SUV",
-      category: "suv",
-      brand: "mercedes-benz",
-      subcategory: "glc",
-      image:
-        "https://images.unsplash.com/photo-1506015391300-4802dc74de2e?q=80&w=2159&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "8",
-      name: "GLE SUV",
-      category: "suv",
-      brand: "mercedes-benz",
-      subcategory: "gle",
-      image:
-        "https://images.unsplash.com/photo-1605218427368-35b019b8a394?q=80&w=1974&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "18",
-      name: "Clase G",
-      category: "suv",
-      brand: "mercedes-benz",
-      subcategory: "clase-g",
-      image:
-        "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "19",
-      name: "EQE SUV",
-      category: "suv",
-      brand: "mercedes-benz",
-      subcategory: "eqe-suv",
-      image:
-        "https://images.unsplash.com/photo-1620891549027-942fdc95d3f5?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "20",
-      name: "Mercedes-AMG GLA 45 S",
-      category: "suv",
-      brand: "amg",
-      subcategory: "gla-35-45",
-      image:
-        "https://images.unsplash.com/photo-1609521263047-f8f205293f24?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "21",
-      name: "Mercedes-AMG GLC 63 S",
-      category: "suv",
-      brand: "amg",
-      subcategory: "glc-43-63",
-      image:
-        "https://images.unsplash.com/photo-1506015391300-4802dc74de2e?q=80&w=2159&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "22",
-      name: "Mercedes-AMG G 63",
-      category: "suv",
-      brand: "amg",
-      subcategory: "g-63",
-      image:
-        "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "5",
-      name: "Sprinter Furgón",
-      category: "sprinter",
-      image:
-        "https://images.unsplash.com/photo-1566008885218-90abf9200ddb?q=80&w=2000&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "6",
-      name: "Atego 1726",
-      category: "trucks",
-      subcategory: "atego",
-      image:
-        "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "7",
-      name: "Vito Furgón",
-      category: "vans",
-      image:
-        "https://images.unsplash.com/photo-1626668893632-6f3a4466d22f?q=80&w=2072&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "9",
-      name: "Actros 2651",
-      category: "trucks",
-      subcategory: "actros",
-      image:
-        "https://images.unsplash.com/photo-1586864387634-80150c44ff66?q=80&w=2070&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "10",
-      name: "Accelo 815",
-      category: "trucks",
-      subcategory: "accelo",
-      image:
-        "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?q=80&w=2072&auto=format&fit=crop",
-      price: "Consultar",
-    },
-    {
-      id: "11",
-      name: "Arocs 4145",
-      category: "trucks",
-      subcategory: "arocs",
-      image:
-        "https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=2076&auto=format&fit=crop",
-      price: "Consultar",
-    },
-  ];
+  // Map vehicle category to main category
+  // Handles all variations: singular, plural, with/without accents, different cases
+  const getMainCategory = (vehicleCategory: string): string => {
+    const cat = vehicleCategory.toLowerCase().trim();
 
+    // AUTO categories (sedans, compacts, coupes, electric, general autos)
+    const autoCategories = [
+      "auto",
+      "autos",
+      "sedan",
+      "sedanes",
+      "sedán",
+      "sedánes",
+      "compacto",
+      "compactos",
+      "compacta",
+      "compactas",
+      "coupe",
+      "coupes",
+      "coupé",
+      "coupés",
+      "electrico",
+      "electricos",
+      "eléctrico",
+      "eléctricos",
+      "deportivo",
+      "deportivos",
+      "convertible",
+      "convertibles",
+      "cabriolet",
+      "amg", // AMG cars that are not SUVs go to auto
+    ];
+
+    // SUV categories
+    const suvCategories = [
+      "suv",
+      "suvs",
+      "crossover",
+      "crossovers",
+      "todoterreno",
+      "4x4",
+    ];
+
+    // VANS categories
+    const vansCategories = ["van", "vans"];
+
+    // SPRINTER categories
+    const sprinterCategories = ["sprinter", "sprinters"];
+
+    // TRUCKS categories
+    const trucksCategories = [
+      "truck",
+      "trucks",
+      "camion",
+      "camiones",
+      "camión",
+    ];
+
+    if (autoCategories.includes(cat)) return "auto";
+    if (suvCategories.includes(cat)) return "suv";
+    if (vansCategories.includes(cat)) return "vans";
+    if (sprinterCategories.includes(cat)) return "sprinter";
+    if (trucksCategories.includes(cat)) return "trucks";
+
+    // Default: return lowercase for consistency
+    return cat;
+  };
+
+  // Filter vehicles based on category, brand, and subcategory
   const filteredVehicles =
     category === "all"
       ? vehicles
       : vehicles.filter((v) => {
-          if (v.category !== category) return false;
+          const mainCategory = getMainCategory(v.category);
+          if (mainCategory !== category) return false;
 
           // Filter by brand for auto and suv categories
           if ((category === "auto" || category === "suv") && brand !== "all") {
-            if (v.brand !== brand) return false;
+            const isAMG = v.is_amg || false;
+            if (brand === "amg" && !isAMG) return false;
+            if (brand === "mercedes-benz" && isAMG) return false;
           }
 
-          // Filter by subcategory
-          if (subcategory !== "all" && v.subcategory) {
-            return v.subcategory === subcategory;
+          // Filter by subcategory - match vehicle category with selected subcategory
+          if (subcategory !== "all") {
+            const vehicleCat = v.category.toLowerCase().trim();
+            // Check if the vehicle's category matches or contains the subcategory
+            if (
+              !vehicleCat.includes(subcategory) &&
+              vehicleCat !== subcategory
+            ) {
+              return false;
+            }
           }
 
           return true;
@@ -330,6 +240,35 @@ function VehiclesContent() {
 
   return (
     <div className="min-h-screen bg-black text-white pb-12">
+      {/* Transition Overlay with Logo - Same as template.tsx */}
+      <AnimatePresence>
+        {isTransitioning && (
+          <>
+            <motion.div
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0 }}
+              transition={{ delay: 0.8, duration: 0.8, ease: "easeInOut" }}
+              className="fixed inset-0 z-[100] bg-black pointer-events-none"
+            />
+            <motion.div
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-none"
+            >
+              <div className="relative w-32 h-32">
+                <Image
+                  src="/logo mercedes benz.png"
+                  alt="Mercedes-Benz Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Hero Section with Video */}
       <div className="relative h-[85vh] flex items-center justify-center overflow-hidden mb-20">
         <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/40 to-black z-10"></div>
@@ -529,30 +468,39 @@ function VehiclesContent() {
 
             {/* Vehicle Grid */}
             <div className="flex-1">
-              <div
-                className={`grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16 ${
-                  category === "trucks" ||
-                  category === "auto" ||
-                  category === "suv"
-                    ? "lg:grid-cols-2"
-                    : "lg:grid-cols-3"
-                }`}
-              >
-                {filteredVehicles.map((vehicle) => (
-                  <VehicleCard
-                    key={vehicle.id}
-                    title={vehicle.name}
-                    category={vehicle.category}
-                    href={`/vehicles/${vehicle.id}`}
-                    image={vehicle.image}
-                  />
-                ))}
-              </div>
-
-              {filteredVehicles.length === 0 && (
-                <div className="text-center py-20 text-gray-500">
-                  No se encontraron vehículos en esta categoría.
+              {loading ? (
+                <div className="text-center py-20">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                  <p className="mt-4 text-gray-400">Cargando vehículos...</p>
                 </div>
+              ) : (
+                <>
+                  <div
+                    className={`grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16 ${
+                      category === "trucks" ||
+                      category === "auto" ||
+                      category === "suv"
+                        ? "lg:grid-cols-2"
+                        : "lg:grid-cols-3"
+                    }`}
+                  >
+                    {filteredVehicles.map((vehicle) => (
+                      <VehicleCard
+                        key={vehicle.id}
+                        title={vehicle.name}
+                        category={vehicle.category}
+                        href={`/vehicles/${vehicle.id}`}
+                        image={`/vehicles/${vehicle.id}/foto-card/card`}
+                      />
+                    ))}
+                  </div>
+
+                  {filteredVehicles.length === 0 && (
+                    <div className="text-center py-20 text-gray-500">
+                      No se encontraron vehículos en esta categoría.
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

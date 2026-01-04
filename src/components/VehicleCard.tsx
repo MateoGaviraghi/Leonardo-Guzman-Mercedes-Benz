@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useState } from "react";
 
 interface VehicleCardProps {
   title: string;
   category: string;
   href: string;
-  image: string;
+  image: string; // Base path without extension, e.g., "/vehicles/id/foto-card/card"
 }
+
+const IMAGE_FORMATS = [".png", ".avif", ".webp", ".jpg", ".jpeg"];
 
 export default function VehicleCard({
   title,
@@ -16,16 +19,39 @@ export default function VehicleCard({
   href,
   image,
 }: VehicleCardProps) {
+  // Remove extension if provided to get base path
+  const basePath = image.replace(/\.(png|avif|webp|jpg|jpeg)$/i, "");
+  const [formatIndex, setFormatIndex] = useState(0);
+  const [imageError, setImageError] = useState(false);
+
+  const currentSrc = `${basePath}${IMAGE_FORMATS[formatIndex]}`;
+
+  const handleImageError = () => {
+    if (formatIndex < IMAGE_FORMATS.length - 1) {
+      setFormatIndex(formatIndex + 1);
+    } else {
+      setImageError(true);
+    }
+  };
+
   return (
     <Link
       href={href}
-      className="group block relative w-full aspect-[4/3] overflow-hidden bg-zinc-900"
+      className="group block relative w-full aspect-[16/9] overflow-hidden bg-neutral-900"
     >
       {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-        style={{ backgroundImage: `url('${image}')` }}
-      />
+      {!imageError ? (
+        <img
+          src={currentSrc}
+          alt={title}
+          onError={handleImageError}
+          className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-700 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-800">
+          <span className="text-zinc-500 text-sm">Sin imagen</span>
+        </div>
+      )}
 
       {/* Overlay Gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />

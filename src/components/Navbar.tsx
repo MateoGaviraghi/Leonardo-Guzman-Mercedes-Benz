@@ -21,11 +21,11 @@ export default function Navbar() {
   }, []);
 
   const vehicleCategories = [
-    { name: "Autos", href: "/vehicles/auto" },
-    { name: "SUVs", href: "/vehicles/suv" },
-    { name: "Vans", href: "/vehicles/vans" },
-    { name: "Sprinter", href: "/vehicles/sprinter" },
-    { name: "Trucks", href: "/vehicles/trucks" },
+    { name: "Autos", href: "/vehicles?category=auto" },
+    { name: "SUVs", href: "/vehicles?category=suv" },
+    { name: "Vans", href: "/vehicles?category=vans" },
+    { name: "Sprinter", href: "/vehicles?category=sprinter" },
+    { name: "Trucks", href: "/vehicles?category=trucks" },
   ];
 
   return (
@@ -54,7 +54,7 @@ export default function Navbar() {
               <span className="text-lg font-bold tracking-tight text-white leading-none uppercase">
                 Leonardo Guzman
               </span>
-              <span className="text-[10px] font-medium tracking-[0.2em] text-gray-400 leading-none mt-1 group-hover:text-mb-blue transition-colors uppercase">
+              <span className="text-xs font-medium tracking-[0.15em] text-gray-400 leading-none mt-1 group-hover:text-mb-blue transition-colors uppercase">
                 Automotores Mega
               </span>
             </div>
