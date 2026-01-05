@@ -54,11 +54,11 @@ export default function VehicleCard({
       )}
 
       {/* Overlay Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end">
-        <p className="text-xs font-bold tracking-widest text-gray-400 mb-1 uppercase">
+        <p className="text-xs font-bold tracking-widest text-white/80 mb-1 uppercase">
           {category}
         </p>
         <div className="flex items-center justify-between">

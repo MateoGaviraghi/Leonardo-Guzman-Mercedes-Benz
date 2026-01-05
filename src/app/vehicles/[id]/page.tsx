@@ -85,11 +85,11 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
       {/* Navigation Arrows - Minimalistas sin borde */}
       <button
         onClick={scrollPrev}
-        className="absolute -left-8 md:-left-16 top-1/2 -translate-y-1/2 p-3 transition-all duration-300 group hover:opacity-70"
+        className="absolute left-2 sm:left-4 md:-left-8 lg:-left-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
         aria-label="Anterior"
       >
         <svg
-          className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 text-black"
+          className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 text-black"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -104,11 +104,11 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
       </button>
       <button
         onClick={scrollNext}
-        className="absolute -right-8 md:-right-16 top-1/2 -translate-y-1/2 p-3 transition-all duration-300 group hover:opacity-70"
+        className="absolute right-2 sm:right-4 md:-right-8 lg:-right-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
         aria-label="Siguiente"
       >
         <svg
-          className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 text-black"
+          className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 text-black"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -214,21 +214,21 @@ function ImageCarousel({
   const isInterior = type === "interior";
 
   return (
-    <div className="relative max-w-6xl mx-auto">
+    <div className="relative">
       {/* Carousel */}
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
           {items.map((item) => (
             <div key={item.num} className="flex-[0_0_100%] min-w-0">
               <div
-                className={`relative w-full h-[400px] md:h-[500px] ${
+                className={`relative aspect-[16/9] w-full ${
                   isInterior ? "bg-black" : "bg-white"
                 }`}
               >
                 <MultiFormatImage
                   basePath={`${basePath}/${type}/${item.num}`}
                   alt={item.title || `${type} ${item.num}`}
-                  className="object-cover"
+                  className="object-contain"
                 />
               </div>
             </div>
@@ -239,11 +239,11 @@ function ImageCarousel({
       {/* Navigation Arrows - Minimalistas sin borde */}
       <button
         onClick={scrollPrev}
-        className="absolute -left-8 md:-left-16 top-[200px] md:top-[250px] -translate-y-1/2 p-3 transition-all duration-300 group hover:opacity-70"
+        className="absolute left-2 sm:left-4 md:-left-8 lg:-left-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
         aria-label="Anterior"
       >
         <svg
-          className={`w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 ${
+          className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 ${
             isInterior ? "text-white" : "text-black"
           }`}
           fill="none"
@@ -260,11 +260,11 @@ function ImageCarousel({
       </button>
       <button
         onClick={scrollNext}
-        className="absolute -right-8 md:-right-16 top-[200px] md:top-[250px] -translate-y-1/2 p-3 transition-all duration-300 group hover:opacity-70"
+        className="absolute right-2 sm:right-4 md:-right-8 lg:-right-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
         aria-label="Siguiente"
       >
         <svg
-          className={`w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 ${
+          className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 ${
             isInterior ? "text-white" : "text-black"
           }`}
           fill="none"
@@ -277,16 +277,16 @@ function ImageCarousel({
       </button>
 
       {/* Current Info */}
-      <div className="text-center mt-6">
+      <div className="text-center mt-4 sm:mt-6 px-4">
         {items[selectedIndex]?.title && (
-          <h3 className="text-2xl md:text-3xl font-light mb-3">
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-light mb-2 sm:mb-3">
             {items[selectedIndex].title}
           </h3>
         )}
         {items[selectedIndex]?.description && (
           <p
-            className={`text-base md:text-lg font-light max-w-3xl mx-auto leading-relaxed ${
-              isInterior ? "text-gray-200" : "text-gray-800"
+            className={`text-sm sm:text-base md:text-lg font-light max-w-3xl mx-auto leading-relaxed ${
+              isInterior ? "text-gray-400" : "text-gray-600"
             }`}
           >
             {items[selectedIndex].description}
@@ -295,7 +295,7 @@ function ImageCarousel({
       </div>
 
       {/* Dots */}
-      <div className="flex justify-center gap-2 mt-8">
+      <div className="flex justify-center gap-2 mt-6 sm:mt-8">
         {items.map((_, index) => (
           <button
             key={index}
@@ -303,11 +303,11 @@ function ImageCarousel({
             className={`w-2 h-2 rounded-full transition-all ${
               index === selectedIndex
                 ? isInterior
-                  ? "bg-black w-8"
-                  : "bg-white w-8"
+                  ? "bg-white w-8"
+                  : "bg-black w-8"
                 : isInterior
-                ? "bg-black/30"
-                : "bg-white/30"
+                ? "bg-white/30"
+                : "bg-black/30"
             }`}
             aria-label={`Ir a imagen ${index + 1}`}
           />
@@ -390,6 +390,16 @@ export default function VehicleDetailPage() {
   const [openSpecIndex, setOpenSpecIndex] = useState<number | null>(0);
   const [activeEquipmentTab, setActiveEquipmentTab] =
     useState<string>("multimedia");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Detectar scroll para mostrar/ocultar botón de ir arriba
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     loadVehicle();
@@ -588,17 +598,17 @@ export default function VehicleDetailPage() {
         )}
 
         {/* Gradiente overlay sofisticado */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/95"></div>
 
         {/* Contenido del hero */}
         <div className="absolute inset-0 flex items-end">
-          <div className="w-full max-w-7xl mx-auto px-6 md:px-12 pb-16 md:pb-24">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pb-12 sm:pb-16 md:pb-24">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: "easeOut" }}
             >
-              <p className="text-xs md:text-sm font-medium tracking-[0.3em] text-white/70 mb-3 uppercase">
+              <p className="text-[10px] sm:text-xs md:text-sm font-medium tracking-[0.2em] sm:tracking-[0.3em] text-white/70 mb-2 sm:mb-3 uppercase">
                 {vehicle.category}
               </p>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-light text-white mb-6 tracking-tight">
@@ -613,12 +623,12 @@ export default function VehicleDetailPage() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
+        {/* Scroll indicator - Oculto en mobile */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5, duration: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          className="hidden md:block absolute bottom-8 left-1/2 -translate-x-1/2"
         >
           <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center pt-2">
             <motion.div
@@ -636,18 +646,18 @@ export default function VehicleDetailPage() {
 
       {/* Aspectos Destacados - Cards minimalistas */}
       {vehicle.aspecto1Valor && (
-        <section className="py-24 md:py-32 bg-black text-white">
-          <div className="max-w-7xl mx-auto px-6 md:px-12">
+        <section className="py-16 sm:py-20 md:py-24 lg:py-32 bg-black text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-3xl md:text-5xl font-light mb-16 md:mb-20 text-center"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-10 sm:mb-12 md:mb-16 lg:mb-20 text-center"
             >
               Aspectos Destacados
             </motion.h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
               {[1, 2, 3, 4].map((num) => {
                 const valor = vehicle[`aspecto${num}Valor` as keyof Vehicle] as
                   | string
@@ -664,16 +674,16 @@ export default function VehicleDetailPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: num * 0.1 }}
-                    className="group relative bg-zinc-900 p-6 md:p-8 border border-white/20 hover:border-white transition-all duration-300 flex flex-col items-center justify-center min-h-[200px]"
+                    className="group relative bg-zinc-900 p-6 sm:p-7 md:p-8 border border-white/20 hover:border-white transition-all duration-300 flex flex-col items-center justify-center min-h-[160px] sm:min-h-[180px] md:min-h-[200px]"
                   >
                     {/* Línea decorativa superior */}
                     <div className="absolute top-0 left-0 w-0 h-[1px] bg-white group-hover:w-full transition-all duration-500"></div>
 
-                    <div className="text-center flex flex-col items-center justify-center gap-3">
-                      <div className="text-3xl md:text-4xl lg:text-5xl font-light tracking-tight break-words max-w-full">
+                    <div className="text-center flex flex-col items-center justify-center gap-2 sm:gap-3">
+                      <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light tracking-tight break-words max-w-full leading-tight">
                         {valor}
                       </div>
-                      <div className="text-xs md:text-sm text-gray-300 font-light uppercase tracking-[0.15em] break-words max-w-full">
+                      <div className="text-[10px] sm:text-xs md:text-sm text-gray-300 font-light uppercase tracking-[0.15em] sm:tracking-[0.2em] break-words max-w-full">
                         {label}
                       </div>
                     </div>
@@ -780,12 +790,12 @@ export default function VehicleDetailPage() {
             )}
 
             {/* Tabs Navigation */}
-            <div className="flex flex-wrap justify-center gap-2 md:gap-8 mb-16 border-b border-white/20">
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 mb-8 sm:mb-12 md:mb-16 border-b border-white/20 pb-0">
               {vehicle.equipMultimedia &&
                 vehicle.equipMultimedia.length > 0 && (
                   <button
                     onClick={() => setActiveEquipmentTab("multimedia")}
-                    className={`pb-4 px-2 md:px-4 text-sm md:text-base font-light transition-all ${
+                    className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
                       activeEquipmentTab === "multimedia"
                         ? "border-b-2 border-white text-white"
                         : "text-gray-400 hover:text-white"
@@ -798,19 +808,19 @@ export default function VehicleDetailPage() {
                 vehicle.equipAsistencia.length > 0 && (
                   <button
                     onClick={() => setActiveEquipmentTab("asistencia")}
-                    className={`pb-4 px-2 md:px-4 text-sm md:text-base font-light transition-all ${
+                    className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
                       activeEquipmentTab === "asistencia"
                         ? "border-b-2 border-white text-white"
                         : "text-gray-400 hover:text-white"
                     }`}
                   >
-                    Sistemas de asistencia a la conducción
+                    Sistemas de asistencia
                   </button>
                 )}
               {vehicle.equipConfort && vehicle.equipConfort.length > 0 && (
                 <button
                   onClick={() => setActiveEquipmentTab("confort")}
-                  className={`pb-4 px-2 md:px-4 text-sm md:text-base font-light transition-all ${
+                  className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
                     activeEquipmentTab === "confort"
                       ? "border-b-2 border-white text-white"
                       : "text-gray-400 hover:text-white"
@@ -823,7 +833,7 @@ export default function VehicleDetailPage() {
                 vehicle.equipTrenRodaje.length > 0 && (
                   <button
                     onClick={() => setActiveEquipmentTab("tren-rodaje")}
-                    className={`pb-4 px-2 md:px-4 text-sm md:text-base font-light transition-all ${
+                    className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
                       activeEquipmentTab === "tren-rodaje"
                         ? "border-b-2 border-white text-white"
                         : "text-gray-400 hover:text-white"
@@ -835,7 +845,7 @@ export default function VehicleDetailPage() {
             </div>
 
             {/* Tab Content */}
-            <div className="min-h-[400px]">
+            <div className="min-h-[300px] sm:min-h-[350px] md:min-h-[400px]">
               {/* Multimedia */}
               {activeEquipmentTab === "multimedia" &&
                 vehicle.equipMultimedia && (
@@ -843,7 +853,7 @@ export default function VehicleDetailPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
                   >
                     {vehicle.equipMultimedia.map((item, index) => {
                       const imagePath = `${basePath}/equipment/multimedia/${
@@ -858,7 +868,7 @@ export default function VehicleDetailPage() {
                           transition={{ delay: index * 0.1 }}
                           className="group"
                         >
-                          <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-4">
+                          <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
                             <MultiFormatImage
                               basePath={imagePath}
                               alt={item.title || "Multimedia"}
@@ -866,9 +876,9 @@ export default function VehicleDetailPage() {
                             />
                           </div>
                           {(item.title || item.description) && (
-                            <div className="py-3">
+                            <div className="py-2 sm:py-3">
                               {item.title && (
-                                <h4 className="text-lg font-light mb-2 text-white">
+                                <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
                                   {item.title}
                                 </h4>
                               )}
@@ -892,7 +902,7 @@ export default function VehicleDetailPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
                   >
                     {vehicle.equipAsistencia.map((item, index) => {
                       const imagePath = `${basePath}/equipment/asistencia/${
@@ -907,7 +917,7 @@ export default function VehicleDetailPage() {
                           transition={{ delay: index * 0.1 }}
                           className="group"
                         >
-                          <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-4">
+                          <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
                             <MultiFormatImage
                               basePath={imagePath}
                               alt={item.title || "Asistencia"}
@@ -915,9 +925,9 @@ export default function VehicleDetailPage() {
                             />
                           </div>
                           {(item.title || item.description) && (
-                            <div className="py-3">
+                            <div className="py-2 sm:py-3">
                               {item.title && (
-                                <h4 className="text-lg font-light mb-2 text-white">
+                                <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
                                   {item.title}
                                 </h4>
                               )}
@@ -940,7 +950,7 @@ export default function VehicleDetailPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
                 >
                   {vehicle.equipConfort.map((item, index) => {
                     const imagePath = `${basePath}/equipment/confort/${
@@ -955,7 +965,7 @@ export default function VehicleDetailPage() {
                         transition={{ delay: index * 0.1 }}
                         className="group"
                       >
-                        <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-4">
+                        <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
                           <MultiFormatImage
                             basePath={imagePath}
                             alt={item.title || "Confort"}
@@ -963,9 +973,9 @@ export default function VehicleDetailPage() {
                           />
                         </div>
                         {(item.title || item.description) && (
-                          <div className="py-3">
+                          <div className="py-2 sm:py-3">
                             {item.title && (
-                              <h4 className="text-lg font-light mb-2 text-white">
+                              <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
                                 {item.title}
                               </h4>
                             )}
@@ -989,7 +999,7 @@ export default function VehicleDetailPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
                   >
                     {vehicle.equipTrenRodaje.map((item, index) => {
                       const imagePath = `${basePath}/equipment/tren-rodaje/${
@@ -1004,7 +1014,7 @@ export default function VehicleDetailPage() {
                           transition={{ delay: index * 0.1 }}
                           className="group"
                         >
-                          <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-4">
+                          <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
                             <MultiFormatImage
                               basePath={imagePath}
                               alt={item.title || "Tren de rodaje"}
@@ -1012,9 +1022,9 @@ export default function VehicleDetailPage() {
                             />
                           </div>
                           {(item.title || item.description) && (
-                            <div className="py-3">
+                            <div className="py-2 sm:py-3">
                               {item.title && (
-                                <h4 className="text-lg font-light mb-2 text-white">
+                                <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
                                   {item.title}
                                 </h4>
                               )}
@@ -1190,28 +1200,31 @@ export default function VehicleDetailPage() {
       </section>
 
       {/* Back to top button */}
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="fixed bottom-8 right-8 w-12 h-12 md:w-14 md:h-14 rounded-full border border-black/20 backdrop-blur-sm bg-white/80 flex items-center justify-center transition-all duration-300 z-50 group hover:bg-white hover:border-black/40"
-        aria-label="Volver arriba"
-      >
-        <svg
-          className="w-5 h-5 md:w-6 md:h-6 text-black transition-transform group-hover:-translate-y-1"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          viewBox="0 0 24 24"
+      {showScrollTop && (
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 }}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-8 right-8 w-12 h-12 md:w-14 md:h-14 rounded-full border border-black/20 backdrop-blur-sm bg-white/80 flex items-center justify-center transition-all duration-300 z-50 group hover:bg-white hover:border-black/40"
+          aria-label="Volver arriba"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M5 10l7-7m0 0l7 7m-7-7v18"
-          />
-        </svg>
-      </motion.button>
+          <svg
+            className="w-5 h-5 md:w-6 md:h-6 text-black transition-transform group-hover:-translate-y-1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 10l7-7m0 0l7 7m-7-7v18"
+            />
+          </svg>
+        </motion.button>
+      )}
     </div>
   );
 }
