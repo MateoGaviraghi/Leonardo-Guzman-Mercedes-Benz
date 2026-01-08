@@ -53,11 +53,20 @@ export default function FinanciacionPage() {
       <section className="relative h-[600px] md:h-[700px] lg:h-[800px] overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
+          {/* Mobile Hero - visible only on screens < 768px */}
+          <Image
+            src="/hero-financiacion/financiacionMobile.jpg"
+            alt="Mercedes-Benz Financiera"
+            fill
+            className="object-cover md:hidden"
+            priority
+          />
+          {/* Desktop Hero - visible only on screens >= 768px */}
           <Image
             src="/hero-financiacion/financiacion.png"
             alt="Mercedes-Benz Financiera"
             fill
-            className="object-cover"
+            className="object-cover hidden md:block"
             priority
           />
           {/* Dark Overlay */}
