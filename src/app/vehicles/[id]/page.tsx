@@ -144,11 +144,13 @@ function MultiFormatImage({
   alt,
   fill = true,
   className = "",
+  priority = false,
 }: {
   basePath: string;
   alt: string;
   fill?: boolean;
   className?: string;
+  priority?: boolean;
 }) {
   const [formatIndex, setFormatIndex] = useState(0);
   const [hasError, setHasError] = useState(false);
@@ -169,6 +171,7 @@ function MultiFormatImage({
       alt={alt}
       fill={fill}
       className={className}
+      priority={priority}
       onError={handleError}
     />
   );
@@ -586,16 +589,23 @@ export default function VehicleDetailPage() {
     <div className="min-h-screen bg-black">
       {/* Hero Section - Fullscreen con overlay elegante */}
       <section className="relative h-screen w-full overflow-hidden">
-        {!hasImageError(`${basePath}/hero/hero`) && (
-          <Image
-            src={getImagePath(`${basePath}/hero/hero`)}
-            alt={vehicle.name}
-            fill
-            priority
-            className="object-cover"
-            onError={() => handleImageError(`${basePath}/hero/hero`)}
-          />
-        )}
+        {/* Mobile Hero - visible only on screens < 768px */}
+        <MultiFormatImage
+          basePath={`${basePath}/hero/hero-mobile`}
+          alt={vehicle.name}
+          fill
+          className="object-cover md:hidden"
+          priority
+        />
+
+        {/* Desktop Hero - visible only on screens >= 768px */}
+        <MultiFormatImage
+          basePath={`${basePath}/hero/hero`}
+          alt={vehicle.name}
+          fill
+          className="object-cover hidden md:block"
+          priority
+        />
 
         {/* Gradiente overlay sofisticado */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/95"></div>
