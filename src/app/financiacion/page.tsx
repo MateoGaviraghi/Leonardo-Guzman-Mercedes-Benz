@@ -29,7 +29,7 @@ export default function FinanciacionPage() {
         "Amortización acelerada del bien",
         "Servicios de Administración",
       ],
-      image: "/financiacion/leasing.jpg",
+      image: "/financiacion/leasing.png",
     },
     {
       title: "Flotas.",
