@@ -24,6 +24,13 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [imageFormat, setImageFormat] = useState<Record<number, string>>({});
+
+  // Intentar múltiples formatos para cada imagen
+  const tryImageFormats = (num: number) => {
+    const formats = ["jpg", "png", "avif", "webp"];
+    return formats[0]; // Empezar con jpg
+  };
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -64,21 +71,35 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
       {/* Carousel */}
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
-          {colorImages.map((num) => (
-            <div key={num} className="flex-[0_0_100%] min-w-0">
-              <div className="relative aspect-[16/9] w-full">
-                <Image
-                  src={`/vehicles/${vehicleId}/colors/${num}.png`}
-                  alt={`Color ${num}`}
-                  fill
-                  className="object-contain"
-                  onError={() =>
-                    setImageErrors((prev) => new Set(prev).add(num))
-                  }
-                />
+          {colorImages.map((num) => {
+            const format = imageFormat[num] || "jpg";
+            return (
+              <div key={num} className="flex-[0_0_100%] min-w-0">
+                <div className="relative aspect-[16/9] w-full">
+                  <Image
+                    src={`/vehicles/${vehicleId}/colors/${num}.${format}?v=${Date.now()}`}
+                    alt={`Color ${num}`}
+                    fill
+                    className="object-contain"
+                    onError={() => {
+                      // Intentar siguiente formato
+                      const formats = ["jpg", "png", "avif", "webp"];
+                      const currentIndex = formats.indexOf(format);
+                      if (currentIndex < formats.length - 1) {
+                        setImageFormat((prev) => ({
+                          ...prev,
+                          [num]: formats[currentIndex + 1],
+                        }));
+                      } else {
+                        setImageErrors((prev) => new Set(prev).add(num));
+                      }
+                    }}
+                    unoptimized
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -145,12 +166,14 @@ function MultiFormatImage({
   fill = true,
   className = "",
   priority = false,
+  sizes = "100vw",
 }: {
   basePath: string;
   alt: string;
   fill?: boolean;
   className?: string;
   priority?: boolean;
+  sizes?: string;
 }) {
   const [formatIndex, setFormatIndex] = useState(0);
   const [hasError, setHasError] = useState(false);
@@ -172,6 +195,7 @@ function MultiFormatImage({
       fill={fill}
       className={className}
       priority={priority}
+      sizes={sizes}
       onError={handleError}
     />
   );
@@ -495,6 +519,20 @@ export default function VehicleDetailPage() {
           vehicle.equipTrenRodaje = JSON.parse(vehicle.equip_tren_rodaje);
         else vehicle.equipTrenRodaje = vehicle.equip_tren_rodaje || [];
 
+        if (
+          vehicle.equip_seguridad &&
+          typeof vehicle.equip_seguridad === "string"
+        )
+          vehicle.equipSeguridad = JSON.parse(vehicle.equip_seguridad);
+        else vehicle.equipSeguridad = vehicle.equip_seguridad || [];
+
+        if (
+          vehicle.specs_bateria_carga &&
+          typeof vehicle.specs_bateria_carga === "string"
+        )
+          vehicle.specsBateriaCarga = JSON.parse(vehicle.specs_bateria_carga);
+        else vehicle.specsBateriaCarga = vehicle.specs_bateria_carga || [];
+
         // Convertir snake_case a camelCase
         vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
         vehicle.aspecto1Label = vehicle.aspecto_1_label;
@@ -517,6 +555,14 @@ export default function VehicleDetailPage() {
         vehicle.exterior5Description = vehicle.exterior_5_description;
         vehicle.exterior6Title = vehicle.exterior_6_title;
         vehicle.exterior6Description = vehicle.exterior_6_description;
+        vehicle.exterior7Title = vehicle.exterior_7_title;
+        vehicle.exterior7Description = vehicle.exterior_7_description;
+        vehicle.exterior8Title = vehicle.exterior_8_title;
+        vehicle.exterior8Description = vehicle.exterior_8_description;
+        vehicle.exterior9Title = vehicle.exterior_9_title;
+        vehicle.exterior9Description = vehicle.exterior_9_description;
+        vehicle.exterior10Title = vehicle.exterior_10_title;
+        vehicle.exterior10Description = vehicle.exterior_10_description;
 
         vehicle.interior1Title = vehicle.interior_1_title;
         vehicle.interior1Description = vehicle.interior_1_description;
@@ -530,6 +576,14 @@ export default function VehicleDetailPage() {
         vehicle.interior5Description = vehicle.interior_5_description;
         vehicle.interior6Title = vehicle.interior_6_title;
         vehicle.interior6Description = vehicle.interior_6_description;
+        vehicle.interior7Title = vehicle.interior_7_title;
+        vehicle.interior7Description = vehicle.interior_7_description;
+        vehicle.interior8Title = vehicle.interior_8_title;
+        vehicle.interior8Description = vehicle.interior_8_description;
+        vehicle.interior9Title = vehicle.interior_9_title;
+        vehicle.interior9Description = vehicle.interior_9_description;
+        vehicle.interior10Title = vehicle.interior_10_title;
+        vehicle.interior10Description = vehicle.interior_10_description;
 
         vehicle.equipmentGeneralTitle = vehicle.equipment_general_title;
         vehicle.equipmentGeneralDescription =
@@ -590,13 +644,18 @@ export default function VehicleDetailPage() {
       {/* Hero Section - Fullscreen con overlay elegante */}
       <section className="relative h-screen w-full overflow-hidden">
         {/* Mobile Hero - visible only on screens < 768px */}
-        <MultiFormatImage
-          basePath={`${basePath}/hero/hero-mobile`}
-          alt={vehicle.name}
-          fill
-          className="object-cover md:hidden"
-          priority
-        />
+        {!hasImageError(`${basePath}/hero/hero-mobile`) && (
+          <Image
+            src={`${basePath}/hero/hero-mobile.jpg?v=${Date.now()}`}
+            alt={vehicle.name}
+            fill
+            className="object-cover md:hidden"
+            priority
+            sizes="100vw"
+            onError={() => handleImageError(`${basePath}/hero/hero-mobile`)}
+            unoptimized
+          />
+        )}
 
         {/* Desktop Hero - visible only on screens >= 768px */}
         <MultiFormatImage
@@ -605,6 +664,7 @@ export default function VehicleDetailPage() {
           fill
           className="object-cover hidden md:block"
           priority
+          sizes="100vw"
         />
 
         {/* Gradiente overlay sofisticado */}
@@ -706,64 +766,76 @@ export default function VehicleDetailPage() {
       )}
 
       {/* Exterior - Carousel */}
-      <section className="py-24 md:py-32 bg-white text-black">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-light mb-16 text-center"
-          >
-            Exterior
-          </motion.h2>
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some(
+        (num) =>
+          vehicle[`exterior${num}Title` as keyof Vehicle] ||
+          vehicle[`exterior${num}Description` as keyof Vehicle]
+      ) && (
+        <section className="py-24 md:py-32 bg-white text-black">
+          <div className="max-w-7xl mx-auto px-6 md:px-12">
+            <motion.h2
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-3xl md:text-5xl font-light mb-16 text-center"
+            >
+              Exterior
+            </motion.h2>
 
-          <ImageCarousel
-            items={[1, 2, 3, 4, 5, 6]
-              .map((num) => ({
-                num,
-                title: vehicle[`exterior${num}Title` as keyof Vehicle] as
-                  | string
-                  | undefined,
-                description: vehicle[
-                  `exterior${num}Description` as keyof Vehicle
-                ] as string | undefined,
-              }))
-              .filter((item) => item.title || item.description)}
-            basePath={basePath}
-            type="exterior"
-          />
-        </div>
-      </section>
+            <ImageCarousel
+              items={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                .map((num) => ({
+                  num,
+                  title: vehicle[`exterior${num}Title` as keyof Vehicle] as
+                    | string
+                    | undefined,
+                  description: vehicle[
+                    `exterior${num}Description` as keyof Vehicle
+                  ] as string | undefined,
+                }))
+                .filter((item) => item.title || item.description)}
+              basePath={basePath}
+              type="exterior"
+            />
+          </div>
+        </section>
+      )}
 
       {/* Interior - Carousel */}
-      <section className="py-24 md:py-32 bg-black text-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-light mb-16 text-center"
-          >
-            Interior
-          </motion.h2>
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some(
+        (num) =>
+          vehicle[`interior${num}Title` as keyof Vehicle] ||
+          vehicle[`interior${num}Description` as keyof Vehicle]
+      ) && (
+        <section className="py-24 md:py-32 bg-black text-white">
+          <div className="max-w-7xl mx-auto px-6 md:px-12">
+            <motion.h2
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-3xl md:text-5xl font-light mb-16 text-center"
+            >
+              Interior
+            </motion.h2>
 
-          <ImageCarousel
-            items={[1, 2, 3, 4, 5, 6]
-              .map((num) => ({
-                num,
-                title: vehicle[`interior${num}Title` as keyof Vehicle] as
-                  | string
-                  | undefined,
-                description: vehicle[
-                  `interior${num}Description` as keyof Vehicle
-                ] as string | undefined,
-              }))
-              .filter((item) => item.title || item.description)}
-            basePath={basePath}
-            type="interior"
-          />
-        </div>
-      </section>
+            <ImageCarousel
+              items={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                .map((num) => ({
+                  num,
+                  title: vehicle[`interior${num}Title` as keyof Vehicle] as
+                    | string
+                    | undefined,
+                  description: vehicle[
+                    `interior${num}Description` as keyof Vehicle
+                  ] as string | undefined,
+                }))
+                .filter((item) => item.title || item.description)}
+              basePath={basePath}
+              type="interior"
+            />
+          </div>
+        </section>
+      )}
 
       {/* Colores - Carousel de variantes de color */}
       <section className="py-24 md:py-32 bg-white text-black">
@@ -782,237 +854,206 @@ export default function VehicleDetailPage() {
       </section>
 
       {/* Equipamiento - Con sistema de tabs */}
-      {vehicle.equipmentGeneralTitle && (
-        <section className="py-24 md:py-32 bg-black text-white">
-          <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <motion.h2
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-3xl md:text-5xl font-light mb-6 text-center"
-            >
-              {vehicle.equipmentGeneralTitle}
-            </motion.h2>
-            {vehicle.equipmentGeneralDescription && (
-              <p className="text-lg md:text-xl text-gray-200 font-light mb-16 md:mb-24 max-w-3xl mx-auto text-center">
-                {vehicle.equipmentGeneralDescription}
-              </p>
-            )}
-
-            {/* Tabs Navigation */}
-            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 mb-8 sm:mb-12 md:mb-16 border-b border-white/20 pb-0">
-              {vehicle.equipMultimedia &&
-                vehicle.equipMultimedia.length > 0 && (
-                  <button
-                    onClick={() => setActiveEquipmentTab("multimedia")}
-                    className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
-                      activeEquipmentTab === "multimedia"
-                        ? "border-b-2 border-white text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    Sistema multimedia
-                  </button>
-                )}
-              {vehicle.equipAsistencia &&
-                vehicle.equipAsistencia.length > 0 && (
-                  <button
-                    onClick={() => setActiveEquipmentTab("asistencia")}
-                    className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
-                      activeEquipmentTab === "asistencia"
-                        ? "border-b-2 border-white text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    Sistemas de asistencia
-                  </button>
-                )}
-              {vehicle.equipConfort && vehicle.equipConfort.length > 0 && (
-                <button
-                  onClick={() => setActiveEquipmentTab("confort")}
-                  className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
-                    activeEquipmentTab === "confort"
-                      ? "border-b-2 border-white text-white"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  Confort
-                </button>
-              )}
-              {vehicle.equipTrenRodaje &&
-                vehicle.equipTrenRodaje.length > 0 && (
-                  <button
-                    onClick={() => setActiveEquipmentTab("tren-rodaje")}
-                    className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
-                      activeEquipmentTab === "tren-rodaje"
-                        ? "border-b-2 border-white text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    Tren de rodaje
-                  </button>
-                )}
-            </div>
-
-            {/* Tab Content */}
-            <div className="min-h-[300px] sm:min-h-[350px] md:min-h-[400px]">
-              {/* Multimedia */}
-              {activeEquipmentTab === "multimedia" &&
-                vehicle.equipMultimedia && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
-                  >
-                    {vehicle.equipMultimedia.map((item, index) => {
-                      const imagePath = `${basePath}/equipment/multimedia/${
-                        index + 1
-                      }`;
-                      return (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: index * 0.1 }}
-                          className="group"
-                        >
-                          <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
-                            <MultiFormatImage
-                              basePath={imagePath}
-                              alt={item.title || "Multimedia"}
-                              className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          </div>
-                          {(item.title || item.description) && (
-                            <div className="py-2 sm:py-3">
-                              {item.title && (
-                                <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
-                                  {item.title}
-                                </h4>
-                              )}
-                              {item.description && (
-                                <p className="text-sm text-gray-200 font-light leading-relaxed">
-                                  {item.description}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </motion.div>
-                      );
-                    })}
-                  </motion.div>
-                )}
-
-              {/* Asistencia */}
-              {activeEquipmentTab === "asistencia" &&
-                vehicle.equipAsistencia && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
-                  >
-                    {vehicle.equipAsistencia.map((item, index) => {
-                      const imagePath = `${basePath}/equipment/asistencia/${
-                        index + 1
-                      }`;
-                      return (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: index * 0.1 }}
-                          className="group"
-                        >
-                          <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
-                            <MultiFormatImage
-                              basePath={imagePath}
-                              alt={item.title || "Asistencia"}
-                              className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          </div>
-                          {(item.title || item.description) && (
-                            <div className="py-2 sm:py-3">
-                              {item.title && (
-                                <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
-                                  {item.title}
-                                </h4>
-                              )}
-                              {item.description && (
-                                <p className="text-sm text-gray-200 font-light leading-relaxed">
-                                  {item.description}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </motion.div>
-                      );
-                    })}
-                  </motion.div>
-                )}
-
-              {/* Confort */}
-              {activeEquipmentTab === "confort" && vehicle.equipConfort && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
-                >
-                  {vehicle.equipConfort.map((item, index) => {
-                    const imagePath = `${basePath}/equipment/confort/${
-                      index + 1
-                    }`;
-                    return (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: index * 0.1 }}
-                        className="group"
-                      >
-                        <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
-                          <MultiFormatImage
-                            basePath={imagePath}
-                            alt={item.title || "Confort"}
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        </div>
-                        {(item.title || item.description) && (
-                          <div className="py-2 sm:py-3">
-                            {item.title && (
-                              <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
-                                {item.title}
-                              </h4>
-                            )}
-                            {item.description && (
-                              <p className="text-sm text-gray-200 font-light leading-relaxed">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
+      {vehicle.equipmentGeneralTitle &&
+        ((vehicle.equipMultimedia && vehicle.equipMultimedia.length > 0) ||
+          (vehicle.equipAsistencia && vehicle.equipAsistencia.length > 0) ||
+          (vehicle.equipConfort && vehicle.equipConfort.length > 0) ||
+          (vehicle.equipTrenRodaje && vehicle.equipTrenRodaje.length > 0) ||
+          (vehicle.equipSeguridad && vehicle.equipSeguridad.length > 0)) && (
+          <section className="py-24 md:py-32 bg-black text-white">
+            <div className="max-w-7xl mx-auto px-6 md:px-12">
+              <motion.h2
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className="text-3xl md:text-5xl font-light mb-6 text-center"
+              >
+                {vehicle.equipmentGeneralTitle}
+              </motion.h2>
+              {vehicle.equipmentGeneralDescription && (
+                <p className="text-lg md:text-xl text-gray-200 font-light mb-16 md:mb-24 max-w-3xl mx-auto text-center">
+                  {vehicle.equipmentGeneralDescription}
+                </p>
               )}
 
-              {/* Tren de rodaje */}
-              {activeEquipmentTab === "tren-rodaje" &&
-                vehicle.equipTrenRodaje && (
+              {/* Tabs Navigation */}
+              <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 mb-8 sm:mb-12 md:mb-16 border-b border-white/20 pb-0">
+                {vehicle.equipMultimedia &&
+                  vehicle.equipMultimedia.length > 0 && (
+                    <button
+                      onClick={() => setActiveEquipmentTab("multimedia")}
+                      className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
+                        activeEquipmentTab === "multimedia"
+                          ? "border-b-2 border-white text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      Sistema multimedia
+                    </button>
+                  )}
+                {vehicle.equipAsistencia &&
+                  vehicle.equipAsistencia.length > 0 && (
+                    <button
+                      onClick={() => setActiveEquipmentTab("asistencia")}
+                      className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
+                        activeEquipmentTab === "asistencia"
+                          ? "border-b-2 border-white text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      Sistemas de asistencia
+                    </button>
+                  )}
+                {vehicle.equipConfort && vehicle.equipConfort.length > 0 && (
+                  <button
+                    onClick={() => setActiveEquipmentTab("confort")}
+                    className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
+                      activeEquipmentTab === "confort"
+                        ? "border-b-2 border-white text-white"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    Confort
+                  </button>
+                )}
+                {vehicle.equipTrenRodaje &&
+                  vehicle.equipTrenRodaje.length > 0 && (
+                    <button
+                      onClick={() => setActiveEquipmentTab("tren-rodaje")}
+                      className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
+                        activeEquipmentTab === "tren-rodaje"
+                          ? "border-b-2 border-white text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      Tren de rodaje
+                    </button>
+                  )}
+                {vehicle.equipSeguridad &&
+                  vehicle.equipSeguridad.length > 0 && (
+                    <button
+                      onClick={() => setActiveEquipmentTab("seguridad")}
+                      className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
+                        activeEquipmentTab === "seguridad"
+                          ? "border-b-2 border-white text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      Seguridad
+                    </button>
+                  )}
+              </div>
+
+              {/* Tab Content */}
+              <div className="min-h-[300px] sm:min-h-[350px] md:min-h-[400px]">
+                {/* Multimedia */}
+                {activeEquipmentTab === "multimedia" &&
+                  vehicle.equipMultimedia && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
+                    >
+                      {vehicle.equipMultimedia.map((item, index) => {
+                        const imagePath = `${basePath}/equipment/multimedia/${
+                          index + 1
+                        }`;
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: index * 0.1 }}
+                            className="group"
+                          >
+                            <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
+                              <MultiFormatImage
+                                basePath={imagePath}
+                                alt={item.title || "Multimedia"}
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            </div>
+                            {(item.title || item.description) && (
+                              <div className="py-2 sm:py-3">
+                                {item.title && (
+                                  <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
+                                    {item.title}
+                                  </h4>
+                                )}
+                                {item.description && (
+                                  <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+
+                {/* Asistencia */}
+                {activeEquipmentTab === "asistencia" &&
+                  vehicle.equipAsistencia && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
+                    >
+                      {vehicle.equipAsistencia.map((item, index) => {
+                        const imagePath = `${basePath}/equipment/asistencia/${
+                          index + 1
+                        }`;
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: index * 0.1 }}
+                            className="group"
+                          >
+                            <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
+                              <MultiFormatImage
+                                basePath={imagePath}
+                                alt={item.title || "Asistencia"}
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            </div>
+                            {(item.title || item.description) && (
+                              <div className="py-2 sm:py-3">
+                                {item.title && (
+                                  <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
+                                    {item.title}
+                                  </h4>
+                                )}
+                                {item.description && (
+                                  <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+
+                {/* Confort */}
+                {activeEquipmentTab === "confort" && vehicle.equipConfort && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
                   >
-                    {vehicle.equipTrenRodaje.map((item, index) => {
-                      const imagePath = `${basePath}/equipment/tren-rodaje/${
+                    {vehicle.equipConfort.map((item, index) => {
+                      const imagePath = `${basePath}/equipment/confort/${
                         index + 1
                       }`;
                       return (
@@ -1027,7 +1068,7 @@ export default function VehicleDetailPage() {
                           <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
                             <MultiFormatImage
                               basePath={imagePath}
-                              alt={item.title || "Tren de rodaje"}
+                              alt={item.title || "Confort"}
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                           </div>
@@ -1050,20 +1091,120 @@ export default function VehicleDetailPage() {
                     })}
                   </motion.div>
                 )}
+
+                {/* Tren de rodaje */}
+                {activeEquipmentTab === "tren-rodaje" &&
+                  vehicle.equipTrenRodaje && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
+                    >
+                      {vehicle.equipTrenRodaje.map((item, index) => {
+                        const imagePath = `${basePath}/equipment/tren-rodaje/${
+                          index + 1
+                        }`;
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: index * 0.1 }}
+                            className="group"
+                          >
+                            <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
+                              <MultiFormatImage
+                                basePath={imagePath}
+                                alt={item.title || "Tren de rodaje"}
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            </div>
+                            {(item.title || item.description) && (
+                              <div className="py-2 sm:py-3">
+                                {item.title && (
+                                  <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
+                                    {item.title}
+                                  </h4>
+                                )}
+                                {item.description && (
+                                  <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+
+                {/* Seguridad */}
+                {activeEquipmentTab === "seguridad" &&
+                  vehicle.equipSeguridad && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
+                    >
+                      {vehicle.equipSeguridad.map((item, index) => {
+                        const imagePath = `${basePath}/equipment/seguridad/${
+                          index + 1
+                        }`;
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: index * 0.1 }}
+                            className="group"
+                          >
+                            <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
+                              <MultiFormatImage
+                                basePath={imagePath}
+                                alt={item.title || "Seguridad"}
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            </div>
+                            {(item.title || item.description) && (
+                              <div className="py-2 sm:py-3">
+                                {item.title && (
+                                  <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
+                                    {item.title}
+                                  </h4>
+                                )}
+                                {item.description && (
+                                  <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+              </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
       {/* Especificaciones Técnicas - Acordeón */}
-      {(vehicle.specsConsumo ||
-        vehicle.specsMotorizacion ||
-        vehicle.specsPotencia ||
-        vehicle.specsDimensiones ||
-        vehicle.specsPerformance ||
-        vehicle.specsCarroceria ||
-        vehicle.specsChasis ||
-        vehicle.specsCantidades) && (
+      {((vehicle.specsConsumo && vehicle.specsConsumo.length > 0) ||
+        (vehicle.specsMotorizacion && vehicle.specsMotorizacion.length > 0) ||
+        (vehicle.specsPotencia && vehicle.specsPotencia.length > 0) ||
+        (vehicle.specsDimensiones && vehicle.specsDimensiones.length > 0) ||
+        (vehicle.specsPerformance && vehicle.specsPerformance.length > 0) ||
+        (vehicle.specsCarroceria && vehicle.specsCarroceria.length > 0) ||
+        (vehicle.specsChasis && vehicle.specsChasis.length > 0) ||
+        (vehicle.specsCantidades && vehicle.specsCantidades.length > 0) ||
+        (vehicle.specsBateriaCarga &&
+          vehicle.specsBateriaCarga.length > 0)) && (
         <section className="py-24 md:py-32 bg-white text-black">
           <div className="max-w-5xl mx-auto px-6 md:px-12">
             <motion.h2
@@ -1165,6 +1306,18 @@ export default function VehicleDetailPage() {
                     isOpen={openSpecIndex === 7}
                     onToggle={() =>
                       setOpenSpecIndex(openSpecIndex === 7 ? null : 7)
+                    }
+                  />
+                )}
+
+              {vehicle.specsBateriaCarga &&
+                vehicle.specsBateriaCarga.length > 0 && (
+                  <AccordionItem
+                    title="Batería y carga"
+                    specs={vehicle.specsBateriaCarga}
+                    isOpen={openSpecIndex === 8}
+                    onToggle={() =>
+                      setOpenSpecIndex(openSpecIndex === 8 ? null : 8)
                     }
                   />
                 )}

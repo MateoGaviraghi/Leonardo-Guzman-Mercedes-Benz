@@ -79,6 +79,14 @@ export async function PUT(
       exterior_5_description: body.exterior5Description,
       exterior_6_title: body.exterior6Title,
       exterior_6_description: body.exterior6Description,
+      exterior_7_title: body.exterior7Title,
+      exterior_7_description: body.exterior7Description,
+      exterior_8_title: body.exterior8Title,
+      exterior_8_description: body.exterior8Description,
+      exterior_9_title: body.exterior9Title,
+      exterior_9_description: body.exterior9Description,
+      exterior_10_title: body.exterior10Title,
+      exterior_10_description: body.exterior10Description,
       interior_1_title: body.interior1Title,
       interior_1_description: body.interior1Description,
       interior_2_title: body.interior2Title,
@@ -91,6 +99,14 @@ export async function PUT(
       interior_5_description: body.interior5Description,
       interior_6_title: body.interior6Title,
       interior_6_description: body.interior6Description,
+      interior_7_title: body.interior7Title,
+      interior_7_description: body.interior7Description,
+      interior_8_title: body.interior8Title,
+      interior_8_description: body.interior8Description,
+      interior_9_title: body.interior9Title,
+      interior_9_description: body.interior9Description,
+      interior_10_title: body.interior10Title,
+      interior_10_description: body.interior10Description,
       specs_consumo: body.specsConsumo
         ? JSON.stringify(body.specsConsumo)
         : null,
@@ -113,6 +129,9 @@ export async function PUT(
       specs_cantidades: body.specsCantidades
         ? JSON.stringify(body.specsCantidades)
         : null,
+      specs_bateria_carga: body.specsBateriaCarga
+        ? JSON.stringify(body.specsBateriaCarga)
+        : null,
       equipment_general_title: body.equipmentGeneralTitle,
       equipment_general_description: body.equipmentGeneralDescription,
       equip_multimedia: body.equipMultimedia
@@ -126,6 +145,9 @@ export async function PUT(
         : null,
       equip_tren_rodaje: body.equipTrenRodaje
         ? JSON.stringify(body.equipTrenRodaje)
+        : null,
+      equip_seguridad: body.equipSeguridad
+        ? JSON.stringify(body.equipSeguridad)
         : null,
       updated_at: new Date().toISOString(),
     };

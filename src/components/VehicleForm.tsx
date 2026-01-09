@@ -30,10 +30,12 @@ export default function VehicleForm({
     specsCarroceria: [],
     specsChasis: [],
     specsCantidades: [],
+    specsBateriaCarga: [],
     equipMultimedia: [],
     equipAsistencia: [],
     equipConfort: [],
     equipTrenRodaje: [],
+    equipSeguridad: [],
   });
 
   useEffect(() => {
@@ -49,8 +51,129 @@ export default function VehicleForm({
       const response = await fetch(`/api/vehicles/${editVehicleId}`);
       if (!response.ok) throw new Error("Error al cargar vehículo");
       const data = await response.json();
-      setVehicleId(data.vehicle.id);
-      setFormData(data.vehicle);
+
+      // Convertir datos de snake_case (DB) a camelCase (formulario)
+      const vehicle = data.vehicle;
+
+      // Parsear campos JSON
+      if (vehicle.specs_consumo && typeof vehicle.specs_consumo === "string")
+        vehicle.specsConsumo = JSON.parse(vehicle.specs_consumo);
+      if (
+        vehicle.specs_motorizacion &&
+        typeof vehicle.specs_motorizacion === "string"
+      )
+        vehicle.specsMotorizacion = JSON.parse(vehicle.specs_motorizacion);
+      if (vehicle.specs_potencia && typeof vehicle.specs_potencia === "string")
+        vehicle.specsPotencia = JSON.parse(vehicle.specs_potencia);
+      if (
+        vehicle.specs_dimensiones &&
+        typeof vehicle.specs_dimensiones === "string"
+      )
+        vehicle.specsDimensiones = JSON.parse(vehicle.specs_dimensiones);
+      if (
+        vehicle.specs_performance &&
+        typeof vehicle.specs_performance === "string"
+      )
+        vehicle.specsPerformance = JSON.parse(vehicle.specs_performance);
+      if (
+        vehicle.specs_carroceria &&
+        typeof vehicle.specs_carroceria === "string"
+      )
+        vehicle.specsCarroceria = JSON.parse(vehicle.specs_carroceria);
+      if (vehicle.specs_chasis && typeof vehicle.specs_chasis === "string")
+        vehicle.specsChasis = JSON.parse(vehicle.specs_chasis);
+      if (
+        vehicle.specs_cantidades &&
+        typeof vehicle.specs_cantidades === "string"
+      )
+        vehicle.specsCantidades = JSON.parse(vehicle.specs_cantidades);
+      if (
+        vehicle.specs_bateria_carga &&
+        typeof vehicle.specs_bateria_carga === "string"
+      )
+        vehicle.specsBateriaCarga = JSON.parse(vehicle.specs_bateria_carga);
+
+      if (
+        vehicle.equip_multimedia &&
+        typeof vehicle.equip_multimedia === "string"
+      )
+        vehicle.equipMultimedia = JSON.parse(vehicle.equip_multimedia);
+      if (
+        vehicle.equip_asistencia &&
+        typeof vehicle.equip_asistencia === "string"
+      )
+        vehicle.equipAsistencia = JSON.parse(vehicle.equip_asistencia);
+      if (vehicle.equip_confort && typeof vehicle.equip_confort === "string")
+        vehicle.equipConfort = JSON.parse(vehicle.equip_confort);
+      if (
+        vehicle.equip_tren_rodaje &&
+        typeof vehicle.equip_tren_rodaje === "string"
+      )
+        vehicle.equipTrenRodaje = JSON.parse(vehicle.equip_tren_rodaje);
+      if (
+        vehicle.equip_seguridad &&
+        typeof vehicle.equip_seguridad === "string"
+      )
+        vehicle.equipSeguridad = JSON.parse(vehicle.equip_seguridad);
+
+      // Convertir snake_case a camelCase
+      vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
+      vehicle.aspecto1Label = vehicle.aspecto_1_label;
+      vehicle.aspecto2Valor = vehicle.aspecto_2_valor;
+      vehicle.aspecto2Label = vehicle.aspecto_2_label;
+      vehicle.aspecto3Valor = vehicle.aspecto_3_valor;
+      vehicle.aspecto3Label = vehicle.aspecto_3_label;
+      vehicle.aspecto4Valor = vehicle.aspecto_4_valor;
+      vehicle.aspecto4Label = vehicle.aspecto_4_label;
+
+      vehicle.exterior1Title = vehicle.exterior_1_title;
+      vehicle.exterior1Description = vehicle.exterior_1_description;
+      vehicle.exterior2Title = vehicle.exterior_2_title;
+      vehicle.exterior2Description = vehicle.exterior_2_description;
+      vehicle.exterior3Title = vehicle.exterior_3_title;
+      vehicle.exterior3Description = vehicle.exterior_3_description;
+      vehicle.exterior4Title = vehicle.exterior_4_title;
+      vehicle.exterior4Description = vehicle.exterior_4_description;
+      vehicle.exterior5Title = vehicle.exterior_5_title;
+      vehicle.exterior5Description = vehicle.exterior_5_description;
+      vehicle.exterior6Title = vehicle.exterior_6_title;
+      vehicle.exterior6Description = vehicle.exterior_6_description;
+      vehicle.exterior7Title = vehicle.exterior_7_title;
+      vehicle.exterior7Description = vehicle.exterior_7_description;
+      vehicle.exterior8Title = vehicle.exterior_8_title;
+      vehicle.exterior8Description = vehicle.exterior_8_description;
+      vehicle.exterior9Title = vehicle.exterior_9_title;
+      vehicle.exterior9Description = vehicle.exterior_9_description;
+      vehicle.exterior10Title = vehicle.exterior_10_title;
+      vehicle.exterior10Description = vehicle.exterior_10_description;
+
+      vehicle.interior1Title = vehicle.interior_1_title;
+      vehicle.interior1Description = vehicle.interior_1_description;
+      vehicle.interior2Title = vehicle.interior_2_title;
+      vehicle.interior2Description = vehicle.interior_2_description;
+      vehicle.interior3Title = vehicle.interior_3_title;
+      vehicle.interior3Description = vehicle.interior_3_description;
+      vehicle.interior4Title = vehicle.interior_4_title;
+      vehicle.interior4Description = vehicle.interior_4_description;
+      vehicle.interior5Title = vehicle.interior_5_title;
+      vehicle.interior5Description = vehicle.interior_5_description;
+      vehicle.interior6Title = vehicle.interior_6_title;
+      vehicle.interior6Description = vehicle.interior_6_description;
+      vehicle.interior7Title = vehicle.interior_7_title;
+      vehicle.interior7Description = vehicle.interior_7_description;
+      vehicle.interior8Title = vehicle.interior_8_title;
+      vehicle.interior8Description = vehicle.interior_8_description;
+      vehicle.interior9Title = vehicle.interior_9_title;
+      vehicle.interior9Description = vehicle.interior_9_description;
+      vehicle.interior10Title = vehicle.interior_10_title;
+      vehicle.interior10Description = vehicle.interior_10_description;
+
+      vehicle.equipmentGeneralTitle = vehicle.equipment_general_title;
+      vehicle.equipmentGeneralDescription =
+        vehicle.equipment_general_description;
+
+      setVehicleId(vehicle.id);
+      setFormData(vehicle);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
@@ -323,7 +446,7 @@ export default function VehicleForm({
           </h2>
 
           <div className="grid grid-cols-1 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((num) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
               <div
                 key={num}
                 className="border-l-4 border-gray-400 pl-4 space-y-3"
@@ -410,7 +533,7 @@ export default function VehicleForm({
           </h2>
 
           <div className="grid grid-cols-1 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((num) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
               <div
                 key={num}
                 className="border-l-4 border-gray-400 pl-4 space-y-3"
@@ -898,6 +1021,64 @@ export default function VehicleForm({
               + Agregar item
             </button>
           </div>
+
+          {/* Batería y carga (vehículos eléctricos) */}
+          <div className="border-l-4 border-green-500 pl-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Batería y carga{" "}
+              <span className="text-xs text-gray-500">
+                (Vehículos eléctricos)
+              </span>
+            </h3>
+            {(formData.specsBateriaCarga || []).map((item, index) => (
+              <div key={index} className="grid grid-cols-2 gap-3 mb-3">
+                <input
+                  type="text"
+                  value={item.valor}
+                  onChange={(e) =>
+                    updateSpecItem(
+                      "specsBateriaCarga",
+                      index,
+                      "valor",
+                      e.target.value
+                    )
+                  }
+                  placeholder="Valor (ej: 90.6 kWh o 10-80% en 31 min)"
+                  className="px-3 py-2 border rounded-md text-gray-900"
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={item.label}
+                    onChange={(e) =>
+                      updateSpecItem(
+                        "specsBateriaCarga",
+                        index,
+                        "label",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Etiqueta (ej: Capacidad o Carga rápida DC)"
+                    className="flex-1 px-3 py-2 border rounded-md text-gray-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSpecItem("specsBateriaCarga", index)}
+                    className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  >
+                    −
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => addSpecItem("specsBateriaCarga")}
+              className="mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+            >
+              + Agregar item
+            </button>
+          </div>
         </section>
 
         {/* DIMENSIONES (CAROUSEL) */}
@@ -1212,6 +1393,67 @@ export default function VehicleForm({
             <button
               type="button"
               onClick={() => addSpecItem("equipTrenRodaje")}
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              + Agregar item
+            </button>
+          </div>
+
+          {/* Seguridad */}
+          <div className="border-l-4 border-blue-500 pl-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Seguridad
+            </h3>
+            {(formData.equipSeguridad || []).map((item, index) => (
+              <div key={index} className="mb-4 p-3 bg-gray-50 rounded-md">
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                  <input
+                    type="text"
+                    value={item.title || ""}
+                    onChange={(e) =>
+                      updateSpecItem(
+                        "equipSeguridad",
+                        index,
+                        "title",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Título (opcional)"
+                    className="px-3 py-2 border rounded-md text-gray-900"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={item.description || ""}
+                      onChange={(e) =>
+                        updateSpecItem(
+                          "equipSeguridad",
+                          index,
+                          "description",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Descripción (opcional)"
+                      className="flex-1 px-3 py-2 border rounded-md text-gray-900"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSpecItem("equipSeguridad", index)}
+                      className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    >
+                      −
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  📁 /public/vehicles/{vehicleId || "[id]"}
+                  /equipment/seguridad/{index + 1}.avif
+                </p>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => addSpecItem("equipSeguridad")}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
             >
               + Agregar item

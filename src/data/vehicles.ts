@@ -39,7 +39,7 @@ export interface Vehicle {
   aspecto4Valor?: string; // Ej: "229 km/h"
   aspecto4Label?: string; // Ej: "Velocidad máxima"
 
-  // ========== EXTERIOR (6 imágenes) ==========
+  // ========== EXTERIOR (hasta 10 imágenes) ==========
   // Cada imagen tiene título + descripción (igual que equipamiento)
   exterior1Title?: string; // Ej: "Diseño frontal"
   exterior1Description?: string; // Descripción de la imagen 1
@@ -53,13 +53,21 @@ export interface Vehicle {
   exterior5Description?: string;
   exterior6Title?: string;
   exterior6Description?: string;
+  exterior7Title?: string;
+  exterior7Description?: string;
+  exterior8Title?: string;
+  exterior8Description?: string;
+  exterior9Title?: string;
+  exterior9Description?: string;
+  exterior10Title?: string;
+  exterior10Description?: string;
 
   // ========== COLORES (5 opciones) ==========
   // Solo imágenes - el frontend las muestra en un slider
   // No hay título ni descripción - solo cambio visual del color
   // Frontend busca: /vehicles/{id}/colors/1.avif, 2.avif, 3.avif, etc.
 
-  // ========== INTERIOR (6 imágenes) ==========
+  // ========== INTERIOR (hasta 10 imágenes) ==========
   // Cada imagen tiene título + descripción
   interior1Title?: string; // Ej: "Habitáculo premium"
   interior1Description?: string; // Descripción de la imagen 1
@@ -73,9 +81,17 @@ export interface Vehicle {
   interior5Description?: string;
   interior6Title?: string;
   interior6Description?: string;
+  interior7Title?: string;
+  interior7Description?: string;
+  interior8Title?: string;
+  interior8Description?: string;
+  interior9Title?: string;
+  interior9Description?: string;
+  interior10Title?: string;
+  interior10Description?: string;
 
   // ========== ESPECIFICACIONES TÉCNICAS ==========
-  // 8 categorías fijas, cada una con array de items { valor, label }
+  // 9 categorías, cada una con array de items { valor, label }
   // Consumo y emisión
   specsConsumo?: { valor: string; label: string }[];
   // Motorización
@@ -92,6 +108,8 @@ export interface Vehicle {
   specsChasis?: { valor: string; label: string }[];
   // Cantidades, dimensiones y pesos
   specsCantidades?: { valor: string; label: string }[];
+  // Batería y carga (para vehículos eléctricos)
+  specsBateriaCarga?: { valor: string; label: string }[];
 
   // ========== DIMENSIONES ==========
   // Carousel de imágenes (diagramas del vehículo con medidas)
@@ -103,7 +121,7 @@ export interface Vehicle {
   equipmentGeneralTitle?: string;
   equipmentGeneralDescription?: string;
 
-  // 4 categorías fijas, cada una con array de items { title?, description? }
+  // 5 categorías fijas, cada una con array de items { title?, description? }
   // Frontend busca imágenes: /vehicles/{id}/equipment/multimedia/1.avif, 2.avif...
   // Sistema de multimedias
   equipMultimedia?: { title?: string; description?: string }[];
@@ -113,6 +131,8 @@ export interface Vehicle {
   equipConfort?: { title?: string; description?: string }[];
   // Tren de rodaje
   equipTrenRodaje?: { title?: string; description?: string }[];
+  // Seguridad
+  equipSeguridad?: { title?: string; description?: string }[];
 }
 
 // ========================================
