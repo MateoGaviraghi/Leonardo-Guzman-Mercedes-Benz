@@ -24,6 +24,7 @@ export interface Vehicle {
   category: string; // "Autos" | "SUV" | "Eléctricos"
   brand: string; // "Mercedes-Benz"
   is_amg: boolean; // true si es modelo AMG, false si es normal
+  fuel_type?: string; // "nafta" | "electrico" | "hibrido" (opcional)
 
   // ========== HERO ==========
   subtitle?: string; // Subtítulo del hero (opcional)

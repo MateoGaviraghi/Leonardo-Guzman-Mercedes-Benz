@@ -13,6 +13,7 @@ function VehiclesContent() {
   const category = searchParams.get("category") || "all";
   const brand = searchParams.get("brand") || "mercedes-benz";
   const subcategory = searchParams.get("subcategory") || "all";
+  const fuelType = searchParams.get("fuelType") || "all";
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,50 +72,34 @@ function VehiclesContent() {
     { id: "arocs", name: "Arocs" },
   ];
 
-  // Auto subcategories - Mercedes-Benz (SOLO GRUPOS)
-  const autoMercedesSubcategories = [
+  // Carrocerías - Auto subcategories
+  const autoBodyTypes = [
     { id: "all", name: "Todos" },
-    { id: "compactos", name: "Compactos" },
-    { id: "sedanes", name: "Sedanes" },
+    { id: "sedan", name: "Sedán" },
+    { id: "hatchback", name: "Hatchback" },
     { id: "coupes", name: "Coupés" },
-    { id: "electricos", name: "Eléctricos" },
+    { id: "cabrios-roadsters", name: "Cabrios/Roadsters" },
   ];
 
-  // Auto subcategories - AMG (SOLO GRUPOS)
-  const autoAMGSubcategories = [
+  // Carrocerías - SUV subcategories
+  const suvBodyTypes = [
     { id: "all", name: "Todos" },
-    { id: "compactos-deportivos", name: "Compactos Deportivos" },
-    { id: "sedanes-performance", name: "Sedanes de Performance" },
-    { id: "deportivos-puros", name: "Deportivos Puros" },
-    { id: "electricos-performance", name: "Eléctricos de Performance" },
+    { id: "suv-todoterreno", name: "SUV & Todoterreno" },
   ];
 
-  // SUV subcategories - Mercedes-Benz (SOLO GRUPOS)
-  const suvMercedesSubcategories = [
+  // Tipo de combustible (opcional para todos)
+  const fuelTypes = [
     { id: "all", name: "Todos" },
-    { id: "compactas", name: "Compactas" },
-    { id: "medianas-grandes", name: "Medianas / Grandes" },
-    { id: "lujo", name: "Lujo / Full Size" },
-    { id: "electricas", name: "SUVs Eléctricas" },
+    { id: "nafta", name: "Nafta" },
+    { id: "electrico", name: "Eléctrico" },
+    { id: "hibrido", name: "Híbrido" },
   ];
 
-  // SUV subcategories - AMG (SOLO GRUPOS)
-  const suvAMGSubcategories = [
-    { id: "all", name: "Todos" },
-    { id: "compactas", name: "Compactas" },
-    { id: "medianas-grandes", name: "Medianas / Grandes" },
-    { id: "leyenda", name: "La Leyenda" },
-  ];
-
-  // Get subcategories based on category and brand
-  const getSubcategories = () => {
+  // Get body types based on category
+  const getBodyTypes = () => {
     if (category === "trucks") return truckSubcategories;
-    if (category === "auto") {
-      return brand === "amg" ? autoAMGSubcategories : autoMercedesSubcategories;
-    }
-    if (category === "suv") {
-      return brand === "amg" ? suvAMGSubcategories : suvMercedesSubcategories;
-    }
+    if (category === "auto") return autoBodyTypes;
+    if (category === "suv") return suvBodyTypes;
     return [];
   };
 
@@ -201,7 +186,7 @@ function VehiclesContent() {
             if (brand === "mercedes-benz" && isAMG) return false;
           }
 
-          // Filter by subcategory - match vehicle category with selected subcategory
+          // Filter by subcategory (body type) - match vehicle category with selected subcategory
           if (subcategory !== "all") {
             const vehicleCat = v.category.toLowerCase().trim();
             // Check if the vehicle's category matches or contains the subcategory
@@ -209,6 +194,14 @@ function VehiclesContent() {
               !vehicleCat.includes(subcategory) &&
               vehicleCat !== subcategory
             ) {
+              return false;
+            }
+          }
+
+          // Filter by fuel type
+          if (fuelType !== "all") {
+            const vehicleFuel = (v.fuel_type || "").toLowerCase().trim();
+            if (vehicleFuel !== fuelType) {
               return false;
             }
           }
@@ -439,29 +432,62 @@ function VehiclesContent() {
                     </div>
                   </div>
 
-                  {/* Subcategories */}
-                  <nav className="p-3 lg:p-4 overflow-x-auto lg:overflow-x-visible lg:max-h-[65vh] lg:overflow-y-auto custom-scrollbar">
-                    <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
-                      {getSubcategories().map((subcat) => (
-                        <Link
-                          key={subcat.id}
-                          href={`/vehicles?category=${category}&brand=${brand}&subcategory=${subcat.id}`}
-                          scroll={false}
-                          className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
-                            subcategory === subcat.id
-                              ? brand === "amg"
-                                ? "text-black bg-[#5AC3B6] border-[#5AC3B6] shadow-md"
-                                : "text-black bg-white border-white"
-                              : brand === "amg"
-                              ? "text-white bg-transparent border-[#5AC3B6]/30 hover:bg-[#5AC3B6]/10 hover:border-[#5AC3B6]/50"
-                              : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
-                          }`}
-                        >
-                          {subcat.name}
-                        </Link>
-                      ))}
+                  {/* Filters */}
+                  <div className="p-3 lg:p-4 overflow-x-auto lg:overflow-x-visible lg:max-h-[65vh] lg:overflow-y-auto custom-scrollbar space-y-6">
+                    {/* Carrocerías */}
+                    <div>
+                      <h3 className="text-xs font-bold tracking-widest text-white/60 mb-3 uppercase">
+                        Carrocerías
+                      </h3>
+                      <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
+                        {getBodyTypes().map((bodyType) => (
+                          <Link
+                            key={bodyType.id}
+                            href={`/vehicles?category=${category}&brand=${brand}&subcategory=${bodyType.id}&fuelType=${fuelType}`}
+                            scroll={false}
+                            className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
+                              subcategory === bodyType.id
+                                ? brand === "amg"
+                                  ? "text-black bg-[#5AC3B6] border-[#5AC3B6] shadow-md"
+                                  : "text-black bg-white border-white"
+                                : brand === "amg"
+                                ? "text-white bg-transparent border-[#5AC3B6]/30 hover:bg-[#5AC3B6]/10 hover:border-[#5AC3B6]/50"
+                                : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
+                            }`}
+                          >
+                            {bodyType.name}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </nav>
+
+                    {/* Tipo de combustible */}
+                    <div>
+                      <h3 className="text-xs font-bold tracking-widest text-white/60 mb-3 uppercase">
+                        Tipo de combustible
+                      </h3>
+                      <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
+                        {fuelTypes.map((fuel) => (
+                          <Link
+                            key={fuel.id}
+                            href={`/vehicles?category=${category}&brand=${brand}&subcategory=${subcategory}&fuelType=${fuel.id}`}
+                            scroll={false}
+                            className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
+                              fuelType === fuel.id
+                                ? brand === "amg"
+                                  ? "text-black bg-[#5AC3B6] border-[#5AC3B6] shadow-md"
+                                  : "text-black bg-white border-white"
+                                : brand === "amg"
+                                ? "text-white bg-transparent border-[#5AC3B6]/30 hover:bg-[#5AC3B6]/10 hover:border-[#5AC3B6]/50"
+                                : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
+                            }`}
+                          >
+                            {fuel.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </aside>
             )}
@@ -491,6 +517,7 @@ function VehiclesContent() {
                         category={vehicle.category}
                         href={`/vehicles/${vehicle.id}`}
                         image={`/vehicles/${vehicle.id}/foto-card/card`}
+                        fuelType={vehicle.fuel_type}
                       />
                     ))}
                   </div>

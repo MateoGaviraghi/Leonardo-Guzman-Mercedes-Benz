@@ -9,6 +9,7 @@ interface VehicleCardProps {
   category: string;
   href: string;
   image: string; // Base path without extension, e.g., "/vehicles/id/foto-card/card"
+  fuelType?: string; // "nafta" | "electrico" | "hibrido"
 }
 
 const IMAGE_FORMATS = [".png", ".avif", ".webp", ".jpg", ".jpeg"];
@@ -18,6 +19,7 @@ export default function VehicleCard({
   category,
   href,
   image,
+  fuelType,
 }: VehicleCardProps) {
   // Remove extension if provided to get base path
   const basePath = image.replace(/\.(png|avif|webp|jpg|jpeg)$/i, "");
@@ -25,6 +27,7 @@ export default function VehicleCard({
   const [imageError, setImageError] = useState(false);
 
   const currentSrc = `${basePath}${IMAGE_FORMATS[formatIndex]}`;
+  const isElectric = fuelType?.toLowerCase() === "electrico";
 
   const handleImageError = () => {
     if (formatIndex < IMAGE_FORMATS.length - 1) {
@@ -55,6 +58,15 @@ export default function VehicleCard({
 
       {/* Overlay Gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+
+      {/* Tag Eléctrico */}
+      {isElectric && (
+        <div className="absolute top-4 right-4 z-20">
+          <span className="inline-block bg-neutral-800/90 backdrop-blur-sm text-white text-xs font-semibold tracking-wide px-3 py-1 rounded-full border border-white/20">
+            ⚡ Eléctrico
+          </span>
+        </div>
+      )}
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end">

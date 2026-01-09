@@ -117,6 +117,7 @@ export default function VehicleForm({
         vehicle.equipSeguridad = JSON.parse(vehicle.equip_seguridad);
 
       // Convertir snake_case a camelCase
+      vehicle.fuelType = vehicle.fuel_type;
       vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
       vehicle.aspecto1Label = vehicle.aspecto_1_label;
       vehicle.aspecto2Valor = vehicle.aspecto_2_valor;
@@ -372,6 +373,26 @@ export default function VehicleForm({
                 required
                 className="w-full px-3 py-2 border rounded-md text-gray-900"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-700">
+                Tipo de combustible
+              </label>
+              <select
+                name="fuelType"
+                value={formData.fuel_type || ""}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-md text-gray-900"
+              >
+                <option value="">Seleccionar...</option>
+                <option value="nafta">Nafta</option>
+                <option value="electrico">Eléctrico</option>
+                <option value="hibrido">Híbrido</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Los eléctricos muestran un tag especial
+              </p>
             </div>
           </div>
 

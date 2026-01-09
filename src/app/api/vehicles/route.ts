@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       category: body.category,
       brand: body.brand,
       is_amg: body.is_amg || false,
+      fuel_type: body.fuelType,
       subtitle: body.subtitle,
       aspecto_1_valor: body.aspecto1Valor,
       aspecto_1_label: body.aspecto1Label,
