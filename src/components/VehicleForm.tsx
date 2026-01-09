@@ -380,7 +380,7 @@ export default function VehicleForm({
                 Tipo de combustible
               </label>
               <select
-                name="fuelType"
+                name="fuel_type"
                 value={formData.fuel_type || ""}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border rounded-md text-gray-900"

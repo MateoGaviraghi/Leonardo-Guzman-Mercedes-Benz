@@ -714,7 +714,7 @@ export default function VehicleDetailPage() {
         </motion.div>
       </section>
 
-      {/* Aspectos Destacados - Cards minimalistas */}
+      {/* Aspectos Destacados - Diseño mejorado */}
       {vehicle.aspecto1Valor && (
         <section className="py-16 sm:py-20 md:py-24 lg:py-32 bg-black text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
@@ -722,12 +722,12 @@ export default function VehicleDetailPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-10 sm:mb-12 md:mb-16 lg:mb-20 text-center"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-10 sm:mb-12 md:mb-16 lg:mb-20 text-center tracking-wide"
             >
               Aspectos Destacados
             </motion.h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
               {[1, 2, 3, 4].map((num) => {
                 const valor = vehicle[`aspecto${num}Valor` as keyof Vehicle] as
                   | string
@@ -740,22 +740,39 @@ export default function VehicleDetailPage() {
                 return (
                   <motion.div
                     key={num}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: num * 0.1 }}
-                    className="group relative bg-zinc-900 p-6 sm:p-7 md:p-8 border border-white/20 hover:border-white transition-all duration-300 flex flex-col items-center justify-center min-h-[160px] sm:min-h-[180px] md:min-h-[200px]"
+                    transition={{ delay: num * 0.15, duration: 0.6 }}
+                    className="group relative h-full"
                   >
-                    {/* Línea decorativa superior */}
-                    <div className="absolute top-0 left-0 w-0 h-[1px] bg-white group-hover:w-full transition-all duration-500"></div>
+                    {/* Card principal - más horizontal */}
+                    <div className="relative bg-gradient-to-br from-zinc-900/50 to-black/50 backdrop-blur-sm p-6 sm:p-8 md:p-10 border border-white/10 hover:border-white/30 transition-all duration-500 h-[180px] sm:h-[200px] flex flex-col items-center justify-center">
+                      <div className="text-center relative z-10 space-y-3 sm:space-y-4 px-2 w-full">
+                        {/* Valor principal - adaptable al contenido */}
+                        <div
+                          className={`font-light tracking-tight text-white leading-tight ${
+                            valor && valor.length > 20
+                              ? "text-xl sm:text-2xl md:text-3xl"
+                              : valor && valor.length > 10
+                              ? "text-2xl sm:text-3xl md:text-4xl"
+                              : "text-3xl sm:text-4xl md:text-5xl"
+                          }`}
+                        >
+                          {valor}
+                        </div>
 
-                    <div className="text-center flex flex-col items-center justify-center gap-2 sm:gap-3">
-                      <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light tracking-tight break-words max-w-full leading-tight">
-                        {valor}
+                        {/* Separador sutil */}
+                        <div className="w-10 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto"></div>
+
+                        {/* Label más espacioso */}
+                        <div className="text-[10px] sm:text-xs text-gray-300 font-light uppercase tracking-[0.15em] leading-relaxed">
+                          {label}
+                        </div>
                       </div>
-                      <div className="text-[10px] sm:text-xs md:text-sm text-gray-300 font-light uppercase tracking-[0.15em] sm:tracking-[0.2em] break-words max-w-full">
-                        {label}
-                      </div>
+
+                      {/* Efecto de brillo en hover */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
                     </div>
                   </motion.div>
                 );
