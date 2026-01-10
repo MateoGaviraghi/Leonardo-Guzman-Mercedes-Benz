@@ -43,15 +43,7 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
     emblaApi.on("select", onSelect);
     onSelect();
 
-    // Auto-rotate every 3 seconds
-    const interval = setInterval(() => {
-      if (emblaApi) {
-        emblaApi.scrollNext();
-      }
-    }, 3000);
-
     return () => {
-      clearInterval(interval);
       emblaApi.off("select", onSelect);
     };
   }, [emblaApi, onSelect]);
@@ -103,14 +95,14 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
         </div>
       </div>
 
-      {/* Navigation Arrows - Minimalistas sin borde */}
+      {/* Navigation Arrows - Desktop only fuera de imagen */}
       <button
         onClick={scrollPrev}
-        className="absolute left-2 sm:left-4 md:-left-8 lg:-left-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
+        className="hidden md:block absolute left-0 md:-left-8 lg:-left-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
         aria-label="Anterior"
       >
         <svg
-          className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 text-black"
+          className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 text-black"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -125,11 +117,11 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
       </button>
       <button
         onClick={scrollNext}
-        className="absolute right-2 sm:right-4 md:-right-8 lg:-right-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
+        className="hidden md:block absolute right-0 md:-right-8 lg:-right-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
         aria-label="Siguiente"
       >
         <svg
-          className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 text-black"
+          className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 text-black"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -138,6 +130,48 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
       </button>
+
+      {/* Flechas para mobile - debajo de la imagen */}
+      <div className="flex md:hidden justify-center gap-8 mt-4">
+        <button
+          onClick={scrollPrev}
+          className="p-3 transition-all duration-300 hover:opacity-70"
+          aria-label="Anterior"
+        >
+          <svg
+            className="w-8 h-8 text-black"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={scrollNext}
+          className="p-3 transition-all duration-300 hover:opacity-70"
+          aria-label="Siguiente"
+        >
+          <svg
+            className="w-8 h-8 text-black"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
 
       {/* Dots */}
       <div className="flex justify-center gap-2 mt-8">
@@ -242,66 +276,115 @@ function ImageCarousel({
 
   return (
     <div className="relative">
-      {/* Carousel */}
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex">
-          {items.map((item) => (
-            <div key={item.num} className="flex-[0_0_100%] min-w-0">
-              <div
-                className={`relative aspect-[16/9] w-full ${
-                  isInterior ? "bg-black" : "bg-white"
-                }`}
-              >
-                <MultiFormatImage
-                  basePath={`${basePath}/${type}/${item.num}`}
-                  alt={item.title || `${type} ${item.num}`}
-                  className="object-contain"
-                />
+      {/* Contenedor principal con altura fija para las flechas */}
+      <div className="relative min-h-[400px] sm:min-h-[500px] flex items-center">
+        {/* Carousel */}
+        <div className="overflow-hidden w-full" ref={emblaRef}>
+          <div className="flex">
+            {items.map((item) => (
+              <div key={item.num} className="flex-[0_0_100%] min-w-0">
+                <div
+                  className={`relative aspect-[16/9] w-full ${
+                    isInterior ? "bg-black" : "bg-white"
+                  }`}
+                >
+                  <MultiFormatImage
+                    basePath={`${basePath}/${type}/${item.num}`}
+                    alt={item.title || `${type} ${item.num}`}
+                    className="object-contain"
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+
+        {/* Navigation Arrows - Fijas fuera de la imagen en desktop, abajo en mobile */}
+        <button
+          onClick={scrollPrev}
+          className="hidden md:block absolute left-0 md:-left-8 lg:-left-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
+          aria-label="Anterior"
+        >
+          <svg
+            className={`w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 ${
+              isInterior ? "text-white" : "text-black"
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={scrollNext}
+          className="hidden md:block absolute right-0 md:-right-8 lg:-right-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
+          aria-label="Siguiente"
+        >
+          <svg
+            className={`w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 ${
+              isInterior ? "text-white" : "text-black"
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
       </div>
 
-      {/* Navigation Arrows - Minimalistas sin borde */}
-      <button
-        onClick={scrollPrev}
-        className="absolute left-2 sm:left-4 md:-left-8 lg:-left-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
-        aria-label="Anterior"
-      >
-        <svg
-          className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 ${
-            isInterior ? "text-white" : "text-black"
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
+      {/* Flechas para mobile - debajo de la imagen */}
+      <div className="flex md:hidden justify-center gap-8 mt-4">
+        <button
+          onClick={scrollPrev}
+          className="p-3 transition-all duration-300 hover:opacity-70"
+          aria-label="Anterior"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-      </button>
-      <button
-        onClick={scrollNext}
-        className="absolute right-2 sm:right-4 md:-right-8 lg:-right-16 top-1/2 -translate-y-1/2 p-2 sm:p-3 transition-all duration-300 group hover:opacity-70 z-10"
-        aria-label="Siguiente"
-      >
-        <svg
-          className={`w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 ${
-            isInterior ? "text-white" : "text-black"
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
+          <svg
+            className={`w-8 h-8 ${isInterior ? "text-white" : "text-black"}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={scrollNext}
+          className="p-3 transition-all duration-300 hover:opacity-70"
+          aria-label="Siguiente"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+          <svg
+            className={`w-8 h-8 ${isInterior ? "text-white" : "text-black"}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
 
       {/* Current Info */}
       <div className="text-center mt-4 sm:mt-6 px-4">

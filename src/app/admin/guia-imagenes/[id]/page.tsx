@@ -69,6 +69,14 @@ export default function GuiaImagenesPage() {
         vehicle.exterior5Description = vehicle.exterior_5_description;
         vehicle.exterior6Title = vehicle.exterior_6_title;
         vehicle.exterior6Description = vehicle.exterior_6_description;
+        vehicle.exterior7Title = vehicle.exterior_7_title;
+        vehicle.exterior7Description = vehicle.exterior_7_description;
+        vehicle.exterior8Title = vehicle.exterior_8_title;
+        vehicle.exterior8Description = vehicle.exterior_8_description;
+        vehicle.exterior9Title = vehicle.exterior_9_title;
+        vehicle.exterior9Description = vehicle.exterior_9_description;
+        vehicle.exterior10Title = vehicle.exterior_10_title;
+        vehicle.exterior10Description = vehicle.exterior_10_description;
         vehicle.interior1Title = vehicle.interior_1_title;
         vehicle.interior1Description = vehicle.interior_1_description;
         vehicle.interior2Title = vehicle.interior_2_title;
@@ -81,6 +89,14 @@ export default function GuiaImagenesPage() {
         vehicle.interior5Description = vehicle.interior_5_description;
         vehicle.interior6Title = vehicle.interior_6_title;
         vehicle.interior6Description = vehicle.interior_6_description;
+        vehicle.interior7Title = vehicle.interior_7_title;
+        vehicle.interior7Description = vehicle.interior_7_description;
+        vehicle.interior8Title = vehicle.interior_8_title;
+        vehicle.interior8Description = vehicle.interior_8_description;
+        vehicle.interior9Title = vehicle.interior_9_title;
+        vehicle.interior9Description = vehicle.interior_9_description;
+        vehicle.interior10Title = vehicle.interior_10_title;
+        vehicle.interior10Description = vehicle.interior_10_description;
       }
 
       setVehicle(vehicle);
@@ -163,7 +179,7 @@ export default function GuiaImagenesPage() {
               🚗 Exterior
             </h2>
             <div className="space-y-3">
-              {[1, 2, 3, 4, 5, 6].map((num) => {
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
                 const title = (vehicle as any)[`exterior${num}Title`];
                 const description = (vehicle as any)[
                   `exterior${num}Description`
@@ -256,7 +272,7 @@ export default function GuiaImagenesPage() {
               🪑 Interior
             </h2>
             <div className="space-y-3">
-              {[1, 2, 3, 4, 5, 6].map((num) => {
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
                 const title = (vehicle as any)[`interior${num}Title`];
                 const description = (vehicle as any)[
                   `interior${num}Description`
