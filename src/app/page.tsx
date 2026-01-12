@@ -5,45 +5,94 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import VehicleCard from "@/components/VehicleCard";
+import { useState, useEffect } from "react";
+import type { Vehicle } from "@/data/vehicles";
 
 export default function Home() {
-  const categories = [
-    {
-      name: "Clase A",
-      category: "Autos",
-      href: "/vehicles?category=auto",
-      image:
-        "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=2070&auto=format&fit=crop", // Mercedes A-Class / Hatchback
-    },
-    {
-      name: "GLC SUV",
-      category: "SUVs",
-      href: "/vehicles?category=suv",
-      image:
-        "https://images.unsplash.com/photo-1553440637-d22ed8a0256b?q=80&w=2070&auto=format&fit=crop", // Mercedes GLC / SUV
-    },
-    {
-      name: "Vito",
-      category: "Vans",
-      href: "/vehicles?category=vans",
-      image:
-        "https://images.unsplash.com/photo-1626668893632-6f3a4466d22f?q=80&w=2072&auto=format&fit=crop", // Mercedes Vito / V-Class
-    },
-    {
-      name: "Sprinter",
-      category: "Sprinter",
-      href: "/vehicles?category=sprinter",
-      image:
-        "https://images.unsplash.com/photo-1618589087798-29a5806e3c3f?q=80&w=2070&auto=format&fit=crop", // Mercedes Sprinter
-    },
-    {
-      name: "Actros",
-      category: "Trucks",
-      href: "/vehicles?category=trucks",
-      image:
-        "https://images.unsplash.com/photo-1591768793355-74d04bb6608f?q=80&w=2072&auto=format&fit=crop", // Mercedes Actros / Truck
-    },
+  const [selectedCategory, setSelectedCategory] = useState("AUTOS");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const categoryNav = [
+    { id: "AUTOS", label: "AUTOS" },
+    { id: "SUV", label: "SUV" },
+    { id: "VANS", label: "VANS" },
+    { id: "SPRINTER", label: "SPRINTER" },
+    { id: "TRUCKS", label: "TRUCKS" },
   ];
+
+  // Fetch vehicles from API
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const response = await fetch("/api/vehicles");
+        const data = await response.json();
+        console.log("Vehicles from API:", data);
+        if (data.success) {
+          console.log("Vehicles array:", data.vehicles);
+          setVehicles(data.vehicles || []);
+        }
+      } catch (error) {
+        console.error("Error fetching vehicles:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicles();
+  }, []);
+
+  // Filtrar vehículos según categoría
+  const getVehiclesByCategory = () => {
+    const autoCategories = [
+      "sedanes",
+      "hatchback",
+      "coupes",
+      "cabrios-roadsters",
+    ];
+
+    let filtered = [];
+
+    switch (selectedCategory) {
+      case "AUTOS":
+        filtered = vehicles.filter((v) =>
+          autoCategories.includes(v.category.toLowerCase())
+        );
+        break;
+      case "SUV":
+        filtered = vehicles.filter(
+          (v) =>
+            v.category.toLowerCase() === "suv" ||
+            v.category.toLowerCase() === "suv-todoterreno"
+        );
+        break;
+      case "VANS":
+        filtered = vehicles.filter((v) => v.category.toLowerCase() === "vans");
+        break;
+      case "SPRINTER":
+        filtered = vehicles.filter(
+          (v) => v.category.toLowerCase() === "sprinter"
+        );
+        break;
+      case "TRUCKS":
+        filtered = vehicles.filter(
+          (v) =>
+            v.category.toLowerCase().includes("truck") ||
+            v.category.toLowerCase() === "accelo" ||
+            v.category.toLowerCase() === "atego" ||
+            v.category.toLowerCase() === "actros" ||
+            v.category.toLowerCase() === "arocs"
+        );
+        break;
+      default:
+        filtered = [];
+    }
+
+    console.log(`Filtered vehicles for ${selectedCategory}:`, filtered);
+    return filtered.slice(0, 4); // Limitar a 4 vehículos
+  };
+
+  const currentVehicles = getVehiclesByCategory();
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
@@ -115,23 +164,60 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Categories Grid - Constrained Width for Better Fit */}
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-24">
-          <div className="flex flex-wrap justify-center gap-4">
-            {categories.map((cat) => (
-              <div
-                key={cat.name}
-                className="w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.34rem)]"
+        {/* Category Navigation */}
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-12">
+          <nav className="flex flex-wrap justify-center gap-4 md:gap-8">
+            {categoryNav.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`text-sm md:text-base font-bold tracking-widest transition-all pb-2 ${
+                  selectedCategory === cat.id
+                    ? "text-white border-b-2 border-white"
+                    : "text-gray-500 hover:text-gray-300"
+                }`}
               >
-                <VehicleCard
-                  title={cat.name}
-                  category={cat.category}
-                  href={cat.href}
-                  image={cat.image}
-                />
-              </div>
+                {cat.label}
+              </button>
             ))}
-          </div>
+          </nav>
+        </div>
+
+        {/* Categories Grid - Constrained Width for Better Fit */}
+        <div className="max-w-[1200px] mx-auto px-6 md:px-12 mb-24">
+          {loading ? (
+            <div className="flex justify-center items-center min-h-[400px]">
+              <p className="text-gray-500">Cargando vehículos...</p>
+            </div>
+          ) : currentVehicles.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
+              {currentVehicles.map((vehicle) => (
+                <VehicleCard
+                  key={vehicle.id}
+                  title={vehicle.name}
+                  category={vehicle.category}
+                  href={`/vehicles/${vehicle.id}`}
+                  image={`/vehicles/${vehicle.id}/foto-card/card`}
+                  fuelType={vehicle.fuel_type}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="w-full md:w-1/2">
+                <div className="relative aspect-[16/9] bg-zinc-900 border border-white/10 flex items-center justify-center group hover:border-white/30 transition-all">
+                  <div className="text-center px-4">
+                    <p className="text-xs font-bold tracking-widest text-gray-500 mb-2 uppercase">
+                      {selectedCategory}
+                    </p>
+                    <h3 className="text-xl md:text-2xl font-serif text-gray-400">
+                      Muy Pronto
+                    </h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Mobile Link - Constrained Width */}
