@@ -134,6 +134,14 @@ export default function Navbar() {
             </Link>
 
             <Link
+              href="/plan-ahorro"
+              className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
+            >
+              Plan de Ahorro
+              <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+
+            <Link
               href="/about"
               className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
             >
@@ -234,6 +242,14 @@ export default function Navbar() {
                 className="text-2xl font-bold text-white border-b border-white/10 pb-4"
               >
                 Financiación
+              </Link>
+
+              <Link
+                href="/plan-ahorro"
+                onClick={() => setIsOpen(false)}
+                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
+              >
+                Plan de Ahorro
               </Link>
 
               <Link
