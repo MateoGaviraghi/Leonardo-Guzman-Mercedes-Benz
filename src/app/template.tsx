@@ -23,7 +23,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
       >
         <div className="relative w-32 h-32">
           <Image
-            src="/logo mercedes benz.png"
+            src="/logo-mercedes-benz.png"
             alt="Mercedes-Benz Logo"
             fill
             className="object-contain"
