@@ -12,6 +12,9 @@ import {
   CreditCard,
   User,
   Users,
+  Instagram,
+  Facebook,
+  Phone,
 } from "lucide-react";
 
 export default function PlanAhorroPage() {
