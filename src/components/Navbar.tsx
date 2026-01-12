@@ -143,7 +143,7 @@ export default function Navbar() {
 
             <Link
               href="/plan-ahorro"
-              className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
+              className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group whitespace-nowrap"
             >
               Plan de Ahorro
               <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
