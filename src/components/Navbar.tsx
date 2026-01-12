@@ -51,10 +51,11 @@ export default function Navbar() {
             {/* Custom Logo Image */}
             <div className="relative w-12 h-12">
               <Image
-                src="/logo mercedes benz.png"
+                src="/logo-mercedes-benz.png"
                 alt="Mercedes-Benz Logo"
                 fill
                 className="object-contain transition-transform duration-500 group-hover:rotate-180"
+                priority
               />
             </div>
 
