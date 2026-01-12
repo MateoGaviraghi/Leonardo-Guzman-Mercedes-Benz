@@ -239,7 +239,7 @@ export default function Home() {
           <div className="lg:col-span-5">
             <div className="aspect-[3/4] bg-zinc-800 relative overflow-hidden">
               <Image
-                src="/leonardo-portrait.png"
+                src="/foto-home.jpg"
                 alt="Leonardo Guzman"
                 fill
                 className="object-cover hover:scale-105 transition-transform duration-700"

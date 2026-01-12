@@ -224,7 +224,7 @@ export default function ContactPage() {
                   onChange={handleChange}
                   required
                   className="w-full bg-transparent border-b border-white/20 py-3 text-white focus:outline-none focus:border-white transition-colors resize-none placeholder-white/20"
-                  placeholder="Hola Leonardo, estoy interesado en..."
+                  placeholder="Estoy interesado en..."
                 ></textarea>
               </div>
 
