@@ -150,14 +150,14 @@ export default function Home() {
       <section className="py-32 bg-black">
         {/* Header - Constrained Width */}
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-12">
-          <div className="flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-8">
-            <h2 className="text-4xl md:text-5xl font-serif tracking-tight max-w-xl leading-tight">
+          <div className="flex flex-col items-center text-center border-b border-white/10 pb-8">
+            <h2 className="text-4xl md:text-5xl font-serif tracking-tight leading-tight mb-6">
               Ingeniería de precisión. <br />
               <span className="text-gray-500">Diseño atemporal.</span>
             </h2>
             <Link
               href="/vehicles"
-              className="hidden md:block text-sm font-bold tracking-widest text-white hover:text-gray-400 transition-colors mt-8 md:mt-0"
+              className="text-sm font-bold tracking-widest text-white hover:text-gray-400 transition-colors uppercase"
             >
               VER TODOS LOS MODELOS
             </Link>
@@ -218,18 +218,6 @@ export default function Home() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Mobile Link - Constrained Width */}
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="md:hidden text-center">
-            <Link
-              href="/vehicles"
-              className="text-sm font-bold tracking-widest text-white border-b border-white pb-1"
-            >
-              VER TODOS LOS MODELOS
-            </Link>
-          </div>
         </div>
       </section>
 
