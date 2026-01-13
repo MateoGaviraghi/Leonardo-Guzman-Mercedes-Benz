@@ -51,7 +51,7 @@ export default function Home() {
       "cabrios-roadsters",
     ];
 
-    let filtered = [];
+    let filtered: Vehicle[] = [];
 
     switch (selectedCategory) {
       case "AUTOS":
