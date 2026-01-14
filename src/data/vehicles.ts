@@ -122,8 +122,12 @@ export interface Vehicle {
   equipmentGeneralTitle?: string;
   equipmentGeneralDescription?: string;
 
-  // 5 categorías fijas, cada una con array de items { title?, description? }
-  // Frontend busca imágenes: /vehicles/{id}/equipment/multimedia/1.avif, 2.avif...
+  // 7 categorías fijas, cada una con array de items { title?, description? }
+  // Frontend busca imágenes: /vehicles/{id}/equipment/{categoria}/1.avif, 2.avif...
+  // Exterior (para vehículos AMG)
+  equipExterior?: { title?: string; description?: string }[];
+  // Interior (para vehículos AMG)
+  equipInterior?: { title?: string; description?: string }[];
   // Sistema de multimedias
   equipMultimedia?: { title?: string; description?: string }[];
   // Sistemas de asistencia a la conducción

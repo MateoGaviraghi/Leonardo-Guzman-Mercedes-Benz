@@ -31,6 +31,8 @@ export default function VehicleForm({
     specsChasis: [],
     specsCantidades: [],
     specsBateriaCarga: [],
+    equipExterior: [],
+    equipInterior: [],
     equipMultimedia: [],
     equipAsistencia: [],
     equipConfort: [],
@@ -1174,6 +1176,128 @@ export default function VehicleForm({
                 />
               </div>
             </div>
+          </div>
+
+          {/* Exterior */}
+          <div className="border-l-4 border-blue-500 pl-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Exterior
+            </h3>
+            {(formData.equipExterior || []).map((item, index) => (
+              <div key={index} className="mb-4 p-3 bg-gray-50 rounded-md">
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                  <input
+                    type="text"
+                    value={item.title || ""}
+                    onChange={(e) =>
+                      updateSpecItem(
+                        "equipExterior",
+                        index,
+                        "title",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Título (opcional)"
+                    className="px-3 py-2 border rounded-md text-gray-900"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={item.description || ""}
+                      onChange={(e) =>
+                        updateSpecItem(
+                          "equipExterior",
+                          index,
+                          "description",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Descripción (opcional)"
+                      className="flex-1 px-3 py-2 border rounded-md text-gray-900"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSpecItem("equipExterior", index)}
+                      className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    >
+                      −
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  📁 /public/vehicles/{vehicleId || "[id]"}
+                  /equipment/exterior/{index + 1}.avif
+                </p>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => addSpecItem("equipExterior")}
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              + Agregar item
+            </button>
+          </div>
+
+          {/* Interior */}
+          <div className="border-l-4 border-blue-500 pl-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Interior
+            </h3>
+            {(formData.equipInterior || []).map((item, index) => (
+              <div key={index} className="mb-4 p-3 bg-gray-50 rounded-md">
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                  <input
+                    type="text"
+                    value={item.title || ""}
+                    onChange={(e) =>
+                      updateSpecItem(
+                        "equipInterior",
+                        index,
+                        "title",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Título (opcional)"
+                    className="px-3 py-2 border rounded-md text-gray-900"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={item.description || ""}
+                      onChange={(e) =>
+                        updateSpecItem(
+                          "equipInterior",
+                          index,
+                          "description",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Descripción (opcional)"
+                      className="flex-1 px-3 py-2 border rounded-md text-gray-900"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSpecItem("equipInterior", index)}
+                      className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    >
+                      −
+                    </button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  📁 /public/vehicles/{vehicleId || "[id]"}
+                  /equipment/interior/{index + 1}.avif
+                </p>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => addSpecItem("equipInterior")}
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              + Agregar item
+            </button>
           </div>
 
           {/* Sistema de multimedias */}

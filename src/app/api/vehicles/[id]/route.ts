@@ -135,6 +135,12 @@ export async function PUT(
         : null,
       equipment_general_title: body.equipmentGeneralTitle,
       equipment_general_description: body.equipmentGeneralDescription,
+      equip_exterior: body.equipExterior
+        ? JSON.stringify(body.equipExterior)
+        : null,
+      equip_interior: body.equipInterior
+        ? JSON.stringify(body.equipInterior)
+        : null,
       equip_multimedia: body.equipMultimedia
         ? JSON.stringify(body.equipMultimedia)
         : null,

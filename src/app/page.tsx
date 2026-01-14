@@ -153,7 +153,6 @@ export default function Home() {
           <div className="flex flex-col items-center text-center border-b border-white/10 pb-8">
             <h2 className="text-4xl md:text-5xl font-serif tracking-tight leading-tight mb-6">
               Ingeniería de precisión. <br />
-       
             </h2>
             <Link
               href="/vehicles"

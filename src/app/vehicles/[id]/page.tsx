@@ -240,10 +240,12 @@ function ImageCarousel({
   items,
   basePath,
   type,
+  isAMG = false,
 }: {
   items: { title?: string; description?: string; num: number }[];
   basePath: string;
   type: "exterior" | "interior";
+  isAMG?: boolean;
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
@@ -283,11 +285,7 @@ function ImageCarousel({
           <div className="flex">
             {items.map((item) => (
               <div key={item.num} className="flex-[0_0_100%] min-w-0">
-                <div
-                  className={`relative aspect-[16/9] w-full ${
-                    isInterior ? "bg-black" : "bg-white"
-                  }`}
-                >
+                <div className="relative aspect-[16/9] w-full">
                   <MultiFormatImage
                     basePath={`${basePath}/${type}/${item.num}`}
                     alt={item.title || `${type} ${item.num}`}
@@ -307,7 +305,11 @@ function ImageCarousel({
         >
           <svg
             className={`w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 ${
-              isInterior ? "text-white" : "text-black"
+              isAMG
+                ? "text-[#5AC3B6]"
+                : isInterior
+                ? "text-white"
+                : "text-black"
             }`}
             fill="none"
             stroke="currentColor"
@@ -328,7 +330,11 @@ function ImageCarousel({
         >
           <svg
             className={`w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 ${
-              isInterior ? "text-white" : "text-black"
+              isAMG
+                ? "text-[#5AC3B6]"
+                : isInterior
+                ? "text-white"
+                : "text-black"
             }`}
             fill="none"
             stroke="currentColor"
@@ -352,7 +358,13 @@ function ImageCarousel({
           aria-label="Anterior"
         >
           <svg
-            className={`w-8 h-8 ${isInterior ? "text-white" : "text-black"}`}
+            className={`w-8 h-8 ${
+              isAMG
+                ? "text-[#5AC3B6]"
+                : isInterior
+                ? "text-white"
+                : "text-black"
+            }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -371,7 +383,13 @@ function ImageCarousel({
           aria-label="Siguiente"
         >
           <svg
-            className={`w-8 h-8 ${isInterior ? "text-white" : "text-black"}`}
+            className={`w-8 h-8 ${
+              isAMG
+                ? "text-[#5AC3B6]"
+                : isInterior
+                ? "text-white"
+                : "text-black"
+            }`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -389,14 +407,22 @@ function ImageCarousel({
       {/* Current Info */}
       <div className="text-center mt-4 sm:mt-6 px-4">
         {items[selectedIndex]?.title && (
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-light mb-2 sm:mb-3">
+          <h3
+            className={`text-xl sm:text-2xl md:text-3xl font-light mb-2 sm:mb-3 ${
+              isAMG ? "text-[#5AC3B6]" : ""
+            }`}
+          >
             {items[selectedIndex].title}
           </h3>
         )}
         {items[selectedIndex]?.description && (
           <p
             className={`text-sm sm:text-base md:text-lg font-light max-w-3xl mx-auto leading-relaxed ${
-              isInterior ? "text-gray-400" : "text-gray-600"
+              isAMG
+                ? "text-gray-400"
+                : isInterior
+                ? "text-gray-400"
+                : "text-gray-600"
             }`}
           >
             {items[selectedIndex].description}
@@ -412,9 +438,13 @@ function ImageCarousel({
             onClick={() => emblaApi?.scrollTo(index)}
             className={`w-2 h-2 rounded-full transition-all ${
               index === selectedIndex
-                ? isInterior
+                ? isAMG
+                  ? "bg-[#5AC3B6] w-8 shadow-[0_0_10px_#5AC3B6]"
+                  : isInterior
                   ? "bg-white w-8"
                   : "bg-black w-8"
+                : isAMG
+                ? "bg-[#5AC3B6]/30"
                 : isInterior
                 ? "bg-white/30"
                 : "bg-black/30"
@@ -433,23 +463,41 @@ function AccordionItem({
   specs,
   isOpen,
   onToggle,
+  isAMG = false,
 }: {
   title: string;
   specs: { label: string; valor: string }[];
   isOpen: boolean;
   onToggle: () => void;
+  isAMG?: boolean;
 }) {
   return (
-    <div className="border-b border-gray-200">
+    <div
+      className={`border-b ${
+        isAMG
+          ? isOpen
+            ? "border-[#5AC3B6]/40 bg-gradient-to-r from-[#5AC3B6]/10 to-transparent"
+            : "border-[#5AC3B6]/20 hover:border-[#5AC3B6]/40"
+          : "border-gray-200"
+      } transition-all duration-300`}
+    >
       <button
         onClick={onToggle}
-        className="w-full flex justify-between items-center py-5 text-left hover:bg-black/5 transition-colors px-4"
+        className={`w-full flex justify-between items-center py-5 text-left transition-colors px-4 ${
+          isAMG ? "hover:bg-[#5AC3B6]/5" : "hover:bg-black/5"
+        }`}
       >
-        <h3 className="text-lg md:text-xl font-light">{title}</h3>
+        <h3
+          className={`text-lg md:text-xl font-light ${
+            isAMG ? (isOpen ? "text-[#5AC3B6]" : "text-white") : ""
+          }`}
+        >
+          {title}
+        </h3>
         <svg
           className={`w-5 h-5 transition-transform ${
             isOpen ? "rotate-180" : ""
-          }`}
+          } ${isAMG ? "text-[#5AC3B6]" : ""}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -474,12 +522,22 @@ function AccordionItem({
             {specs.map((spec, index) => (
               <div
                 key={index}
-                className="flex justify-between items-baseline py-2"
+                className={`flex justify-between items-baseline py-2 ${
+                  isAMG ? "border-b border-[#5AC3B6]/10" : ""
+                }`}
               >
-                <span className="text-sm md:text-base text-gray-600 font-light">
+                <span
+                  className={`text-sm md:text-base font-light ${
+                    isAMG ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
                   {spec.label}
                 </span>
-                <span className="text-sm md:text-base font-light ml-4">
+                <span
+                  className={`text-sm md:text-base font-light ml-4 ${
+                    isAMG ? "text-[#5AC3B6]" : ""
+                  }`}
+                >
                   {spec.valor}
                 </span>
               </div>
@@ -498,8 +556,7 @@ export default function VehicleDetailPage() {
   const [loading, setLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [openSpecIndex, setOpenSpecIndex] = useState<number | null>(0);
-  const [activeEquipmentTab, setActiveEquipmentTab] =
-    useState<string>("multimedia");
+  const [activeEquipmentTab, setActiveEquipmentTab] = useState<string>("");
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Detectar scroll para mostrar/ocultar botón de ir arriba
@@ -577,6 +634,20 @@ export default function VehicleDetailPage() {
         else vehicle.specsCantidades = vehicle.specs_cantidades || [];
 
         // Parsear equipamiento
+        if (
+          vehicle.equip_exterior &&
+          typeof vehicle.equip_exterior === "string"
+        )
+          vehicle.equipExterior = JSON.parse(vehicle.equip_exterior);
+        else vehicle.equipExterior = vehicle.equip_exterior || [];
+
+        if (
+          vehicle.equip_interior &&
+          typeof vehicle.equip_interior === "string"
+        )
+          vehicle.equipInterior = JSON.parse(vehicle.equip_interior);
+        else vehicle.equipInterior = vehicle.equip_interior || [];
+
         if (
           vehicle.equip_multimedia &&
           typeof vehicle.equip_multimedia === "string"
@@ -674,6 +745,32 @@ export default function VehicleDetailPage() {
       }
 
       setVehicle(vehicle);
+
+      // Inicializar el tab activo con el primer equipamiento disponible
+      if (vehicle.equipExterior && vehicle.equipExterior.length > 0) {
+        setActiveEquipmentTab("exterior");
+      } else if (vehicle.equipInterior && vehicle.equipInterior.length > 0) {
+        setActiveEquipmentTab("interior");
+      } else if (
+        vehicle.equipMultimedia &&
+        vehicle.equipMultimedia.length > 0
+      ) {
+        setActiveEquipmentTab("multimedia");
+      } else if (
+        vehicle.equipAsistencia &&
+        vehicle.equipAsistencia.length > 0
+      ) {
+        setActiveEquipmentTab("asistencia");
+      } else if (vehicle.equipConfort && vehicle.equipConfort.length > 0) {
+        setActiveEquipmentTab("confort");
+      } else if (
+        vehicle.equipTrenRodaje &&
+        vehicle.equipTrenRodaje.length > 0
+      ) {
+        setActiveEquipmentTab("tren-rodaje");
+      } else if (vehicle.equipSeguridad && vehicle.equipSeguridad.length > 0) {
+        setActiveEquipmentTab("seguridad");
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -714,6 +811,9 @@ export default function VehicleDetailPage() {
 
   const basePath = `/vehicles/${vehicleId}`;
 
+  // Detectar si es un vehículo AMG
+  const isAMG = vehicle.is_amg || false;
+
   // Handle image error
   const handleImageError = (imagePath: string) => {
     setImageErrors((prev) => new Set(prev).add(imagePath));
@@ -723,7 +823,7 @@ export default function VehicleDetailPage() {
   const hasImageError = (imagePath: string) => imageErrors.has(imagePath);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className={`min-h-screen ${isAMG ? "bg-neutral-950" : "bg-black"}`}>
       {/* Hero Section - Fullscreen con overlay elegante */}
       <section className="relative h-screen w-full overflow-hidden">
         {/* Mobile Hero - visible only on screens < 768px */}
@@ -751,7 +851,20 @@ export default function VehicleDetailPage() {
         />
 
         {/* Gradiente overlay sofisticado */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/95"></div>
+        <div
+          className={`absolute inset-0 ${
+            isAMG
+              ? "bg-gradient-to-b from-black/80 via-[#5AC3B6]/5 to-black/95"
+              : "bg-gradient-to-b from-black/70 via-transparent to-black/95"
+          }`}
+        ></div>
+
+        {/* AMG Corner Accent */}
+        {isAMG && (
+          <div className="absolute top-0 right-0 w-64 h-64 opacity-30 pointer-events-none">
+            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#5AC3B6]/30 to-transparent" />
+          </div>
+        )}
 
         {/* Contenido del hero */}
         <div className="absolute inset-0 flex items-end">
@@ -761,14 +874,34 @@ export default function VehicleDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: "easeOut" }}
             >
-              <p className="text-[10px] sm:text-xs md:text-sm font-medium tracking-[0.2em] sm:tracking-[0.3em] text-white/70 mb-2 sm:mb-3 uppercase">
+              {/* AMG Badge */}
+              {isAMG && (
+                <div className="inline-flex items-center gap-3 mb-4 sm:mb-5">
+                  <span className="text-[10px] sm:text-xs font-bold tracking-[0.3em] text-[#5AC3B6] uppercase bg-[#5AC3B6]/10 px-3 py-1.5 border border-[#5AC3B6]/30">
+                    AMG Performance
+                  </span>
+                </div>
+              )}
+              <p
+                className={`text-[10px] sm:text-xs md:text-sm font-medium tracking-[0.2em] sm:tracking-[0.3em] mb-2 sm:mb-3 uppercase ${
+                  isAMG ? "text-[#5AC3B6]/80" : "text-white/70"
+                }`}
+              >
                 {vehicle.category}
               </p>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-light text-white mb-6 tracking-tight">
+              <h1
+                className={`text-4xl md:text-6xl lg:text-7xl font-light mb-6 tracking-tight ${
+                  isAMG ? "text-white" : "text-white"
+                }`}
+              >
                 {vehicle.name}
               </h1>
               {vehicle.subtitle && (
-                <p className="text-lg md:text-xl text-white/80 max-w-2xl font-light">
+                <p
+                  className={`text-lg md:text-xl max-w-2xl font-light ${
+                    isAMG ? "text-gray-300" : "text-white/80"
+                  }`}
+                >
                   {vehicle.subtitle}
                 </p>
               )}
@@ -799,13 +932,25 @@ export default function VehicleDetailPage() {
 
       {/* Aspectos Destacados - Diseño mejorado */}
       {vehicle.aspecto1Valor && (
-        <section className="py-16 sm:py-20 md:py-24 lg:py-32 bg-black text-white">
+        <section
+          className={`py-16 sm:py-20 md:py-24 lg:py-32 text-white relative overflow-hidden ${
+            isAMG
+              ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950"
+              : "bg-black"
+          }`}
+        >
+          {/* AMG Decorative line */}
+          {isAMG && (
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+          )}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-10 sm:mb-12 md:mb-16 lg:mb-20 text-center tracking-wide"
+              className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-10 sm:mb-12 md:mb-16 lg:mb-20 text-center tracking-wide ${
+                isAMG ? "text-white" : ""
+              }`}
             >
               Aspectos Destacados
             </motion.h2>
@@ -830,11 +975,19 @@ export default function VehicleDetailPage() {
                     className="group relative h-full"
                   >
                     {/* Card principal - más horizontal */}
-                    <div className="relative bg-gradient-to-br from-zinc-900/50 to-black/50 backdrop-blur-sm p-6 sm:p-8 md:p-10 border border-white/10 hover:border-white/30 transition-all duration-500 h-[180px] sm:h-[200px] flex flex-col items-center justify-center">
+                    <div
+                      className={`relative backdrop-blur-sm p-6 sm:p-8 md:p-10 transition-all duration-500 h-[180px] sm:h-[200px] flex flex-col items-center justify-center ${
+                        isAMG
+                          ? "bg-gradient-to-br from-neutral-900/80 to-neutral-950/80 border border-[#5AC3B6]/20 hover:border-[#5AC3B6]/50 shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
+                          : "bg-gradient-to-br from-zinc-900/50 to-black/50 border border-white/10 hover:border-white/30"
+                      }`}
+                    >
                       <div className="text-center relative z-10 space-y-3 sm:space-y-4 px-2 w-full">
                         {/* Valor principal - adaptable al contenido */}
                         <div
-                          className={`font-light tracking-tight text-white leading-tight ${
+                          className={`font-light tracking-tight leading-tight ${
+                            isAMG ? "text-[#5AC3B6]" : "text-white"
+                          } ${
                             valor && valor.length > 20
                               ? "text-xl sm:text-2xl md:text-3xl"
                               : valor && valor.length > 10
@@ -846,16 +999,39 @@ export default function VehicleDetailPage() {
                         </div>
 
                         {/* Separador sutil */}
-                        <div className="w-10 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto"></div>
+                        <div
+                          className={`w-10 h-px mx-auto ${
+                            isAMG
+                              ? "bg-gradient-to-r from-transparent via-[#5AC3B6]/50 to-transparent"
+                              : "bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                          }`}
+                        ></div>
 
                         {/* Label más espacioso */}
-                        <div className="text-[10px] sm:text-xs text-gray-300 font-light uppercase tracking-[0.15em] leading-relaxed">
+                        <div
+                          className={`text-[10px] sm:text-xs font-light uppercase tracking-[0.15em] leading-relaxed ${
+                            isAMG ? "text-gray-400" : "text-gray-300"
+                          }`}
+                        >
                           {label}
                         </div>
                       </div>
 
                       {/* Efecto de brillo en hover */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                      <div
+                        className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none ${
+                          isAMG
+                            ? "bg-gradient-to-br from-[#5AC3B6]/5 via-transparent to-[#5AC3B6]/10"
+                            : "bg-gradient-to-br from-white/0 via-white/0 to-white/5"
+                        }`}
+                      ></div>
+
+                      {/* AMG corner accent */}
+                      {isAMG && (
+                        <div className="absolute top-0 right-0 w-12 h-12 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                          <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-[#5AC3B6]/20 to-transparent" />
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 );
@@ -871,13 +1047,24 @@ export default function VehicleDetailPage() {
           vehicle[`exterior${num}Title` as keyof Vehicle] ||
           vehicle[`exterior${num}Description` as keyof Vehicle]
       ) && (
-        <section className="py-24 md:py-32 bg-white text-black">
+        <section
+          className={`py-24 md:py-32 relative ${
+            isAMG
+              ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
+              : "bg-white text-black"
+          }`}
+        >
+          {isAMG && (
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+          )}
           <div className="max-w-7xl mx-auto px-6 md:px-12">
             <motion.h2
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="text-3xl md:text-5xl font-light mb-16 text-center"
+              className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                isAMG ? "text-[#5AC3B6]" : ""
+              }`}
             >
               Exterior
             </motion.h2>
@@ -896,6 +1083,7 @@ export default function VehicleDetailPage() {
                 .filter((item) => item.title || item.description)}
               basePath={basePath}
               type="exterior"
+              isAMG={isAMG}
             />
           </div>
         </section>
@@ -907,13 +1095,24 @@ export default function VehicleDetailPage() {
           vehicle[`interior${num}Title` as keyof Vehicle] ||
           vehicle[`interior${num}Description` as keyof Vehicle]
       ) && (
-        <section className="py-24 md:py-32 bg-black text-white">
+        <section
+          className={`py-24 md:py-32 text-white relative ${
+            isAMG
+              ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950"
+              : "bg-black"
+          }`}
+        >
+          {isAMG && (
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/30 to-transparent" />
+          )}
           <div className="max-w-7xl mx-auto px-6 md:px-12">
             <motion.h2
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="text-3xl md:text-5xl font-light mb-16 text-center"
+              className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                isAMG ? "text-[#5AC3B6]" : ""
+              }`}
             >
               Interior
             </motion.h2>
@@ -932,19 +1131,31 @@ export default function VehicleDetailPage() {
                 .filter((item) => item.title || item.description)}
               basePath={basePath}
               type="interior"
+              isAMG={isAMG}
             />
           </div>
         </section>
       )}
 
       {/* Colores - Carousel de variantes de color */}
-      <section className="py-24 md:py-32 bg-white text-black">
+      <section
+        className={`py-24 md:py-32 relative ${
+          isAMG
+            ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
+            : "bg-white text-black"
+        }`}
+      >
+        {isAMG && (
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+        )}
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <motion.h2
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-light mb-16 text-center"
+            className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+              isAMG ? "text-[#5AC3B6]" : ""
+            }`}
           >
             Colores Disponibles
           </motion.h2>
@@ -955,12 +1166,23 @@ export default function VehicleDetailPage() {
 
       {/* Equipamiento - Con sistema de tabs */}
       {vehicle.equipmentGeneralTitle &&
-        ((vehicle.equipMultimedia && vehicle.equipMultimedia.length > 0) ||
+        ((vehicle.equipExterior && vehicle.equipExterior.length > 0) ||
+          (vehicle.equipInterior && vehicle.equipInterior.length > 0) ||
+          (vehicle.equipMultimedia && vehicle.equipMultimedia.length > 0) ||
           (vehicle.equipAsistencia && vehicle.equipAsistencia.length > 0) ||
           (vehicle.equipConfort && vehicle.equipConfort.length > 0) ||
           (vehicle.equipTrenRodaje && vehicle.equipTrenRodaje.length > 0) ||
           (vehicle.equipSeguridad && vehicle.equipSeguridad.length > 0)) && (
-          <section className="py-24 md:py-32 bg-black text-white">
+          <section
+            className={`py-24 md:py-32 text-white relative ${
+              isAMG
+                ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950"
+                : "bg-black"
+            }`}
+          >
+            {isAMG && (
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+            )}
             <div className="max-w-7xl mx-auto px-6 md:px-12">
               <motion.h2
                 initial={{ opacity: 0 }}
@@ -977,14 +1199,50 @@ export default function VehicleDetailPage() {
               )}
 
               {/* Tabs Navigation */}
-              <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 mb-8 sm:mb-12 md:mb-16 border-b border-white/20 pb-0">
+              <div
+                className={`flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 mb-8 sm:mb-12 md:mb-16 pb-0 ${
+                  isAMG
+                    ? "border-b border-[#5AC3B6]/30"
+                    : "border-b border-white/20"
+                }`}
+              >
+                {vehicle.equipExterior && vehicle.equipExterior.length > 0 && (
+                  <button
+                    onClick={() => setActiveEquipmentTab("exterior")}
+                    className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
+                      activeEquipmentTab === "exterior"
+                        ? isAMG
+                          ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                          : "border-b-2 border-white text-white"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    Exterior
+                  </button>
+                )}
+                {vehicle.equipInterior && vehicle.equipInterior.length > 0 && (
+                  <button
+                    onClick={() => setActiveEquipmentTab("interior")}
+                    className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
+                      activeEquipmentTab === "interior"
+                        ? isAMG
+                          ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                          : "border-b-2 border-white text-white"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    Interior
+                  </button>
+                )}
                 {vehicle.equipMultimedia &&
                   vehicle.equipMultimedia.length > 0 && (
                     <button
                       onClick={() => setActiveEquipmentTab("multimedia")}
                       className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
                         activeEquipmentTab === "multimedia"
-                          ? "border-b-2 border-white text-white"
+                          ? isAMG
+                            ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                            : "border-b-2 border-white text-white"
                           : "text-gray-400 hover:text-white"
                       }`}
                     >
@@ -997,7 +1255,9 @@ export default function VehicleDetailPage() {
                       onClick={() => setActiveEquipmentTab("asistencia")}
                       className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
                         activeEquipmentTab === "asistencia"
-                          ? "border-b-2 border-white text-white"
+                          ? isAMG
+                            ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                            : "border-b-2 border-white text-white"
                           : "text-gray-400 hover:text-white"
                       }`}
                     >
@@ -1009,7 +1269,9 @@ export default function VehicleDetailPage() {
                     onClick={() => setActiveEquipmentTab("confort")}
                     className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
                       activeEquipmentTab === "confort"
-                        ? "border-b-2 border-white text-white"
+                        ? isAMG
+                          ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                          : "border-b-2 border-white text-white"
                         : "text-gray-400 hover:text-white"
                     }`}
                   >
@@ -1022,7 +1284,9 @@ export default function VehicleDetailPage() {
                       onClick={() => setActiveEquipmentTab("tren-rodaje")}
                       className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
                         activeEquipmentTab === "tren-rodaje"
-                          ? "border-b-2 border-white text-white"
+                          ? isAMG
+                            ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                            : "border-b-2 border-white text-white"
                           : "text-gray-400 hover:text-white"
                       }`}
                     >
@@ -1035,7 +1299,9 @@ export default function VehicleDetailPage() {
                       onClick={() => setActiveEquipmentTab("seguridad")}
                       className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
                         activeEquipmentTab === "seguridad"
-                          ? "border-b-2 border-white text-white"
+                          ? isAMG
+                            ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                            : "border-b-2 border-white text-white"
                           : "text-gray-400 hover:text-white"
                       }`}
                     >
@@ -1046,6 +1312,136 @@ export default function VehicleDetailPage() {
 
               {/* Tab Content */}
               <div className="min-h-[300px] sm:min-h-[350px] md:min-h-[400px]">
+                {/* Exterior */}
+                {activeEquipmentTab === "exterior" && vehicle.equipExterior && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
+                  >
+                    {vehicle.equipExterior.map((item, index) => {
+                      const imagePath = `${basePath}/equipment/exterior/${
+                        index + 1
+                      }`;
+                      return (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: index * 0.1 }}
+                          className={`group ${
+                            isAMG
+                              ? "rounded-lg overflow-hidden border border-[#5AC3B6]/20 hover:border-[#5AC3B6]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(90,195,182,0.15)]"
+                              : ""
+                          }`}
+                        >
+                          <div
+                            className={`relative aspect-[4/3] overflow-hidden mb-3 sm:mb-4 ${
+                              isAMG ? "bg-neutral-800" : "bg-zinc-800"
+                            }`}
+                          >
+                            <MultiFormatImage
+                              basePath={imagePath}
+                              alt={item.title || "Exterior"}
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            {isAMG && (
+                              <div className="absolute inset-0 bg-gradient-to-t from-[#5AC3B6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            )}
+                          </div>
+                          {(item.title || item.description) && (
+                            <div
+                              className={`py-2 sm:py-3 ${isAMG ? "px-3" : ""}`}
+                            >
+                              {item.title && (
+                                <h4
+                                  className={`text-base sm:text-lg font-light mb-1 sm:mb-2 ${
+                                    isAMG ? "text-[#5AC3B6]" : "text-white"
+                                  }`}
+                                >
+                                  {item.title}
+                                </h4>
+                              )}
+                              {item.description && (
+                                <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+
+                {/* Interior */}
+                {activeEquipmentTab === "interior" && vehicle.equipInterior && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
+                  >
+                    {vehicle.equipInterior.map((item, index) => {
+                      const imagePath = `${basePath}/equipment/interior/${
+                        index + 1
+                      }`;
+                      return (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: index * 0.1 }}
+                          className={`group ${
+                            isAMG
+                              ? "rounded-lg overflow-hidden border border-[#5AC3B6]/20 hover:border-[#5AC3B6]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(90,195,182,0.15)]"
+                              : ""
+                          }`}
+                        >
+                          <div
+                            className={`relative aspect-[4/3] overflow-hidden mb-3 sm:mb-4 ${
+                              isAMG ? "bg-neutral-800" : "bg-zinc-800"
+                            }`}
+                          >
+                            <MultiFormatImage
+                              basePath={imagePath}
+                              alt={item.title || "Interior"}
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            {isAMG && (
+                              <div className="absolute inset-0 bg-gradient-to-t from-[#5AC3B6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            )}
+                          </div>
+                          {(item.title || item.description) && (
+                            <div
+                              className={`py-2 sm:py-3 ${isAMG ? "px-3" : ""}`}
+                            >
+                              {item.title && (
+                                <h4
+                                  className={`text-base sm:text-lg font-light mb-1 sm:mb-2 ${
+                                    isAMG ? "text-[#5AC3B6]" : "text-white"
+                                  }`}
+                                >
+                                  {item.title}
+                                </h4>
+                              )}
+                              {item.description && (
+                                <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+
                 {/* Multimedia */}
                 {activeEquipmentTab === "multimedia" &&
                   vehicle.equipMultimedia && (
@@ -1066,19 +1462,38 @@ export default function VehicleDetailPage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
-                            className="group"
+                            className={`group ${
+                              isAMG
+                                ? "rounded-lg overflow-hidden border border-[#5AC3B6]/20 hover:border-[#5AC3B6]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(90,195,182,0.15)]"
+                                : ""
+                            }`}
                           >
-                            <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
+                            <div
+                              className={`relative aspect-[4/3] overflow-hidden mb-3 sm:mb-4 ${
+                                isAMG ? "bg-neutral-800" : "bg-zinc-800"
+                              }`}
+                            >
                               <MultiFormatImage
                                 basePath={imagePath}
                                 alt={item.title || "Multimedia"}
                                 className="object-cover group-hover:scale-105 transition-transform duration-500"
                               />
+                              {isAMG && (
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#5AC3B6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              )}
                             </div>
                             {(item.title || item.description) && (
-                              <div className="py-2 sm:py-3">
+                              <div
+                                className={`py-2 sm:py-3 ${
+                                  isAMG ? "px-3" : ""
+                                }`}
+                              >
                                 {item.title && (
-                                  <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
+                                  <h4
+                                    className={`text-base sm:text-lg font-light mb-1 sm:mb-2 ${
+                                      isAMG ? "text-[#5AC3B6]" : "text-white"
+                                    }`}
+                                  >
                                     {item.title}
                                   </h4>
                                 )}
@@ -1115,19 +1530,38 @@ export default function VehicleDetailPage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
-                            className="group"
+                            className={`group ${
+                              isAMG
+                                ? "rounded-lg overflow-hidden border border-[#5AC3B6]/20 hover:border-[#5AC3B6]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(90,195,182,0.15)]"
+                                : ""
+                            }`}
                           >
-                            <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
+                            <div
+                              className={`relative aspect-[4/3] overflow-hidden mb-3 sm:mb-4 ${
+                                isAMG ? "bg-neutral-800" : "bg-zinc-800"
+                              }`}
+                            >
                               <MultiFormatImage
                                 basePath={imagePath}
                                 alt={item.title || "Asistencia"}
                                 className="object-cover group-hover:scale-105 transition-transform duration-500"
                               />
+                              {isAMG && (
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#5AC3B6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              )}
                             </div>
                             {(item.title || item.description) && (
-                              <div className="py-2 sm:py-3">
+                              <div
+                                className={`py-2 sm:py-3 ${
+                                  isAMG ? "px-3" : ""
+                                }`}
+                              >
                                 {item.title && (
-                                  <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
+                                  <h4
+                                    className={`text-base sm:text-lg font-light mb-1 sm:mb-2 ${
+                                      isAMG ? "text-[#5AC3B6]" : "text-white"
+                                    }`}
+                                  >
                                     {item.title}
                                   </h4>
                                 )}
@@ -1163,19 +1597,36 @@ export default function VehicleDetailPage() {
                           whileInView={{ opacity: 1, y: 0 }}
                           viewport={{ once: true }}
                           transition={{ delay: index * 0.1 }}
-                          className="group"
+                          className={`group ${
+                            isAMG
+                              ? "rounded-lg overflow-hidden border border-[#5AC3B6]/20 hover:border-[#5AC3B6]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(90,195,182,0.15)]"
+                              : ""
+                          }`}
                         >
-                          <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
+                          <div
+                            className={`relative aspect-[4/3] overflow-hidden mb-3 sm:mb-4 ${
+                              isAMG ? "bg-neutral-800" : "bg-zinc-800"
+                            }`}
+                          >
                             <MultiFormatImage
                               basePath={imagePath}
                               alt={item.title || "Confort"}
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
                             />
+                            {isAMG && (
+                              <div className="absolute inset-0 bg-gradient-to-t from-[#5AC3B6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            )}
                           </div>
                           {(item.title || item.description) && (
-                            <div className="py-2 sm:py-3">
+                            <div
+                              className={`py-2 sm:py-3 ${isAMG ? "px-3" : ""}`}
+                            >
                               {item.title && (
-                                <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
+                                <h4
+                                  className={`text-base sm:text-lg font-light mb-1 sm:mb-2 ${
+                                    isAMG ? "text-[#5AC3B6]" : "text-white"
+                                  }`}
+                                >
                                   {item.title}
                                 </h4>
                               )}
@@ -1212,19 +1663,38 @@ export default function VehicleDetailPage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
-                            className="group"
+                            className={`group ${
+                              isAMG
+                                ? "rounded-lg overflow-hidden border border-[#5AC3B6]/20 hover:border-[#5AC3B6]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(90,195,182,0.15)]"
+                                : ""
+                            }`}
                           >
-                            <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
+                            <div
+                              className={`relative aspect-[4/3] overflow-hidden mb-3 sm:mb-4 ${
+                                isAMG ? "bg-neutral-800" : "bg-zinc-800"
+                              }`}
+                            >
                               <MultiFormatImage
                                 basePath={imagePath}
                                 alt={item.title || "Tren de rodaje"}
                                 className="object-cover group-hover:scale-105 transition-transform duration-500"
                               />
+                              {isAMG && (
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#5AC3B6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              )}
                             </div>
                             {(item.title || item.description) && (
-                              <div className="py-2 sm:py-3">
+                              <div
+                                className={`py-2 sm:py-3 ${
+                                  isAMG ? "px-3" : ""
+                                }`}
+                              >
                                 {item.title && (
-                                  <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
+                                  <h4
+                                    className={`text-base sm:text-lg font-light mb-1 sm:mb-2 ${
+                                      isAMG ? "text-[#5AC3B6]" : "text-white"
+                                    }`}
+                                  >
                                     {item.title}
                                   </h4>
                                 )}
@@ -1261,19 +1731,38 @@ export default function VehicleDetailPage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
-                            className="group"
+                            className={`group ${
+                              isAMG
+                                ? "rounded-lg overflow-hidden border border-[#5AC3B6]/20 hover:border-[#5AC3B6]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(90,195,182,0.15)]"
+                                : ""
+                            }`}
                           >
-                            <div className="relative aspect-[4/3] overflow-hidden bg-zinc-800 mb-3 sm:mb-4">
+                            <div
+                              className={`relative aspect-[4/3] overflow-hidden mb-3 sm:mb-4 ${
+                                isAMG ? "bg-neutral-800" : "bg-zinc-800"
+                              }`}
+                            >
                               <MultiFormatImage
                                 basePath={imagePath}
                                 alt={item.title || "Seguridad"}
                                 className="object-cover group-hover:scale-105 transition-transform duration-500"
                               />
+                              {isAMG && (
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#5AC3B6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              )}
                             </div>
                             {(item.title || item.description) && (
-                              <div className="py-2 sm:py-3">
+                              <div
+                                className={`py-2 sm:py-3 ${
+                                  isAMG ? "px-3" : ""
+                                }`}
+                              >
                                 {item.title && (
-                                  <h4 className="text-base sm:text-lg font-light mb-1 sm:mb-2 text-white">
+                                  <h4
+                                    className={`text-base sm:text-lg font-light mb-1 sm:mb-2 ${
+                                      isAMG ? "text-[#5AC3B6]" : "text-white"
+                                    }`}
+                                  >
                                     {item.title}
                                   </h4>
                                 )}
@@ -1305,18 +1794,33 @@ export default function VehicleDetailPage() {
         (vehicle.specsCantidades && vehicle.specsCantidades.length > 0) ||
         (vehicle.specsBateriaCarga &&
           vehicle.specsBateriaCarga.length > 0)) && (
-        <section className="py-24 md:py-32 bg-white text-black">
+        <section
+          className={`py-24 md:py-32 relative ${
+            isAMG
+              ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
+              : "bg-white text-black"
+          }`}
+        >
+          {isAMG && (
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+          )}
           <div className="max-w-5xl mx-auto px-6 md:px-12">
             <motion.h2
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="text-3xl md:text-5xl font-light mb-12 text-center"
+              className={`text-3xl md:text-5xl font-light mb-12 text-center ${
+                isAMG ? "text-[#5AC3B6]" : ""
+              }`}
             >
               Especificaciones Técnicas
             </motion.h2>
 
-            <div className="space-y-0 border-t border-gray-200">
+            <div
+              className={`space-y-0 border-t ${
+                isAMG ? "border-[#5AC3B6]/30" : "border-gray-200"
+              }`}
+            >
               {vehicle.specsConsumo && vehicle.specsConsumo.length > 0 && (
                 <AccordionItem
                   title="Consumo y emisión"
@@ -1325,6 +1829,7 @@ export default function VehicleDetailPage() {
                   onToggle={() =>
                     setOpenSpecIndex(openSpecIndex === 0 ? null : 0)
                   }
+                  isAMG={isAMG}
                 />
               )}
 
@@ -1337,6 +1842,7 @@ export default function VehicleDetailPage() {
                     onToggle={() =>
                       setOpenSpecIndex(openSpecIndex === 1 ? null : 1)
                     }
+                    isAMG={isAMG}
                   />
                 )}
 
@@ -1348,6 +1854,7 @@ export default function VehicleDetailPage() {
                   onToggle={() =>
                     setOpenSpecIndex(openSpecIndex === 2 ? null : 2)
                   }
+                  isAMG={isAMG}
                 />
               )}
 
@@ -1360,6 +1867,7 @@ export default function VehicleDetailPage() {
                     onToggle={() =>
                       setOpenSpecIndex(openSpecIndex === 3 ? null : 3)
                     }
+                    isAMG={isAMG}
                   />
                 )}
 
@@ -1372,6 +1880,7 @@ export default function VehicleDetailPage() {
                     onToggle={() =>
                       setOpenSpecIndex(openSpecIndex === 4 ? null : 4)
                     }
+                    isAMG={isAMG}
                   />
                 )}
 
@@ -1384,6 +1893,7 @@ export default function VehicleDetailPage() {
                     onToggle={() =>
                       setOpenSpecIndex(openSpecIndex === 5 ? null : 5)
                     }
+                    isAMG={isAMG}
                   />
                 )}
 
@@ -1395,6 +1905,7 @@ export default function VehicleDetailPage() {
                   onToggle={() =>
                     setOpenSpecIndex(openSpecIndex === 6 ? null : 6)
                   }
+                  isAMG={isAMG}
                 />
               )}
 
@@ -1407,6 +1918,7 @@ export default function VehicleDetailPage() {
                     onToggle={() =>
                       setOpenSpecIndex(openSpecIndex === 7 ? null : 7)
                     }
+                    isAMG={isAMG}
                   />
                 )}
 
@@ -1419,6 +1931,7 @@ export default function VehicleDetailPage() {
                     onToggle={() =>
                       setOpenSpecIndex(openSpecIndex === 8 ? null : 8)
                     }
+                    isAMG={isAMG}
                   />
                 )}
             </div>
@@ -1427,7 +1940,16 @@ export default function VehicleDetailPage() {
       )}
 
       {/* CTA Section - Diseño elegante */}
-      <section className="py-32 md:py-40 bg-white text-black">
+      <section
+        className={`py-32 md:py-40 relative ${
+          isAMG
+            ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
+            : "bg-white text-black"
+        }`}
+      >
+        {isAMG && (
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+        )}
         <div className="max-w-5xl mx-auto px-6 md:px-12 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -1435,10 +1957,18 @@ export default function VehicleDetailPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-light mb-6 tracking-tight">
+            <h2
+              className={`text-3xl md:text-5xl lg:text-6xl font-light mb-6 tracking-tight ${
+                isAMG ? "text-[#5AC3B6]" : ""
+              }`}
+            >
               ¿Te interesa este vehículo?
             </h2>
-            <p className="text-lg md:text-xl text-gray-600 font-light mb-12 max-w-2xl mx-auto">
+            <p
+              className={`text-lg md:text-xl font-light mb-12 max-w-2xl mx-auto ${
+                isAMG ? "text-gray-300" : "text-gray-600"
+              }`}
+            >
               Contactame para conocer más detalles, disponibilidad y coordinar
               una visita personalizada
             </p>
@@ -1446,14 +1976,22 @@ export default function VehicleDetailPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 href="/contact"
-                className="group relative px-10 py-4 bg-black text-white font-light text-sm tracking-wider uppercase overflow-hidden transition-all duration-300 hover:bg-zinc-800"
+                className={`group relative px-10 py-4 font-light text-sm tracking-wider uppercase overflow-hidden transition-all duration-300 ${
+                  isAMG
+                    ? "bg-[#5AC3B6] text-black hover:bg-[#4AB3A6] shadow-[0_4px_20px_rgba(90,195,182,0.3)]"
+                    : "bg-black text-white hover:bg-zinc-800"
+                }`}
               >
                 <span className="relative z-10">Contactame</span>
               </Link>
 
               <Link
                 href="/vehicles"
-                className="group px-10 py-4 border border-black/30 text-black font-light text-sm tracking-wider uppercase transition-all duration-300 hover:bg-black hover:text-white"
+                className={`group px-10 py-4 border font-light text-sm tracking-wider uppercase transition-all duration-300 ${
+                  isAMG
+                    ? "border-[#5AC3B6]/50 text-white hover:bg-[#5AC3B6]/10 hover:border-[#5AC3B6]"
+                    : "border-black/30 text-black hover:bg-black hover:text-white"
+                }`}
               >
                 Ver más vehículos
               </Link>
@@ -1470,11 +2008,17 @@ export default function VehicleDetailPage() {
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.3 }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-8 right-8 w-12 h-12 md:w-14 md:h-14 rounded-full border border-black/20 backdrop-blur-sm bg-white/80 flex items-center justify-center transition-all duration-300 z-50 group hover:bg-white hover:border-black/40"
+          className={`fixed bottom-8 right-8 w-12 h-12 md:w-14 md:h-14 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-300 z-50 group ${
+            isAMG
+              ? "border border-[#5AC3B6]/40 bg-neutral-900/90 hover:bg-neutral-800 hover:border-[#5AC3B6]/70"
+              : "border border-black/20 bg-white/80 hover:bg-white hover:border-black/40"
+          }`}
           aria-label="Volver arriba"
         >
           <svg
-            className="w-5 h-5 md:w-6 md:h-6 text-black transition-transform group-hover:-translate-y-1"
+            className={`w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:-translate-y-1 ${
+              isAMG ? "text-[#5AC3B6]" : "text-black"
+            }`}
             fill="none"
             stroke="currentColor"
             strokeWidth={1.5}

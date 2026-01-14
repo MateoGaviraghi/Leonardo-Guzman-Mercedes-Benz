@@ -325,12 +325,27 @@ function VehiclesContent() {
 
       {/* Main Content Container */}
       <div
-        className={`w-full pt-12 pb-12 ${
+        className={`w-full pt-12 pb-12 relative ${
           (category === "auto" || category === "suv") && brand === "amg"
-            ? "bg-linear-to-br from-neutral-800 via-neutral-900 to-black border-y border-[#5AC3B6]/30 shadow-[0_0_40px_rgba(90,195,182,0.2)]"
+            ? "bg-[radial-gradient(ellipse_at_top,rgba(90,195,182,0.08)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(90,195,182,0.05)_0%,transparent_40%)] bg-neutral-950"
             : ""
         }`}
       >
+        {/* AMG Decorative Elements */}
+        {(category === "auto" || category === "suv") && brand === "amg" && (
+          <>
+            {/* Top border accent */}
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+            {/* Bottom border accent */}
+            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/30 to-transparent" />
+            {/* AMG Performance Badge */}
+            <div className="absolute top-6 right-6 md:right-12 opacity-30 pointer-events-none hidden lg:block">
+              <span className="text-[10px] font-bold tracking-[0.4em] text-[#5AC3B6] uppercase">
+                Performance
+              </span>
+            </div>
+          </>
+        )}
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div
             className={
@@ -370,9 +385,9 @@ function VehiclesContent() {
             {(category === "auto" || category === "suv") && (
               <aside className="w-full lg:w-80 shrink-0">
                 <div
-                  className={`backdrop-blur-md rounded-lg overflow-hidden transition-all ${
+                  className={`backdrop-blur-md rounded-lg overflow-hidden transition-all duration-500 ${
                     brand === "amg"
-                      ? "bg-neutral-900/80 border border-[#5AC3B6]/40 shadow-[0_0_30px_rgba(90,195,182,0.15)]"
+                      ? "bg-gradient-to-b from-neutral-900/95 to-neutral-950/95 border border-[#5AC3B6]/25 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_rgba(90,195,182,0.1)_inset]"
                       : "bg-neutral-900/80 border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
                   }`}
                 >
@@ -410,13 +425,16 @@ function VehiclesContent() {
                       <Link
                         href={`/vehicles?category=${category}&brand=amg`}
                         scroll={false}
-                        className={`flex-1 py-4 lg:py-5 px-3 lg:px-4 text-center font-bold transition-all flex flex-col items-center justify-center gap-2 rounded-md ${
+                        className={`flex-1 py-4 lg:py-5 px-3 lg:px-4 text-center font-bold transition-all duration-500 flex flex-col items-center justify-center gap-2 rounded-md relative overflow-hidden ${
                           brand === "amg"
-                            ? "bg-[#5AC3B6]/20 border-2 border-[#5AC3B6] shadow-[0_0_20px_rgba(90,195,182,0.4)]"
-                            : "bg-black/50 border-2 border-white/20 hover:border-white/40 hover:bg-black/70"
+                            ? "bg-gradient-to-br from-[#5AC3B6]/25 via-[#5AC3B6]/15 to-[#5AC3B6]/20 border-2 border-[#5AC3B6] shadow-[0_0_30px_rgba(90,195,182,0.35),inset_0_1px_0_rgba(255,255,255,0.1)]"
+                            : "bg-black/50 border-2 border-white/20 hover:border-[#5AC3B6]/40 hover:bg-black/70"
                         }`}
                       >
-                        <div className="relative w-full h-5 lg:h-6 flex items-center justify-center">
+                        {brand === "amg" && (
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(90,195,182,0.2),transparent_70%)]" />
+                        )}
+                        <div className="relative z-10 w-full h-5 lg:h-6 flex items-center justify-center">
                           <Image
                             src="/logosParaSlidebar/logoAmgPhotoroom.png"
                             alt="AMG"
@@ -424,7 +442,10 @@ function VehiclesContent() {
                             height={26}
                             className="object-contain"
                             style={{
-                              filter: "brightness(0) invert(1)",
+                              filter:
+                                brand === "amg"
+                                  ? "brightness(1.2) drop-shadow(0 0 8px rgba(90,195,182,0.5))"
+                                  : "brightness(0) invert(1)",
                             }}
                           />
                         </div>
@@ -518,6 +539,7 @@ function VehiclesContent() {
                         href={`/vehicles/${vehicle.id}`}
                         image={`/vehicles/${vehicle.id}/foto-card/card`}
                         fuelType={vehicle.fuel_type}
+                        isAMG={brand === "amg"}
                       />
                     ))}
                   </div>

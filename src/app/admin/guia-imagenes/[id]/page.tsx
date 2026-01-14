@@ -39,6 +39,14 @@ export default function GuiaImagenesPage() {
         else vehicle.specsPotencia = vehicle.specs_potencia;
 
         // Parsear equipamiento (JSONB arrays)
+        if (typeof vehicle.equip_exterior === "string")
+          vehicle.equipExterior = JSON.parse(vehicle.equip_exterior);
+        else vehicle.equipExterior = vehicle.equip_exterior;
+
+        if (typeof vehicle.equip_interior === "string")
+          vehicle.equipInterior = JSON.parse(vehicle.equip_interior);
+        else vehicle.equipInterior = vehicle.equip_interior;
+
         if (typeof vehicle.equip_multimedia === "string")
           vehicle.equipMultimedia = JSON.parse(vehicle.equip_multimedia);
         else vehicle.equipMultimedia = vehicle.equip_multimedia;
@@ -367,6 +375,92 @@ export default function GuiaImagenesPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b pb-2">
               🔧 Equipamiento
             </h2>
+
+            {/* Exterior */}
+            {vehicle.equipExterior && vehicle.equipExterior.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                  Exterior
+                </h3>
+                <div className="space-y-3">
+                  {vehicle.equipExterior.map((item, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 p-3 rounded border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <code className="text-sm font-mono text-gray-700">
+                          {basePath}/equipment/exterior/{index + 1}.[formato]
+                        </code>
+                        <button
+                          onClick={() =>
+                            copyToClipboard(
+                              `${basePath}/equipment/exterior/${index + 1}`
+                            )
+                          }
+                          className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          Copiar
+                        </button>
+                      </div>
+                      {item.title && (
+                        <p className="text-sm font-semibold text-gray-800 mb-1">
+                          📌 {item.title}
+                        </p>
+                      )}
+                      {item.description && (
+                        <p className="text-xs text-gray-600">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Interior */}
+            {vehicle.equipInterior && vehicle.equipInterior.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                  Interior
+                </h3>
+                <div className="space-y-3">
+                  {vehicle.equipInterior.map((item, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 p-3 rounded border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <code className="text-sm font-mono text-gray-700">
+                          {basePath}/equipment/interior/{index + 1}.[formato]
+                        </code>
+                        <button
+                          onClick={() =>
+                            copyToClipboard(
+                              `${basePath}/equipment/interior/${index + 1}`
+                            )
+                          }
+                          className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          Copiar
+                        </button>
+                      </div>
+                      {item.title && (
+                        <p className="text-sm font-semibold text-gray-800 mb-1">
+                          📌 {item.title}
+                        </p>
+                      )}
+                      {item.description && (
+                        <p className="text-xs text-gray-600">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Multimedia */}
             {vehicle.equipMultimedia && vehicle.equipMultimedia.length > 0 && (
