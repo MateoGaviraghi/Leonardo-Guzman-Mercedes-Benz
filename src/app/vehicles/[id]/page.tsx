@@ -17,7 +17,13 @@ const getImagePath = (
 };
 
 // Color Carousel Component - Auto-rotating carousel
-function ColorCarousel({ vehicleId }: { vehicleId: string }) {
+function ColorCarousel({
+  vehicleId,
+  isAMG = false,
+}: {
+  vehicleId: string;
+  isAMG?: boolean;
+}) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "center",
@@ -102,7 +108,9 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
         aria-label="Anterior"
       >
         <svg
-          className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 text-black"
+          className={`w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:-translate-x-1 ${
+            isAMG ? "text-[#5AC3B6]" : "text-black"
+          }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -121,7 +129,9 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
         aria-label="Siguiente"
       >
         <svg
-          className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 text-black"
+          className={`w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-1 ${
+            isAMG ? "text-[#5AC3B6]" : "text-black"
+          }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -139,7 +149,7 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
           aria-label="Anterior"
         >
           <svg
-            className="w-8 h-8 text-black"
+            className={`w-8 h-8 ${isAMG ? "text-[#5AC3B6]" : "text-black"}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -158,7 +168,7 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
           aria-label="Siguiente"
         >
           <svg
-            className="w-8 h-8 text-black"
+            className={`w-8 h-8 ${isAMG ? "text-[#5AC3B6]" : "text-black"}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -180,7 +190,13 @@ function ColorCarousel({ vehicleId }: { vehicleId: string }) {
             key={num}
             onClick={() => emblaApi?.scrollTo(index)}
             className={`w-2 h-2 rounded-full transition-all ${
-              index === selectedIndex ? "bg-black w-8" : "bg-black/30"
+              index === selectedIndex
+                ? isAMG
+                  ? "bg-[#5AC3B6] w-8 shadow-[0_0_10px_#5AC3B6]"
+                  : "bg-black w-8"
+                : isAMG
+                ? "bg-[#5AC3B6]/30"
+                : "bg-black/30"
             }`}
             aria-label={`Ir a color ${num}`}
           />
@@ -405,10 +421,10 @@ function ImageCarousel({
       </div>
 
       {/* Current Info */}
-      <div className="text-center mt-4 sm:mt-6 px-4">
+      <div className="text-center mt-10 sm:mt-12 px-4">
         {items[selectedIndex]?.title && (
           <h3
-            className={`text-xl sm:text-2xl md:text-3xl font-light mb-2 sm:mb-3 ${
+            className={`text-xl sm:text-2xl md:text-3xl font-light mb-1 sm:mb-2 ${
               isAMG ? "text-[#5AC3B6]" : ""
             }`}
           >
@@ -1160,7 +1176,7 @@ export default function VehicleDetailPage() {
             Colores Disponibles
           </motion.h2>
 
-          <ColorCarousel vehicleId={vehicleId} />
+          <ColorCarousel vehicleId={vehicleId} isAMG={isAMG} />
         </div>
       </section>
 
@@ -1188,7 +1204,9 @@ export default function VehicleDetailPage() {
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="text-3xl md:text-5xl font-light mb-6 text-center"
+                className={`text-3xl md:text-5xl font-light mb-6 text-center ${
+                  isAMG ? "text-[#5AC3B6]" : ""
+                }`}
               >
                 {vehicle.equipmentGeneralTitle}
               </motion.h2>
