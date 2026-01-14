@@ -58,7 +58,7 @@ export async function PUT(
       category: body.category,
       brand: body.brand,
       is_amg: body.is_amg,
-      fuel_type: body.fuelType,
+      fuel_type: body.fuel_type || body.fuelType,
       subtitle: body.subtitle,
       aspecto_1_valor: body.aspecto1Valor,
       aspecto_1_label: body.aspecto1Label,
