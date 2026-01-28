@@ -573,6 +573,7 @@ export default function VehicleDetailPage() {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const [openSpecIndex, setOpenSpecIndex] = useState<number | null>(0);
   const [activeEquipmentTab, setActiveEquipmentTab] = useState<string>("");
+  const [activeAutonomyTab, setActiveAutonomyTab] = useState<string>("tab1");
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Detectar scroll para mostrar/ocultar botón de ir arriba
@@ -702,6 +703,38 @@ export default function VehicleDetailPage() {
         )
           vehicle.specsBateriaCarga = JSON.parse(vehicle.specs_bateria_carga);
         else vehicle.specsBateriaCarga = vehicle.specs_bateria_carga || [];
+
+        // Parsear autonomía y carga (eléctricos)
+        if (
+          vehicle.charging_tab1_content &&
+          typeof vehicle.charging_tab1_content === "string"
+        )
+          vehicle.chargingTab1Content = JSON.parse(
+            vehicle.charging_tab1_content
+          );
+        else vehicle.chargingTab1Content = vehicle.charging_tab1_content || [];
+
+        if (
+          vehicle.charging_tab2_content &&
+          typeof vehicle.charging_tab2_content === "string"
+        )
+          vehicle.chargingTab2Content = JSON.parse(
+            vehicle.charging_tab2_content
+          );
+        else vehicle.chargingTab2Content = vehicle.charging_tab2_content || [];
+
+        // Convertir snake_case a camelCase para autonomía
+        vehicle.autonomyGeneralTitle = vehicle.autonomy_general_title;
+        vehicle.autonomyGeneralDescription =
+          vehicle.autonomy_general_description;
+        vehicle.autonomyCard1Title = vehicle.autonomy_card1_title;
+        vehicle.autonomyCard1Description = vehicle.autonomy_card1_description;
+        vehicle.autonomyCard1Link = vehicle.autonomy_card1_link;
+        vehicle.autonomyCard2Title = vehicle.autonomy_card2_title;
+        vehicle.autonomyCard2Description = vehicle.autonomy_card2_description;
+        vehicle.autonomyCard2Link = vehicle.autonomy_card2_link;
+        vehicle.chargingTab1Title = vehicle.charging_tab1_title;
+        vehicle.chargingTab2Title = vehicle.charging_tab2_title;
 
         // Convertir snake_case a camelCase
         vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
@@ -1953,6 +1986,411 @@ export default function VehicleDetailPage() {
                   />
                 )}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========== AUTONOMÍA Y CARGA (Solo eléctricos) ========== */}
+      {(vehicle.chargingTab1Content?.length > 0 ||
+        vehicle.chargingTab2Content?.length > 0 ||
+        vehicle.autonomyCard1Title ||
+        vehicle.autonomyCard2Title) && (
+        <section
+          className={`py-24 md:py-32 relative ${
+            isAMG
+              ? "bg-gradient-to-b from-neutral-900 via-black to-neutral-950 text-white"
+              : "bg-white text-black"
+          }`}
+        >
+          {isAMG && (
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+          )}
+
+          <div className="max-w-7xl mx-auto px-6 md:px-12">
+            {/* Header */}
+            {vehicle.autonomyGeneralTitle && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                className="mb-16 text-center"
+              >
+                <h2
+                  className={`text-3xl md:text-5xl lg:text-6xl font-light tracking-tight mb-6 ${
+                    isAMG ? "text-[#5AC3B6]" : ""
+                  }`}
+                >
+                  {vehicle.autonomyGeneralTitle}
+                </h2>
+                {vehicle.autonomyGeneralDescription && (
+                  <p
+                    className={`text-base md:text-lg font-light max-w-4xl mx-auto leading-relaxed ${
+                      isAMG ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    {vehicle.autonomyGeneralDescription}
+                  </p>
+                )}
+              </motion.div>
+            )}
+
+            {/* Cards de Simuladores */}
+            {(vehicle.autonomyCard1Title || vehicle.autonomyCard2Title) && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20"
+              >
+                {/* Card 1 - Simular autonomía */}
+                {vehicle.autonomyCard1Title && (
+                  <Link
+                    href={vehicle.autonomyCard1Link || "#"}
+                    target={vehicle.autonomyCard1Link ? "_blank" : undefined}
+                    className="group relative aspect-[16/9] overflow-hidden"
+                  >
+                    {/* Imagen de fondo */}
+                    {!hasImageError(`${basePath}/autonomy/card1`) && (
+                      <Image
+                        src={getImagePath(`${basePath}/autonomy/card1`)}
+                        alt={vehicle.autonomyCard1Title}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        onError={() =>
+                          handleImageError(`${basePath}/autonomy/card1`)
+                        }
+                      />
+                    )}
+
+                    {/* Overlay gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+                    {/* Contenido */}
+                    <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
+                      <div
+                        className={`inline-flex items-center gap-2 text-xs tracking-wider uppercase mb-3 ${
+                          isAMG ? "text-[#5AC3B6]" : "text-white/70"
+                        }`}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                          />
+                        </svg>
+                        <span>Simulá</span>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-light text-white mb-2">
+                        {vehicle.autonomyCard1Title}
+                      </h3>
+                      {vehicle.autonomyCard1Description && (
+                        <p className="text-sm text-white/80 font-light">
+                          {vehicle.autonomyCard1Description}
+                        </p>
+                      )}
+                      <div
+                        className={`mt-4 inline-flex items-center gap-2 text-sm font-light transition-transform group-hover:translate-x-2 ${
+                          isAMG ? "text-[#5AC3B6]" : "text-white"
+                        }`}
+                      >
+                        <span>Simular</span>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </Link>
+                )}
+
+                {/* Card 2 - Simular tiempo de carga */}
+                {vehicle.autonomyCard2Title && (
+                  <Link
+                    href={vehicle.autonomyCard2Link || "#"}
+                    target={vehicle.autonomyCard2Link ? "_blank" : undefined}
+                    className="group relative aspect-[16/9] overflow-hidden"
+                  >
+                    {/* Imagen de fondo */}
+                    {!hasImageError(`${basePath}/autonomy/card2`) && (
+                      <Image
+                        src={getImagePath(`${basePath}/autonomy/card2`)}
+                        alt={vehicle.autonomyCard2Title}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        onError={() =>
+                          handleImageError(`${basePath}/autonomy/card2`)
+                        }
+                      />
+                    )}
+
+                    {/* Overlay gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+
+                    {/* Contenido */}
+                    <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
+                      <div
+                        className={`inline-flex items-center gap-2 text-xs tracking-wider uppercase mb-3 ${
+                          isAMG ? "text-[#5AC3B6]" : "text-white/70"
+                        }`}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M12 4v16m0-8h8m-8 0H4"
+                          />
+                        </svg>
+                        <span>Simular</span>
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-light text-white mb-2">
+                        {vehicle.autonomyCard2Title}
+                      </h3>
+                      {vehicle.autonomyCard2Description && (
+                        <p className="text-sm text-white/80 font-light">
+                          {vehicle.autonomyCard2Description}
+                        </p>
+                      )}
+                      <div
+                        className={`mt-4 inline-flex items-center gap-2 text-sm font-light transition-transform group-hover:translate-x-2 ${
+                          isAMG ? "text-[#5AC3B6]" : "text-white"
+                        }`}
+                      >
+                        <span>Simular</span>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </Link>
+                )}
+              </motion.div>
+            )}
+
+            {/* Tabs de Carga y Tecnología */}
+            {(vehicle.chargingTab1Content?.length > 0 ||
+              vehicle.chargingTab2Content?.length > 0) && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                {/* Tab Navigation */}
+                <div
+                  className={`flex border-b mb-12 ${
+                    isAMG ? "border-[#5AC3B6]/20" : "border-black/10"
+                  }`}
+                >
+                  {vehicle.chargingTab1Title &&
+                    vehicle.chargingTab1Content?.length > 0 && (
+                      <button
+                        onClick={() => setActiveAutonomyTab("tab1")}
+                        className={`px-6 py-4 text-sm md:text-base tracking-wider uppercase font-light transition-all ${
+                          activeAutonomyTab === "tab1"
+                            ? isAMG
+                              ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                              : "border-b-2 border-black text-black"
+                            : isAMG
+                            ? "text-gray-400 hover:text-gray-300"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        {vehicle.chargingTab1Title}
+                      </button>
+                    )}
+                  {vehicle.chargingTab2Title &&
+                    vehicle.chargingTab2Content?.length > 0 && (
+                      <button
+                        onClick={() => setActiveAutonomyTab("tab2")}
+                        className={`px-6 py-4 text-sm md:text-base tracking-wider uppercase font-light transition-all ${
+                          activeAutonomyTab === "tab2"
+                            ? isAMG
+                              ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                              : "border-b-2 border-black text-black"
+                            : isAMG
+                            ? "text-gray-400 hover:text-gray-300"
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                      >
+                        {vehicle.chargingTab2Title}
+                      </button>
+                    )}
+                </div>
+
+                {/* Tab Content */}
+                <div className="space-y-12">
+                  {/* Tab 1 - Carga */}
+                  {activeAutonomyTab === "tab1" &&
+                    vehicle.chargingTab1Content?.map((item, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        className={`grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center ${
+                          index % 2 === 1 ? "lg:grid-flow-dense" : ""
+                        }`}
+                      >
+                        {/* Imagen */}
+                        <div
+                          className={index % 2 === 1 ? "lg:col-start-2" : ""}
+                        >
+                          <div className="relative aspect-[4/3] overflow-hidden">
+                            {!hasImageError(
+                              `${basePath}/autonomy/charging/${index + 1}`
+                            ) && (
+                              <Image
+                                src={getImagePath(
+                                  `${basePath}/autonomy/charging/${index + 1}`
+                                )}
+                                alt={item.title || "Carga"}
+                                fill
+                                className="object-cover"
+                                onError={() =>
+                                  handleImageError(
+                                    `${basePath}/autonomy/charging/${index + 1}`
+                                  )
+                                }
+                              />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Contenido */}
+                        <div
+                          className={
+                            index % 2 === 1
+                              ? "lg:col-start-1 lg:row-start-1"
+                              : ""
+                          }
+                        >
+                          {item.title && (
+                            <h3
+                              className={`text-2xl md:text-4xl font-light mb-4 ${
+                                isAMG ? "text-white" : ""
+                              }`}
+                            >
+                              {item.title}
+                            </h3>
+                          )}
+                          {item.description && (
+                            <p
+                              className={`text-base md:text-lg font-light leading-relaxed ${
+                                isAMG ? "text-gray-300" : "text-gray-600"
+                              }`}
+                            >
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+
+                  {/* Tab 2 - Tecnología */}
+                  {activeAutonomyTab === "tab2" &&
+                    vehicle.chargingTab2Content?.map((item, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        className={`grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center ${
+                          index % 2 === 1 ? "lg:grid-flow-dense" : ""
+                        }`}
+                      >
+                        {/* Imagen */}
+                        <div
+                          className={index % 2 === 1 ? "lg:col-start-2" : ""}
+                        >
+                          <div className="relative aspect-[4/3] overflow-hidden">
+                            {!hasImageError(
+                              `${basePath}/autonomy/technology/${index + 1}`
+                            ) && (
+                              <Image
+                                src={getImagePath(
+                                  `${basePath}/autonomy/technology/${index + 1}`
+                                )}
+                                alt={item.title || "Tecnología"}
+                                fill
+                                className="object-cover"
+                                onError={() =>
+                                  handleImageError(
+                                    `${basePath}/autonomy/technology/${
+                                      index + 1
+                                    }`
+                                  )
+                                }
+                              />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Contenido */}
+                        <div
+                          className={
+                            index % 2 === 1
+                              ? "lg:col-start-1 lg:row-start-1"
+                              : ""
+                          }
+                        >
+                          {item.title && (
+                            <h3
+                              className={`text-2xl md:text-4xl font-light mb-4 ${
+                                isAMG ? "text-white" : ""
+                              }`}
+                            >
+                              {item.title}
+                            </h3>
+                          )}
+                          {item.description && (
+                            <p
+                              className={`text-base md:text-lg font-light leading-relaxed ${
+                                isAMG ? "text-gray-300" : "text-gray-600"
+                              }`}
+                            >
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                </div>
+              </motion.div>
+            )}
           </div>
         </section>
       )}

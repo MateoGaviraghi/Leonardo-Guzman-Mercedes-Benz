@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 // GET - Obtener un vehículo por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -17,14 +17,14 @@ export async function GET(
     if (error) {
       return NextResponse.json(
         { success: false, error: error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     if (!data) {
       return NextResponse.json(
         { success: false, error: "Vehículo no encontrado" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -38,7 +38,7 @@ export async function GET(
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -46,7 +46,7 @@ export async function GET(
 // PUT - Actualizar vehículo
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -169,7 +169,7 @@ export async function PUT(
     if (error) {
       return NextResponse.json(
         { success: false, error: error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -184,7 +184,7 @@ export async function PUT(
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -192,7 +192,7 @@ export async function PUT(
 // DELETE - Eliminar vehículo
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -201,7 +201,7 @@ export async function DELETE(
     if (error) {
       return NextResponse.json(
         { success: false, error: error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -215,7 +215,7 @@ export async function DELETE(
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

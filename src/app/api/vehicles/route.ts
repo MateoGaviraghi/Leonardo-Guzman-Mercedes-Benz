@@ -12,7 +12,7 @@ export async function GET() {
     if (error) {
       return NextResponse.json(
         { success: false, error: error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -27,7 +27,7 @@ export async function GET() {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Campos obligatorios: name, category, brand",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json(
         { success: false, error: error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

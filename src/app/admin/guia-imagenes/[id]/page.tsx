@@ -63,6 +63,22 @@ export default function GuiaImagenesPage() {
           vehicle.equipTrenRodaje = JSON.parse(vehicle.equip_tren_rodaje);
         else vehicle.equipTrenRodaje = vehicle.equip_tren_rodaje;
 
+        if (typeof vehicle.equip_seguridad === "string")
+          vehicle.equipSeguridad = JSON.parse(vehicle.equip_seguridad);
+        else vehicle.equipSeguridad = vehicle.equip_seguridad;
+
+        if (typeof vehicle.charging_tab1_content === "string")
+          vehicle.chargingTab1Content = JSON.parse(
+            vehicle.charging_tab1_content
+          );
+        else vehicle.chargingTab1Content = vehicle.charging_tab1_content;
+
+        if (typeof vehicle.charging_tab2_content === "string")
+          vehicle.chargingTab2Content = JSON.parse(
+            vehicle.charging_tab2_content
+          );
+        else vehicle.chargingTab2Content = vehicle.charging_tab2_content;
+
         // Convertir snake_case a camelCase para campos simples
         vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
         vehicle.exterior1Title = vehicle.exterior_1_title;
@@ -633,7 +649,183 @@ export default function GuiaImagenesPage() {
                 </div>
               </div>
             )}
+
+            {/* Seguridad */}
+            {vehicle.equipSeguridad && vehicle.equipSeguridad.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                  Seguridad
+                </h3>
+                <div className="space-y-3">
+                  {vehicle.equipSeguridad.map((item, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 p-3 rounded border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <code className="text-sm font-mono text-gray-700">
+                          {basePath}/equipment/seguridad/{index + 1}.[formato]
+                        </code>
+                        <button
+                          onClick={() =>
+                            copyToClipboard(
+                              `${basePath}/equipment/seguridad/${index + 1}`
+                            )
+                          }
+                          className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          Copiar
+                        </button>
+                      </div>
+                      {item.title && (
+                        <p className="text-sm font-semibold text-gray-800 mb-1">
+                          📌 {item.title}
+                        </p>
+                      )}
+                      {item.description && (
+                        <p className="text-xs text-gray-600">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
+
+          {/* AUTONOMÍA Y CARGA (Solo eléctricos) */}
+          {(vehicle.chargingTab1Content || vehicle.chargingTab2Content) && (
+            <section className="bg-white p-6 rounded-lg shadow">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b pb-2">
+                ⚡ Autonomía y Carga (Solo Eléctricos)
+              </h2>
+
+              {/* Cards de simuladores */}
+              <div className="mb-4">
+                <h3 className="font-semibold text-gray-800 mb-3">
+                  Cards de Simuladores (con imagen de fondo)
+                </h3>
+                <div className="space-y-2 font-mono text-sm">
+                  <div className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                    <code className="text-gray-700">
+                      {basePath}/autonomy/card1.[formato]
+                    </code>
+                    <button
+                      onClick={() =>
+                        copyToClipboard(`${basePath}/autonomy/card1`)
+                      }
+                      className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      Copiar
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                    <code className="text-gray-700">
+                      {basePath}/autonomy/card2.[formato]
+                    </code>
+                    <button
+                      onClick={() =>
+                        copyToClipboard(`${basePath}/autonomy/card2`)
+                      }
+                      className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      Copiar
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tab Carga */}
+              {vehicle.chargingTab1Content &&
+                vehicle.chargingTab1Content.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                      Tab: Carga
+                    </h3>
+                    <div className="space-y-3">
+                      {vehicle.chargingTab1Content.map((item, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-50 p-3 rounded border border-gray-200"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <code className="text-sm font-mono text-gray-700">
+                              {basePath}/autonomy/charging/{index + 1}.[formato]
+                            </code>
+                            <button
+                              onClick={() =>
+                                copyToClipboard(
+                                  `${basePath}/autonomy/charging/${index + 1}`
+                                )
+                              }
+                              className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                              Copiar
+                            </button>
+                          </div>
+                          {item.title && (
+                            <p className="text-sm font-semibold text-gray-800 mb-1">
+                              📌 {item.title}
+                            </p>
+                          )}
+                          {item.description && (
+                            <p className="text-xs text-gray-600">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              {/* Tab Tecnología */}
+              {vehicle.chargingTab2Content &&
+                vehicle.chargingTab2Content.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                      Tab: Tecnología
+                    </h3>
+                    <div className="space-y-3">
+                      {vehicle.chargingTab2Content.map((item, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-50 p-3 rounded border border-gray-200"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <code className="text-sm font-mono text-gray-700">
+                              {basePath}/autonomy/technology/{index + 1}
+                              .[formato]
+                            </code>
+                            <button
+                              onClick={() =>
+                                copyToClipboard(
+                                  `${basePath}/autonomy/technology/${index + 1}`
+                                )
+                              }
+                              className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                              Copiar
+                            </button>
+                          </div>
+                          {item.title && (
+                            <p className="text-sm font-semibold text-gray-800 mb-1">
+                              📌 {item.title}
+                            </p>
+                          )}
+                          {item.description && (
+                            <p className="text-xs text-gray-600">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </section>
+          )}
 
           {/* RESUMEN */}
           <section className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
@@ -642,15 +834,24 @@ export default function GuiaImagenesPage() {
             </h3>
             <pre className="bg-white p-4 rounded border text-xs overflow-x-auto">
               {`/public/vehicles/${vehicleId}/
+  ├── hero/
+  │   ├── hero.[formato]         (desktop)
+  │   └── hero-mobile.[formato]  (mobile)
   ├── exterior/
   ├── colors/
   ├── interior/
   ├── dimensions/
-  └── equipment/
-      ├── multimedia/
-      ├── asistencia/
-      ├── confort/
-      └── tren-rodaje/`}
+  ├── equipment/
+  │   ├── multimedia/
+  │   ├── asistencia/
+  │   ├── confort/
+  │   ├── tren-rodaje/
+  │   └── seguridad/
+  └── autonomy/ (solo eléctricos)
+      ├── card1.[formato]
+      ├── card2.[formato]
+      ├── charging/
+      └── technology/`}
             </pre>
           </section>
         </div>

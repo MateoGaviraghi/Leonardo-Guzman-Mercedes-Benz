@@ -222,7 +222,7 @@ export default function VehicleForm({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
@@ -247,7 +247,7 @@ export default function VehicleForm({
     setFormData((prev) => ({
       ...prev,
       [category]: (prev[category] as { valor: string; label: string }[]).filter(
-        (_, i) => i !== index
+        (_, i) => i !== index,
       ),
     }));
   };
@@ -256,12 +256,12 @@ export default function VehicleForm({
     category: keyof Vehicle,
     index: number,
     field: "valor" | "label" | "title" | "description",
-    value: string
+    value: string,
   ) => {
     setFormData((prev) => ({
       ...prev,
       [category]: (prev[category] as { [key: string]: string }[]).map(
-        (item, i) => (i === index ? { ...item, [field]: value } : item)
+        (item, i) => (i === index ? { ...item, [field]: value } : item),
       ),
     }));
   };
@@ -622,7 +622,7 @@ export default function VehicleForm({
                       "specsConsumo",
                       index,
                       "valor",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   placeholder="Valor principal (ej: 43 / 51)"
@@ -637,7 +637,7 @@ export default function VehicleForm({
                         "specsConsumo",
                         index,
                         "label",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Etiqueta/descripción"
@@ -677,7 +677,7 @@ export default function VehicleForm({
                       "specsMotorizacion",
                       index,
                       "valor",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   placeholder="Valor principal"
@@ -692,7 +692,7 @@ export default function VehicleForm({
                         "specsMotorizacion",
                         index,
                         "label",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Etiqueta/descripción"
@@ -732,7 +732,7 @@ export default function VehicleForm({
                       "specsPotencia",
                       index,
                       "valor",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   placeholder="Valor principal"
@@ -747,7 +747,7 @@ export default function VehicleForm({
                         "specsPotencia",
                         index,
                         "label",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Etiqueta/descripción"
@@ -787,7 +787,7 @@ export default function VehicleForm({
                       "specsDimensiones",
                       index,
                       "valor",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   placeholder="Valor principal"
@@ -802,7 +802,7 @@ export default function VehicleForm({
                         "specsDimensiones",
                         index,
                         "label",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Etiqueta/descripción"
@@ -842,7 +842,7 @@ export default function VehicleForm({
                       "specsPerformance",
                       index,
                       "valor",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   placeholder="Valor principal"
@@ -857,7 +857,7 @@ export default function VehicleForm({
                         "specsPerformance",
                         index,
                         "label",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Etiqueta/descripción"
@@ -897,7 +897,7 @@ export default function VehicleForm({
                       "specsCarroceria",
                       index,
                       "valor",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   placeholder="Valor principal"
@@ -912,7 +912,7 @@ export default function VehicleForm({
                         "specsCarroceria",
                         index,
                         "label",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Etiqueta/descripción"
@@ -950,7 +950,7 @@ export default function VehicleForm({
                       "specsChasis",
                       index,
                       "valor",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   placeholder="Valor principal"
@@ -965,7 +965,7 @@ export default function VehicleForm({
                         "specsChasis",
                         index,
                         "label",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Etiqueta/descripción"
@@ -1005,7 +1005,7 @@ export default function VehicleForm({
                       "specsCantidades",
                       index,
                       "valor",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   placeholder="Valor principal"
@@ -1020,7 +1020,7 @@ export default function VehicleForm({
                         "specsCantidades",
                         index,
                         "label",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Etiqueta/descripción"
@@ -1063,7 +1063,7 @@ export default function VehicleForm({
                       "specsBateriaCarga",
                       index,
                       "valor",
-                      e.target.value
+                      e.target.value,
                     )
                   }
                   placeholder="Valor (ej: 90.6 kWh o 10-80% en 31 min)"
@@ -1078,7 +1078,7 @@ export default function VehicleForm({
                         "specsBateriaCarga",
                         index,
                         "label",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Etiqueta (ej: Capacidad o Carga rápida DC)"
@@ -1194,7 +1194,7 @@ export default function VehicleForm({
                         "equipExterior",
                         index,
                         "title",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Título (opcional)"
@@ -1209,7 +1209,7 @@ export default function VehicleForm({
                           "equipExterior",
                           index,
                           "description",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Descripción (opcional)"
@@ -1255,7 +1255,7 @@ export default function VehicleForm({
                         "equipInterior",
                         index,
                         "title",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Título (opcional)"
@@ -1270,7 +1270,7 @@ export default function VehicleForm({
                           "equipInterior",
                           index,
                           "description",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Descripción (opcional)"
@@ -1316,7 +1316,7 @@ export default function VehicleForm({
                         "equipMultimedia",
                         index,
                         "title",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Título (opcional)"
@@ -1331,7 +1331,7 @@ export default function VehicleForm({
                           "equipMultimedia",
                           index,
                           "description",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Descripción (opcional)"
@@ -1377,7 +1377,7 @@ export default function VehicleForm({
                         "equipAsistencia",
                         index,
                         "title",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Título (opcional)"
@@ -1392,7 +1392,7 @@ export default function VehicleForm({
                           "equipAsistencia",
                           index,
                           "description",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Descripción (opcional)"
@@ -1438,7 +1438,7 @@ export default function VehicleForm({
                         "equipConfort",
                         index,
                         "title",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Título (opcional)"
@@ -1453,7 +1453,7 @@ export default function VehicleForm({
                           "equipConfort",
                           index,
                           "description",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Descripción (opcional)"
@@ -1499,7 +1499,7 @@ export default function VehicleForm({
                         "equipTrenRodaje",
                         index,
                         "title",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Título (opcional)"
@@ -1514,7 +1514,7 @@ export default function VehicleForm({
                           "equipTrenRodaje",
                           index,
                           "description",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Descripción (opcional)"
@@ -1560,7 +1560,7 @@ export default function VehicleForm({
                         "equipSeguridad",
                         index,
                         "title",
-                        e.target.value
+                        e.target.value,
                       )
                     }
                     placeholder="Título (opcional)"
@@ -1575,7 +1575,7 @@ export default function VehicleForm({
                           "equipSeguridad",
                           index,
                           "description",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       placeholder="Descripción (opcional)"
@@ -1624,8 +1624,8 @@ export default function VehicleForm({
             {loading
               ? "Guardando..."
               : isEdit
-              ? "Actualizar Vehículo"
-              : "Crear Vehículo"}
+                ? "Actualizar Vehículo"
+                : "Crear Vehículo"}
           </button>
         </div>
 
