@@ -4,10 +4,9 @@ import type { Database } from "@/types/supabase";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-// Create a dummy client for build time, real client for runtime
 export const supabase: SupabaseClient<Database> = createClient<Database>(
-  supabaseUrl || "https://placeholder.supabase.co",
-  supabaseAnonKey || "placeholder-key"
+  supabaseUrl,
+  supabaseAnonKey
 );
 
 // Helper to check if Supabase is configured

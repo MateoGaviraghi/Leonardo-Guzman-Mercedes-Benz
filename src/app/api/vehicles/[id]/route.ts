@@ -156,11 +156,15 @@ export async function PUT(
       equip_seguridad: body.equipSeguridad
         ? JSON.stringify(body.equipSeguridad)
         : null,
+      truck_sections: body.truckSections
+        ? JSON.stringify(body.truckSections)
+        : null,
+      truck_pdfs: body.truckPdfs ? JSON.stringify(body.truckPdfs) : null,
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await (supabase as any)
-      .from("vehicles")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.from("vehicles") as any)
       .update(vehicleData)
       .eq("id", id)
       .select()

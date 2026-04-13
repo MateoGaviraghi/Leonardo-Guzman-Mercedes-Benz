@@ -138,6 +138,31 @@ export interface Vehicle {
   equipTrenRodaje?: { title?: string; description?: string }[];
   // Seguridad
   equipSeguridad?: { title?: string; description?: string }[];
+
+  // ========== CAMIONES (truck_sections + truck_pdfs) ==========
+  // Secciones de contenido: imagen + título + lista o texto libre
+  truckSections?: {
+    title: string;
+    type: "list" | "text" | "both";
+    items?: string[]; // para type "list" o "both"
+    content?: string; // para type "text" o "both"
+  }[];
+  // Fichas técnicas descargables (un PDF por modelo)
+  truckPdfs?: { name: string; url: string }[];
+
+  // ========== AUTONOMÍA Y CARGA (eléctricos) ==========
+  autonomyGeneralTitle?: string;
+  autonomyGeneralDescription?: string;
+  autonomyCard1Title?: string;
+  autonomyCard1Description?: string;
+  autonomyCard1Link?: string;
+  autonomyCard2Title?: string;
+  autonomyCard2Description?: string;
+  autonomyCard2Link?: string;
+  chargingTab1Title?: string;
+  chargingTab1Content?: { title?: string; description?: string }[];
+  chargingTab2Title?: string;
+  chargingTab2Content?: { title?: string; description?: string }[];
 }
 
 // ========================================

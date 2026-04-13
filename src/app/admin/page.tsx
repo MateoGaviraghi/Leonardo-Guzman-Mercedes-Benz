@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createSupabaseBrowser } from "@/lib/supabase-client";
 
 interface Vehicle {
   id: string;
@@ -16,6 +18,14 @@ export default function AdminPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createSupabaseBrowser();
+    await supabase.auth.signOut();
+    router.push("/admin/login");
+    router.refresh();
+  };
 
   useEffect(() => {
     fetchVehicles();
@@ -71,12 +81,26 @@ export default function AdminPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Admin - Vehículos</h1>
-          <Link
-            href="/admin/nuevo"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
-          >
-            + Nuevo Vehículo
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/admin/nuevo"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+            >
+              + Nuevo Vehículo
+            </Link>
+            <Link
+              href="/admin/nuevo-camion"
+              className="bg-green-700 text-white px-6 py-3 rounded-lg hover:bg-green-800 transition"
+            >
+              + Nuevo Camión
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="bg-gray-200 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-300 transition text-sm"
+            >
+              Cerrar Sesión
+            </button>
+          </div>
         </div>
 
         {/* Error */}
@@ -156,7 +180,13 @@ export default function AdminPage() {
                         📁 Guía
                       </Link>
                       <Link
-                        href={`/admin/editar/${vehicle.id}`}
+                        href={
+                          ["accelo", "atego", "actros", "arocs", "axor"].includes(
+                            vehicle.category.toLowerCase(),
+                          )
+                            ? `/admin/editar-camion/${vehicle.id}`
+                            : `/admin/editar/${vehicle.id}`
+                        }
                         className="text-blue-600 hover:text-blue-900"
                       >
                         Editar

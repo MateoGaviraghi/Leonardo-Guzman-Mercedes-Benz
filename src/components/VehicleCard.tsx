@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 
@@ -50,11 +51,14 @@ export default function VehicleCard({
     >
       {/* Background Image */}
       {!imageError ? (
-        <img
+        <Image
           src={currentSrc}
           alt={title}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
           onError={handleImageError}
-          className="absolute inset-0 w-full h-full object-contain object-center transition-transform duration-700 group-hover:scale-105"
+          unoptimized
+          className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-zinc-800">

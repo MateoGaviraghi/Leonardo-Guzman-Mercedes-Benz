@@ -156,6 +156,10 @@ export async function POST(request: NextRequest) {
       equip_seguridad: body.equipSeguridad
         ? JSON.stringify(body.equipSeguridad)
         : null,
+      truck_sections: body.truckSections
+        ? JSON.stringify(body.truckSections)
+        : null,
+      truck_pdfs: body.truckPdfs ? JSON.stringify(body.truckPdfs) : null,
     };
 
     const { data, error } = await supabase

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -d /c/Users/mateo/Desktop/Leonardo-Guzman-Mercedes-Benz/*/)",
+      "Bash(find /c/Users/mateo/Desktop/Leonardo-Guzman-Mercedes-Benz -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"accelo\\\\|atego\\\\|actros\\\\|arocs\" {} \\\\;)",
+      "Bash(grep -n \"section\\\\|Section\\\\|<li>\\\\|<ul>\\\\|<ol>\\\\|map.*item\" /c/Users/mateo/Desktop/Leonardo-Guzman-Mercedes-Benz/src/app/vehicles/[id]/VehicleDetailClient.tsx)",
+      "Bash(wc -l /c/Users/mateo/Desktop/Leonardo-Guzman-Mercedes-Benz/src/app/vehicles/[id]/VehicleDetailClient.tsx)",
+      "Bash(grep -n \"chargingTab1Content\\\\|chargingTab2Content\\\\|ficha\\\\|tecnica\\\\|manual\\\\|pdf\\\\|PDF\" /c/Users/mateo/Desktop/Leonardo-Guzman-Mercedes-Benz/src/app/vehicles/[id]/VehicleDetailClient.tsx)",
+      "Bash(grep -n \"specsConsumo\\\\|specsMotorizacion\\\\|specsPotencia\\\\|specs.*map\\\\|Especificaciones\\\\|specs\" /c/Users/mateo/Desktop/Leonardo-Guzman-Mercedes-Benz/src/app/vehicles/[id]/VehicleDetailClient.tsx)",
+      "mcp__a77bea78-4815-4581-823d-3b1439fbbd21__list_projects",
+      "mcp__a77bea78-4815-4581-823d-3b1439fbbd21__list_tables",
+      "mcp__a77bea78-4815-4581-823d-3b1439fbbd21__execute_sql"
+    ]
+  }
+}
