@@ -56,14 +56,14 @@ export default function Home() {
     switch (selectedCategory) {
       case "AUTOS":
         filtered = vehicles.filter((v) =>
-          autoCategories.includes(v.category.toLowerCase())
+          autoCategories.includes(v.category.toLowerCase()),
         );
         break;
       case "SUV":
         filtered = vehicles.filter(
           (v) =>
             v.category.toLowerCase() === "suv" ||
-            v.category.toLowerCase() === "suv-todoterreno"
+            v.category.toLowerCase() === "suv-todoterreno",
         );
         break;
       case "VANS":
@@ -71,7 +71,7 @@ export default function Home() {
         break;
       case "SPRINTER":
         filtered = vehicles.filter(
-          (v) => v.category.toLowerCase() === "sprinter"
+          (v) => v.category.toLowerCase() === "sprinter",
         );
         break;
       case "TRUCKS":
@@ -81,7 +81,7 @@ export default function Home() {
             v.category.toLowerCase() === "accelo" ||
             v.category.toLowerCase() === "atego" ||
             v.category.toLowerCase() === "actros" ||
-            v.category.toLowerCase() === "arocs"
+            v.category.toLowerCase() === "arocs",
         );
         break;
       default:
