@@ -15,18 +15,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Leonardo Guzman | Promotor Oficial Mercedes-Benz",
+  title: "Leonardo Guzman | Vendedor Oficial Mercedes-Benz",
   description:
-    "Portfolio personal de Leonardo Guzman, promotor oficial de Automotores Mega, concesionaria oficial de Mercedes-Benz.",
+    "Vendedor oficial de Automotores Mega, concesionaria Mercedes-Benz.",
   openGraph: {
-    title: "Leonardo Guzman | Promotor Oficial Mercedes-Benz",
+    title: "Leonardo Guzman | Vendedor Oficial Mercedes-Benz",
     description:
-      "Portfolio personal de Leonardo Guzman, promotor oficial de Automotores Mega, concesionaria oficial de Mercedes-Benz.",
+      "Vendedor oficial de Automotores Mega, concesionaria Mercedes-Benz.",
     images: [
       {
         url: "/og-image.png",
-        width: 800,
-        height: 800,
+        width: 1200,
+        height: 630,
         alt: "Mercedes-Benz Logo",
       },
     ],
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Leonardo Guzman | Promotor Oficial Mercedes-Benz",
+    title: "Leonardo Guzman | Vendedor Oficial Mercedes-Benz",
     description:
-      "Promotor oficial de Automotores Mega, concesionaria oficial de Mercedes-Benz.",
+      "Vendedor oficial de Automotores Mega, concesionaria Mercedes-Benz.",
     images: ["/og-image.png"],
   },
 };
