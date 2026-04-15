@@ -178,11 +178,20 @@ export default function TruckDetailClient({
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <section ref={heroRef} className="relative h-screen w-full overflow-hidden">
         <motion.div className="absolute inset-0" style={{ y: heroY }}>
+          {/* Mobile hero */}
+          <Img
+            base={`${basePath}/hero-mobile`}
+            alt={vehicle.name}
+            fill
+            className="object-cover object-center md:hidden"
+            priority
+          />
+          {/* Desktop hero */}
           <Img
             base={`${basePath}/hero`}
             alt={vehicle.name}
             fill
-            className="object-cover"
+            className="object-cover hidden md:block"
             priority
           />
         </motion.div>
@@ -367,11 +376,19 @@ export default function TruckDetailClient({
       <section className="relative py-32 md:py-44 overflow-hidden">
         {/* Background image */}
         <div className="absolute inset-0">
+          {/* Mobile */}
+          <Img
+            base={`${basePath}/hero-mobile`}
+            alt=""
+            fill
+            className="object-cover blur-sm scale-110 opacity-20 md:hidden"
+          />
+          {/* Desktop */}
           <Img
             base={`${basePath}/hero`}
             alt=""
             fill
-            className="object-cover blur-sm scale-110 opacity-20"
+            className="object-cover blur-sm scale-110 opacity-20 hidden md:block"
           />
           <div className="absolute inset-0 bg-black/80" />
         </div>
