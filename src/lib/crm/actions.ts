@@ -9,6 +9,7 @@ import type {
 } from "@/types/crm";
 import { addHistoryEntry } from "./history";
 import { COLUMN_LABELS, ZONE_LABELS } from "./constants";
+import { routeByDate } from "./date-logic";
 
 type Supabase = SupabaseClient<Database>;
 
@@ -25,6 +26,16 @@ export async function createCard(
   if (!payload.zona_id) {
     throw new Error("zona_id es obligatorio para crear una tarjeta");
   }
+
+  // Regla de los 20 días: si la fecha al crear ya es >20d, va directo a Agenda.
+  // Si es ≤20d, respetamos la columna/zona que eligió el usuario.
+  const routed = routeByDate(
+    cardFields.next_contact_at ?? null,
+    cardFields.current_column ?? "contacto",
+    cardFields.current_zone ?? "pizarron"
+  );
+  cardFields.current_column = routed.column;
+  cardFields.current_zone = routed.zone;
 
   const { data: card, error } = (await supabase
     .from("crm_cards")
@@ -90,6 +101,18 @@ export async function updateCard(
     .eq("id", cardId)
     .single();
   const prev = prevRaw as unknown as CrmCardRow | null;
+
+  // Regla de los 20 días: si se está cambiando next_contact_at, re-rutear.
+  // Sólo se aplica cuando el caller incluye explícitamente ese campo.
+  if (prev && "next_contact_at" in fields) {
+    const routed = routeByDate(
+      fields.next_contact_at ?? null,
+      prev.current_column,
+      prev.current_zone
+    );
+    fields.current_column = routed.column;
+    fields.current_zone = routed.zone;
+  }
 
   if (Object.keys(fields).length > 0) {
     const { error } = await supabase

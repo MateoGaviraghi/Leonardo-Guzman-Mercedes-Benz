@@ -66,7 +66,13 @@ export async function getCardsByZone(
   zone: CardZone,
   zonaId: string
 ): Promise<CrmCard[]> {
-  const { data, error } = await supabase
+  // Orden según la zona:
+  //   - pizarron: por next_contact_at ASC con NULLs al final.
+  //     Las vencidas (fechas pasadas) quedan arriba, luego hoy, luego
+  //     futuras, y finalmente las que no tienen fecha al fondo de su columna.
+  //   - agenda: igual orden (las más próximas primero).
+  //   - ventas: por sold_at DESC (las más recientes arriba), NULLs al final.
+  let query = supabase
     .from("crm_cards")
     .select(
       `
@@ -80,8 +86,24 @@ export async function getCardsByZone(
     `
     )
     .eq("zona_id", zonaId)
-    .eq("current_zone", zone)
-    .order("updated_at", { ascending: false });
+    .eq("current_zone", zone);
+
+  if (zone === "ventas") {
+    query = query.order("sold_at", {
+      ascending: false,
+      nullsFirst: false,
+    });
+  } else {
+    query = query.order("next_contact_at", {
+      ascending: true,
+      nullsFirst: false,
+    });
+  }
+
+  // Desempate estable: más recientemente actualizada primero
+  query = query.order("updated_at", { ascending: false });
+
+  const { data, error } = await query;
 
   if (error) throw error;
   if (!data) return [];

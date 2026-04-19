@@ -200,3 +200,63 @@ export function historyDayLabel(key: string): string {
   const [y, m, d] = key.split("-");
   return `${d}/${m}/${y}`;
 }
+
+// ===========================================================================
+// REGLA DE LOS 20 DÍAS (bidireccional)
+// ===========================================================================
+//
+//   · Fecha de próximo contacto a MÁS de 20 días  →  zona 'agenda'
+//   · Fecha a 20 días o menos (incluyendo vencidas y hoy)  →  pizarron
+//
+// Se aplica en 3 lugares:
+//   1. createCard — al crear, si la fecha ya viene >20 días va directo a agenda.
+//   2. updateCard — si al editar se cambia la fecha, se recalcula el destino.
+//   3. crm_run_daily_reschedule (SQL) — todas las noches mueve agenda→pizarron
+//      cuando el tiempo hizo que la fecha ya esté a ≤20 días.
+//
+// Excepciones:
+//   · Cards en 'ventas' nunca se tocan (son operaciones cerradas).
+//   · Fecha NULL (sin fecha asignada): no se re-rutea, se respeta la columna.
+//
+// Filosofía: que el pizarrón siempre muestre cosas "en las que trabajar ahora";
+// todo lo que está a más de ~3 semanas de distancia se va a Agenda para no
+// ensuciar la vista principal.
+// ===========================================================================
+
+export const POSTPONE_THRESHOLD_DAYS = 20;
+
+export function routeByDate(
+  nextContactAt: string | null | undefined,
+  fallbackColumn: import("@/types/crm").CardColumn,
+  fallbackZone: import("@/types/crm").CardZone
+): {
+  column: import("@/types/crm").CardColumn;
+  zone: import("@/types/crm").CardZone;
+} {
+  // Ventas: siempre se respeta, no hay re-ruteo automático
+  if (fallbackZone === "ventas") {
+    return { column: fallbackColumn, zone: fallbackZone };
+  }
+
+  // Sin fecha: no tocar, queda donde está (pizarrón o agenda sin fecha)
+  if (!nextContactAt) {
+    return { column: fallbackColumn, zone: fallbackZone };
+  }
+
+  const diff = daysFromToday(nextContactAt);
+  if (diff === null) {
+    return { column: fallbackColumn, zone: fallbackZone };
+  }
+
+  if (diff > POSTPONE_THRESHOLD_DAYS) {
+    // Más de 20 días → Agenda
+    return { column: "agenda", zone: "agenda" };
+  }
+
+  // ≤ 20 días: si estaba en Agenda, vuelve a Contacto del pizarrón.
+  // Si ya está en alguna columna del pizarrón, respetamos su columna.
+  if (fallbackZone === "agenda") {
+    return { column: "contacto", zone: "pizarron" };
+  }
+  return { column: fallbackColumn, zone: fallbackZone };
+}
