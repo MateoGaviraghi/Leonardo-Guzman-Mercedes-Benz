@@ -156,6 +156,21 @@ export async function POST(request: NextRequest) {
       equip_seguridad: body.equipSeguridad
         ? JSON.stringify(body.equipSeguridad)
         : null,
+      equip_variantes_carroceria: body.equipVariantesCarroceria
+        ? JSON.stringify(body.equipVariantesCarroceria)
+        : null,
+      equip_carga: body.equipCarga
+        ? JSON.stringify(body.equipCarga)
+        : null,
+      equip_variantes_compartimento: body.equipVariantesCompartimento
+        ? JSON.stringify(body.equipVariantesCompartimento)
+        : null,
+      equip_equipamiento_compartimento: body.equipEquipamientoCompartimento
+        ? JSON.stringify(body.equipEquipamientoCompartimento)
+        : null,
+      equip_puesto_conduccion: body.equipPuestoConduccion
+        ? JSON.stringify(body.equipPuestoConduccion)
+        : null,
       truck_sections: body.truckSections
         ? JSON.stringify(body.truckSections)
         : null,

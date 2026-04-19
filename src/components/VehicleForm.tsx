@@ -17,6 +17,11 @@ export default function VehicleForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [vehicleId, setVehicleId] = useState<string>(editVehicleId || "");
+  const [showVariantesCarroceria, setShowVariantesCarroceria] = useState(false);
+  const [showCarga, setShowCarga] = useState(false);
+  const [showVariantesCompartimento, setShowVariantesCompartimento] = useState(false);
+  const [showEquipamientoCompartimento, setShowEquipamientoCompartimento] = useState(false);
+  const [showPuestoConduccion, setShowPuestoConduccion] = useState(false);
   const [formData, setFormData] = useState<Partial<Vehicle>>({
     name: "",
     category: "",
@@ -38,6 +43,11 @@ export default function VehicleForm({
     equipConfort: [],
     equipTrenRodaje: [],
     equipSeguridad: [],
+    equipVariantesCarroceria: [],
+    equipCarga: [],
+    equipVariantesCompartimento: [],
+    equipEquipamientoCompartimento: [],
+    equipPuestoConduccion: [],
   });
 
   useEffect(() => {
@@ -118,6 +128,17 @@ export default function VehicleForm({
       )
         vehicle.equipSeguridad = JSON.parse(vehicle.equip_seguridad);
 
+      if (vehicle.equip_variantes_carroceria && typeof vehicle.equip_variantes_carroceria === "string")
+        vehicle.equipVariantesCarroceria = JSON.parse(vehicle.equip_variantes_carroceria);
+      if (vehicle.equip_carga && typeof vehicle.equip_carga === "string")
+        vehicle.equipCarga = JSON.parse(vehicle.equip_carga);
+      if (vehicle.equip_variantes_compartimento && typeof vehicle.equip_variantes_compartimento === "string")
+        vehicle.equipVariantesCompartimento = JSON.parse(vehicle.equip_variantes_compartimento);
+      if (vehicle.equip_equipamiento_compartimento && typeof vehicle.equip_equipamiento_compartimento === "string")
+        vehicle.equipEquipamientoCompartimento = JSON.parse(vehicle.equip_equipamiento_compartimento);
+      if (vehicle.equip_puesto_conduccion && typeof vehicle.equip_puesto_conduccion === "string")
+        vehicle.equipPuestoConduccion = JSON.parse(vehicle.equip_puesto_conduccion);
+
       // Convertir snake_case a camelCase
       vehicle.fuelType = vehicle.fuel_type;
       vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
@@ -177,6 +198,11 @@ export default function VehicleForm({
 
       setVehicleId(vehicle.id);
       setFormData(vehicle);
+      if ((vehicle.equipVariantesCarroceria || []).length > 0) setShowVariantesCarroceria(true);
+      if ((vehicle.equipCarga || []).length > 0) setShowCarga(true);
+      if ((vehicle.equipVariantesCompartimento || []).length > 0) setShowVariantesCompartimento(true);
+      if ((vehicle.equipEquipamientoCompartimento || []).length > 0) setShowEquipamientoCompartimento(true);
+      if ((vehicle.equipPuestoConduccion || []).length > 0) setShowPuestoConduccion(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
@@ -464,9 +490,25 @@ export default function VehicleForm({
 
         {/* EXTERIOR */}
         <section className="bg-white p-6 rounded-lg shadow space-y-4">
-          <h2 className="text-xl font-semibold border-b pb-2 text-gray-900">
-            Exterior
-          </h2>
+          <div className="flex items-center justify-between border-b pb-2">
+            <h2 className="text-xl font-semibold text-gray-900">Exterior</h2>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowVariantesCarroceria((v) => !v)}
+                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showVariantesCarroceria ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+              >
+                Variantes de carrocería
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCarga((v) => !v)}
+                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showCarga ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+              >
+                Carga
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
@@ -512,6 +554,68 @@ export default function VehicleForm({
               </div>
             ))}
           </div>
+
+          {showVariantesCarroceria && (
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">Variantes de la carrocería</h3>
+              {(formData.equipVariantesCarroceria || []).map((item, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-md">
+                  <div className="grid grid-cols-2 gap-3 mb-2">
+                    <input
+                      type="text"
+                      value={item.title || ""}
+                      onChange={(e) => updateSpecItem("equipVariantesCarroceria", index, "title", e.target.value)}
+                      placeholder="ej: Mediana con techo normal"
+                      className="px-3 py-2 border rounded-md text-gray-900"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={item.description || ""}
+                        onChange={(e) => updateSpecItem("equipVariantesCarroceria", index, "description", e.target.value)}
+                        placeholder="ej: Longitud del vehículo con pedalfaro 6,09 m."
+                        className="flex-1 px-3 py-2 border rounded-md text-gray-900"
+                      />
+                      <button type="button" onClick={() => removeSpecItem("equipVariantesCarroceria", index)} className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">−</button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">📁 /public/vehicles/{vehicleId || "[id]"}/equipment/variantes-carroceria/{index + 1}.avif</p>
+                </div>
+              ))}
+              <button type="button" onClick={() => addSpecItem("equipVariantesCarroceria")} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">+ Agregar variante</button>
+            </div>
+          )}
+
+          {showCarga && (
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">Carga</h3>
+              {(formData.equipCarga || []).map((item, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-md">
+                  <div className="grid grid-cols-2 gap-3 mb-2">
+                    <input
+                      type="text"
+                      value={item.title || ""}
+                      onChange={(e) => updateSpecItem("equipCarga", index, "title", e.target.value)}
+                      placeholder="ej: Puerta corredera izquierda"
+                      className="px-3 py-2 border rounded-md text-gray-900"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={item.description || ""}
+                        onChange={(e) => updateSpecItem("equipCarga", index, "description", e.target.value)}
+                        placeholder="ej: Montada en el lateral izquierdo de la van..."
+                        className="flex-1 px-3 py-2 border rounded-md text-gray-900"
+                      />
+                      <button type="button" onClick={() => removeSpecItem("equipCarga", index)} className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">−</button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">📁 /public/vehicles/{vehicleId || "[id]"}/equipment/carga/{index + 1}.avif</p>
+                </div>
+              ))}
+              <button type="button" onClick={() => addSpecItem("equipCarga")} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">+ Agregar ítem</button>
+            </div>
+          )}
         </section>
 
         {/* COLORES */}
@@ -551,9 +655,32 @@ export default function VehicleForm({
 
         {/* INTERIOR */}
         <section className="bg-white p-6 rounded-lg shadow space-y-4">
-          <h2 className="text-xl font-semibold border-b pb-2 text-gray-900">
-            Interior
-          </h2>
+          <div className="flex items-center justify-between border-b pb-2 flex-wrap gap-2">
+            <h2 className="text-xl font-semibold text-gray-900">Interior</h2>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setShowVariantesCompartimento((v) => !v)}
+                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showVariantesCompartimento ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+              >
+                Variantes de compartimento
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowEquipamientoCompartimento((v) => !v)}
+                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showEquipamientoCompartimento ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+              >
+                Equipamiento de carga
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPuestoConduccion((v) => !v)}
+                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showPuestoConduccion ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+              >
+                Puesto de conducción
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
@@ -599,6 +726,63 @@ export default function VehicleForm({
               </div>
             ))}
           </div>
+
+          {showVariantesCompartimento && (
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">Variantes del compartimento de carga</h3>
+              {(formData.equipVariantesCompartimento || []).map((item, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-md">
+                  <div className="grid grid-cols-2 gap-3 mb-2">
+                    <input type="text" value={item.title || ""} onChange={(e) => updateSpecItem("equipVariantesCompartimento", index, "title", e.target.value)} placeholder="ej: Techo alto estándar" className="px-3 py-2 border rounded-md text-gray-900" />
+                    <div className="flex gap-2">
+                      <input type="text" value={item.description || ""} onChange={(e) => updateSpecItem("equipVariantesCompartimento", index, "description", e.target.value)} placeholder="Descripción de la variante..." className="flex-1 px-3 py-2 border rounded-md text-gray-900" />
+                      <button type="button" onClick={() => removeSpecItem("equipVariantesCompartimento", index)} className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">−</button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">📁 /public/vehicles/{vehicleId || "[id]"}/equipment/variantes-compartimento/{index + 1}.avif</p>
+                </div>
+              ))}
+              <button type="button" onClick={() => addSpecItem("equipVariantesCompartimento")} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">+ Agregar variante</button>
+            </div>
+          )}
+
+          {showEquipamientoCompartimento && (
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">Equipamiento del compartimento de carga</h3>
+              {(formData.equipEquipamientoCompartimento || []).map((item, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-md">
+                  <div className="grid grid-cols-2 gap-3 mb-2">
+                    <input type="text" value={item.title || ""} onChange={(e) => updateSpecItem("equipEquipamientoCompartimento", index, "title", e.target.value)} placeholder="ej: Piso de madera antideslizante" className="px-3 py-2 border rounded-md text-gray-900" />
+                    <div className="flex gap-2">
+                      <input type="text" value={item.description || ""} onChange={(e) => updateSpecItem("equipEquipamientoCompartimento", index, "description", e.target.value)} placeholder="Descripción del equipamiento..." className="flex-1 px-3 py-2 border rounded-md text-gray-900" />
+                      <button type="button" onClick={() => removeSpecItem("equipEquipamientoCompartimento", index)} className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">−</button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">📁 /public/vehicles/{vehicleId || "[id]"}/equipment/equipamiento-compartimento/{index + 1}.avif</p>
+                </div>
+              ))}
+              <button type="button" onClick={() => addSpecItem("equipEquipamientoCompartimento")} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">+ Agregar equipamiento</button>
+            </div>
+          )}
+
+          {showPuestoConduccion && (
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="text-sm font-semibold text-gray-700">Puesto de conducción</h3>
+              {(formData.equipPuestoConduccion || []).map((item, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-md">
+                  <div className="grid grid-cols-2 gap-3 mb-2">
+                    <input type="text" value={item.title || ""} onChange={(e) => updateSpecItem("equipPuestoConduccion", index, "title", e.target.value)} placeholder="ej: Cuadro de instrumentos con display de 14cm" className="px-3 py-2 border rounded-md text-gray-900" />
+                    <div className="flex gap-2">
+                      <input type="text" value={item.description || ""} onChange={(e) => updateSpecItem("equipPuestoConduccion", index, "description", e.target.value)} placeholder="Descripción de la característica..." className="flex-1 px-3 py-2 border rounded-md text-gray-900" />
+                      <button type="button" onClick={() => removeSpecItem("equipPuestoConduccion", index)} className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">−</button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">📁 /public/vehicles/{vehicleId || "[id]"}/equipment/puesto-conduccion/{index + 1}.avif</p>
+                </div>
+              ))}
+              <button type="button" onClick={() => addSpecItem("equipPuestoConduccion")} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">+ Agregar ítem</button>
+            </div>
+          )}
         </section>
 
         {/* ESPECIFICACIONES TÉCNICAS */}

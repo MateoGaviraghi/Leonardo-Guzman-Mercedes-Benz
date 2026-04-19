@@ -139,6 +139,18 @@ export interface Vehicle {
   // Seguridad
   equipSeguridad?: { title?: string; description?: string }[];
 
+  // ========== SPRINTER (secciones opcionales) ==========
+  // Exterior: Variantes de la carrocería
+  equipVariantesCarroceria?: { title?: string; description?: string }[];
+  // Exterior: Carga
+  equipCarga?: { title?: string; description?: string }[];
+  // Interior: Variantes del compartimento de carga
+  equipVariantesCompartimento?: { title?: string; description?: string }[];
+  // Interior: Equipamiento del compartimento de carga
+  equipEquipamientoCompartimento?: { title?: string; description?: string }[];
+  // Interior: Puesto de conducción
+  equipPuestoConduccion?: { title?: string; description?: string }[];
+
   // ========== CAMIONES (truck_sections + truck_pdfs) ==========
   // Secciones de contenido: imagen + título + lista o texto libre
   truckSections?: {

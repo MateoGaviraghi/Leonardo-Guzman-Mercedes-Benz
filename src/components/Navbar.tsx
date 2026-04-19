@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -15,6 +16,9 @@ import {
 } from "lucide-react";
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const hideOnRoutes = pathname.startsWith("/crm") || pathname.startsWith("/admin");
+
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileVehiclesOpen, setIsMobileVehiclesOpen] = useState(false);
@@ -35,6 +39,8 @@ export default function Navbar() {
     { name: "Sprinter", href: "/vehicles?category=sprinter" },
     { name: "Trucks", href: "/vehicles?category=trucks" },
   ];
+
+  if (hideOnRoutes) return null;
 
   return (
     <>

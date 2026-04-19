@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { MainWrapper } from "@/components/MainWrapper";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,7 +15,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// URL base del sitio — prioridad:
+//   1. NEXT_PUBLIC_SITE_URL (manual, lo ideal en producción)
+//   2. NEXT_PUBLIC_VERCEL_URL (auto en Vercel preview/deployments)
+//   3. localhost (dev)
+// Esto resuelve el warning de `metadataBase` y da URLs absolutas correctas a
+// Open Graph / Twitter cards cuando alguien comparte el sitio en WhatsApp,
+// Instagram o Twitter/X.
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    : "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Leonardo Guzman | Vendedor Oficial Mercedes-Benz",
   description:
     "Vendedor oficial de Automotores Mega, concesionaria Mercedes-Benz.",
@@ -52,7 +67,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <Navbar />
-        <main className="flex-grow pt-20">{children}</main>
+        <MainWrapper>{children}</MainWrapper>
         <Footer />
       </body>
     </html>
