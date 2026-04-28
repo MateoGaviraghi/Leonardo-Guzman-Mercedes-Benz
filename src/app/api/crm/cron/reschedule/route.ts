@@ -43,11 +43,19 @@ async function handle(request: NextRequest) {
     );
   }
 
-  // Cliente Supabase stateless (sin cookies). La función SQL que llamamos es
-  // SECURITY DEFINER con GRANT EXECUTE a anon/authenticated, así que esto alcanza.
+  // Cliente Supabase stateless (sin cookies). Preferimos `service_role` si está
+  // disponible: con la migration 010 se revocó EXECUTE de la RPC al rol anon
+  // (cualquiera con la anon key podía dispararla desde fuera), así que el cron
+  // tiene que llamar como service_role.
+  // Fall-back a anon para no romper si la env var no está configurada todavía
+  // (ej. durante el rollout coordinado de la migration). Cuando se aplique la
+  // 010 sin env var, el cron empezará a fallar — agregar SUPABASE_SERVICE_ROLE_KEY
+  // a Vercel env y volver a deployar.
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseKey = serviceRoleKey ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseKey,
     {
       cookies: {
         getAll() {
