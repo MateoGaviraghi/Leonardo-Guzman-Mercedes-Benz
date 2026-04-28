@@ -10,7 +10,7 @@ interface VehicleCardProps {
   category: string;
   href: string;
   image: string; // Base path without extension, e.g., "/vehicles/id/foto-card/card"
-  fuelType?: string; // "nafta" | "electrico" | "hibrido"
+  fuelType?: string | null; // "nafta" | "electrico" | "hibrido"
   isAMG?: boolean; // If true, apply AMG premium styling
 }
 

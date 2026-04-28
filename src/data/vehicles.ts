@@ -24,10 +24,12 @@ export interface Vehicle {
   category: string; // "Autos" | "SUV" | "Eléctricos"
   brand: string; // "Mercedes-Benz"
   is_amg: boolean; // true si es modelo AMG, false si es normal
-  fuel_type?: string; // "nafta" | "electrico" | "hibrido" (opcional)
+  // `string | null` matchea exactamente lo que devuelve Supabase para columnas
+  // nullable. Antes era `string | undefined` y obligaba a casts en el page.
+  fuel_type?: string | null; // "nafta" | "electrico" | "hibrido" (opcional)
 
   // ========== HERO ==========
-  subtitle?: string; // Subtítulo del hero (opcional)
+  subtitle?: string | null; // Subtítulo del hero (opcional)
 
   // ========== ASPECTOS GENERALES (4 items en hero) ==========
   // Cada aspecto tiene valor + etiqueta (ej: "163 CV" + "Potencia")
