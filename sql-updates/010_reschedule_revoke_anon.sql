@@ -35,6 +35,10 @@
 -- Idempotente. NO aplicada todavía.
 -- ============================================================================
 
+-- IMPORTANTE: PostgreSQL otorga EXECUTE a PUBLIC por default a las funciones,
+-- y `anon` hereda de PUBLIC. Hay que revocar de AMBOS (PUBLIC + anon explícito)
+-- para cerrar el acceso anónimo. Solo revocar de `anon` no alcanza.
+REVOKE EXECUTE ON FUNCTION public.crm_run_daily_reschedule(TEXT) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.crm_run_daily_reschedule(TEXT) FROM anon;
 
 -- (Re-)otorgamos a authenticated y service_role, idempotente.
