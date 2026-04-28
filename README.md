@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Leonardo Guzman — Mercedes-Benz
 
-## Getting Started
+Sitio web del concesionario oficial Mercedes-Benz de Automotores Mega (Argentina, Entre Ríos), operado por el vendedor Leonardo Guzman. Incluye:
 
-First, run the development server:
+- **Catálogo público** de vehículos (Autos, SUVs, Vans, Sprinter, Camiones).
+- **Panel admin** para CRUD de vehículos (`/admin`).
+- **CRM tipo Kanban** para seguimiento de leads, con zonas geográficas, agenda y reschedule automático (`/crm`).
+
+## Stack
+
+- **Next.js 16** (App Router) · **React 19** · **TypeScript 5** estricto
+- **Tailwind CSS v4** · **Framer Motion** · **Lucide icons** · **`@dnd-kit`** (drag&drop CRM) · **Embla Carousel**
+- **Supabase** (Postgres + Auth) — tabla `vehicles` para catálogo, `crm_*` para CRM
+- **Vercel** (deploy + Cron diario para el reschedule del CRM)
+
+## Setup local
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local       # editá los valores reales
+npm run dev                      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Variables de entorno
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Ver [`.env.example`](.env.example) para la lista completa. Las críticas:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` — del dashboard de Supabase.
+- `CRON_SECRET` — string random largo. Tiene que coincidir entre `.env.local` y Vercel → Project Settings → Environment Variables.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` | Dev server con Turbopack en `:3000` |
+| `npm run build` | Build de producción |
+| `npm run start` | Sirve el build de producción |
+| `npm run lint` | ESLint sobre todo `src/` |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Los scripts `dev` y `build` envuelven el comando con `cross-env NODE_OPTIONS=--require=./scripts/silence-baseline-warning.cjs` para silenciar un warning ruidoso de `baseline-browser-mapping` que Turbopack emite desde sus workers.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estructura principal
 
-## Deploy on Vercel
+```
+src/
+├── app/
+│   ├── (rutas públicas)         home, about, contact, financiacion, plan-ahorro, usados
+│   ├── vehicles/[id]/           detalle (auto/SUV vs camión, dos clientes distintos)
+│   ├── admin/                   CRUD vehículos (login + nuevo, editar, guia-imagenes)
+│   ├── crm/[zona]/              kanban CRM (pizarrón, agenda, ventas)
+│   └── api/{vehicles,crm}/      endpoints REST
+├── components/                  componentes globales + crm/
+├── lib/
+│   ├── supabase.ts              cliente anon (legacy, solo para reads públicos)
+│   ├── supabase-client.ts       cliente browser (SSR cookies)
+│   ├── supabase-server.ts       cliente RSC (SSR cookies)
+│   ├── vehicles/mapping.ts      camelCase ↔ snake_case para `vehicles`
+│   ├── parseVehicle.ts          parser de la columna a la interfaz `Vehicle`
+│   └── crm/                     queries, actions, history, date-logic, constants
+├── data/vehicles.ts             interfaz `Vehicle` (modelo del frontend)
+├── types/{crm,supabase}.ts      tipos del dominio + tipos generados de Supabase
+└── proxy.ts                     ex-middleware (Next 16): auth gate de /admin, /crm, /api/*
+public/
+├── vehicles/{vehicleId}/        imágenes por vehículo (convención de nombres)
+└── fichas-tecnicas/             PDFs de camiones
+sql-updates/                     migraciones idempotentes (002–008)
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Imágenes de vehículos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Las imágenes **no** se guardan en Supabase — se suben manualmente a `/public/vehicles/<id>/`. El admin tiene una "Guía de imágenes" (`/admin/guia-imagenes/[id]`) que muestra exactamente qué archivos subir y a dónde. Convención:
+
+```
+public/vehicles/<id>/
+├── hero/{hero,hero-mobile}.jpg
+├── foto-card/card.{jpg,avif,...}
+├── exterior/{1..10}.{avif,webp,jpg}
+├── colors/{1..7}.{avif,...}
+├── interior/{1..10}.{avif,...}
+└── equipment/{1..8}.{avif,...}
+```
+
+## CRM
+
+- Cada vendedor opera dentro de una **zona** (`crm_zonas`) — `/crm` redirige a la primera zona activa.
+- Cada lead es una **card** (`crm_cards`) que se mueve por columnas (Contacto → Llamada/Visita → Cotizar → Seguimiento) y zonas (Pizarrón → Agenda → Ventas).
+- **Regla de los 20 días:** una card con `next_contact_at > hoy + 20d` se mueve a Agenda; si la fecha cae a ≤20d, vuelve a Contacto del Pizarrón. Se aplica al crear, editar y vía cron diario (00:00 ART, [`vercel.json`](vercel.json)).
+- Toda acción se registra en `crm_card_history` (visible en el drawer de cada card).
+
+## Deploy
+
+Vercel con `framework: nextjs`. La sección `crons` de [`vercel.json`](vercel.json) configura el reschedule diario. El endpoint `/api/crm/cron/reschedule` valida `Authorization: Bearer ${CRON_SECRET}` con comparación timing-safe.
+
+### Aplicar migraciones de DB
+
+Las SQL están en `sql-updates/` numeradas en orden. Aplicar con Supabase MCP (`apply_migration`) o copiando al SQL Editor del dashboard. Todas son idempotentes.
+
+## Notas operativas
+
+- **`vehicles` y RLS:** RLS está habilitado, con policy SELECT pública (anon puede leer) y policy ALL para `authenticated` (admin puede escribir vía SSR). Ver [`sql-updates/008_vehicles_rls.sql`](sql-updates/008_vehicles_rls.sql).
+- **Tipos Supabase:** [`src/types/supabase.ts`](src/types/supabase.ts) es el espejo del schema real. Si agregás/quitás columnas en la DB, regenerá ese archivo con `mcp__supabase__generate_typescript_types`.
+- **Frontend `Vehicle` (camelCase) vs DB (snake_case):** la conversión vive en [`src/lib/parseVehicle.ts`](src/lib/parseVehicle.ts) (read) y [`src/lib/vehicles/mapping.ts`](src/lib/vehicles/mapping.ts) (write).
