@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  MapPin,
-  Phone,
-  Instagram,
-  Facebook,
-  MessageCircle,
-  Send,
-} from "lucide-react";
+import { MapPin, Phone, Instagram, Facebook, Send } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ContactPage() {

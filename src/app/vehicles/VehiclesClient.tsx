@@ -18,16 +18,18 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [prevCategory, setPrevCategory] = useState(category);
 
-  // Handle category transition animation
+  // Sincroniza una transición temporal (1.6s) con un timer externo cuando cambia
+  // la categoría. Es un caso legítimo de useEffect (driving an external timer),
+  // pero react-hooks/set-state-in-effect no lo distingue.
   useEffect(() => {
-    if (category !== prevCategory) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-        setPrevCategory(category);
-      }, 1600);
-      return () => clearTimeout(timer);
-    }
+    if (category === prevCategory) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsTransitioning(true);
+    const timer = setTimeout(() => {
+      setIsTransitioning(false);
+      setPrevCategory(category);
+    }, 1600);
+    return () => clearTimeout(timer);
   }, [category, prevCategory]);
 
   useEffect(() => {

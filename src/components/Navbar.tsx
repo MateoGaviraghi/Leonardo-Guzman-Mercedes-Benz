@@ -5,15 +5,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Menu,
-  X,
-  ChevronDown,
-  Instagram,
-  Facebook,
-  Phone,
-  MessageCircle,
-} from "lucide-react";
+import { Menu, X, ChevronDown, Instagram, Facebook, Phone } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();

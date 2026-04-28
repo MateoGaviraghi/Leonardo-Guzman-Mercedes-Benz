@@ -53,8 +53,12 @@ export function CardDetailPanel({ zonaId, products, interests }: Props) {
     router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }, [router, pathname, searchParams]);
 
-  // Reset al cambiar de tarjeta
+  // Reset al cambiar de tarjeta + fetch del nuevo dato.
+  // Patrón "reset+fetch on key change" — la regla react-hooks/set-state-in-effect
+  // marca falso positivo acá, ya que el reset acompaña a una sincronización con
+  // recurso externo (la API). Suprimir es seguro y preferible a un refactor mayor.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTab("datos");
     setCard(null);
     setLoadError(null);

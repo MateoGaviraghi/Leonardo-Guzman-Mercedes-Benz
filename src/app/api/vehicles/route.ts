@@ -177,9 +177,12 @@ export async function POST(request: NextRequest) {
       truck_pdfs: body.truckPdfs ? JSON.stringify(body.truckPdfs) : null,
     };
 
+    // `as never` evita el conflicto entre el genérico de Database y nuestro
+    // shape snake_case construido a mano (los tipos en types/supabase.ts usan
+    // camelCase del front, no la columna real). Mismo patrón que actions.ts.
     const { data, error } = await supabase
       .from("vehicles")
-      .insert(vehicleData as any)
+      .insert(vehicleData as never)
       .select()
       .single();
 

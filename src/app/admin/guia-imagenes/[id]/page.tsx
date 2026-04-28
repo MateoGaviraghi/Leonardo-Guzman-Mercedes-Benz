@@ -204,10 +204,9 @@ export default function GuiaImagenesPage() {
             </h2>
             <div className="space-y-3">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
-                const title = (vehicle as any)[`exterior${num}Title`];
-                const description = (vehicle as any)[
-                  `exterior${num}Description`
-                ];
+                const v = vehicle as unknown as Record<string, string | undefined>;
+                const title = v[`exterior${num}Title`];
+                const description = v[`exterior${num}Description`];
                 if (!title && !description) return null;
                 return (
                   <div
@@ -297,10 +296,9 @@ export default function GuiaImagenesPage() {
             </h2>
             <div className="space-y-3">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
-                const title = (vehicle as any)[`interior${num}Title`];
-                const description = (vehicle as any)[
-                  `interior${num}Description`
-                ];
+                const v = vehicle as unknown as Record<string, string | undefined>;
+                const title = v[`interior${num}Title`];
+                const description = v[`interior${num}Description`];
                 if (!title && !description) return null;
                 return (
                   <div

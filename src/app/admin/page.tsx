@@ -41,7 +41,7 @@ export default function AdminPage() {
       } else {
         setError(data.error);
       }
-    } catch (err) {
+    } catch {
       setError("Error al cargar vehículos");
     } finally {
       setLoading(false);
@@ -62,7 +62,7 @@ export default function AdminPage() {
       } else {
         alert("Error: " + data.error);
       }
-    } catch (err) {
+    } catch {
       alert("Error al eliminar vehículo");
     }
   };

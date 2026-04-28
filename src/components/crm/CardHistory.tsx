@@ -63,6 +63,8 @@ export function CardHistory({ cardId }: Props) {
 
   useEffect(() => {
     let cancelled = false;
+    // Reset acompañando a fetch externo (mismo patrón que CardDetailPanel).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEntries(null);
     setError(null);
     fetch(`/api/crm/cards/${cardId}/history`, { cache: "no-store" })

@@ -178,9 +178,12 @@ export async function PUT(
       updated_at: new Date().toISOString(),
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from("vehicles") as any)
-      .update(vehicleData)
+    // `as never` evita el conflicto entre el genérico de Database y nuestro
+    // shape snake_case construido a mano (los tipos en types/supabase.ts usan
+    // camelCase del front, no la columna real). Mismo patrón que actions.ts.
+    const { data, error } = await supabase
+      .from("vehicles")
+      .update(vehicleData as never)
       .eq("id", id)
       .select()
       .single();

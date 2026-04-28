@@ -32,12 +32,6 @@ function ColorCarousel({
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const [imageFormat, setImageFormat] = useState<Record<number, string>>({});
 
-  // Intentar múltiples formatos para cada imagen
-  const tryImageFormats = (num: number) => {
-    const formats = ["jpg", "png", "avif", "webp"];
-    return formats[0]; // Empezar con jpg
-  };
-
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     setSelectedIndex(emblaApi.selectedScrollSnap());
@@ -45,10 +39,10 @@ function ColorCarousel({
 
   useEffect(() => {
     if (!emblaApi) return;
-
     emblaApi.on("select", onSelect);
+    // Sincroniza el índice inicial con embla — es un sistema externo, no un re-render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     onSelect();
-
     return () => {
       emblaApi.off("select", onSelect);
     };
@@ -75,7 +69,7 @@ function ColorCarousel({
               <div key={num} className="flex-[0_0_100%] min-w-0">
                 <div className="relative aspect-[16/9] w-full">
                   <Image
-                    src={`/vehicles/${vehicleId}/colors/${num}.${format}?v=${Date.now()}`}
+                    src={`/vehicles/${vehicleId}/colors/${num}.${format}`}
                     alt={`Color ${num}`}
                     fill
                     className="object-contain"
@@ -277,10 +271,10 @@ function ImageCarousel({
 
   useEffect(() => {
     if (!emblaApi) return;
-
     emblaApi.on("select", onSelect);
+    // Sincroniza el índice inicial con embla — es un sistema externo, no un re-render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     onSelect();
-
     return () => {
       emblaApi.off("select", onSelect);
     };
@@ -610,7 +604,7 @@ export default function VehicleDetailClient({
         {/* Mobile Hero - visible only on screens < 768px */}
         {!hasImageError(`${basePath}/hero/hero-mobile`) && (
           <Image
-            src={`${basePath}/hero/hero-mobile.jpg?v=${Date.now()}`}
+            src={`${basePath}/hero/hero-mobile.jpg`}
             alt={vehicle.name}
             fill
             className="object-cover md:hidden"
