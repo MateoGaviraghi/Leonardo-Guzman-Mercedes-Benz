@@ -67,8 +67,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
   if (isCrmLogin && user) {
+    // /crm resuelve server-side a /crm/[primera-zona-activa]/pizarron.
     const url = request.nextUrl.clone();
-    url.pathname = "/crm/pizarron";
+    url.pathname = "/crm";
     return NextResponse.redirect(url);
   }
 

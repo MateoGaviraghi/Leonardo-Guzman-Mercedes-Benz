@@ -29,7 +29,9 @@ export default function CrmLoginPage() {
       return;
     }
 
-    router.push("/crm/pizarron");
+    // /crm resuelve server-side a /crm/[primera-zona-activa]/pizarron.
+    // No hardcodeamos la zona acá porque el slug depende de qué zonas existan.
+    router.push("/crm");
     router.refresh();
   };
 

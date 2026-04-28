@@ -176,11 +176,3 @@ export interface Vehicle {
   chargingTab2Title?: string;
   chargingTab2Content?: { title?: string; description?: string }[];
 }
-
-// ========================================
-// DATOS DE VEHÍCULOS
-// ========================================
-// TODO: Estos datos serán migrados a Supabase en Fase 1
-// Por ahora dejamos vacío para el build limpio
-
-export const vehicleData: Record<string, Vehicle> = {};
