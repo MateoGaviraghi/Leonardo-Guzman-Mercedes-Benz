@@ -68,77 +68,42 @@ export default function VehicleForm({
       // Convertir datos de snake_case (DB) a camelCase (formulario)
       const vehicle = data.vehicle;
 
-      // Parsear campos JSON
-      if (vehicle.specs_consumo && typeof vehicle.specs_consumo === "string")
-        vehicle.specsConsumo = JSON.parse(vehicle.specs_consumo);
-      if (
-        vehicle.specs_motorizacion &&
-        typeof vehicle.specs_motorizacion === "string"
-      )
-        vehicle.specsMotorizacion = JSON.parse(vehicle.specs_motorizacion);
-      if (vehicle.specs_potencia && typeof vehicle.specs_potencia === "string")
-        vehicle.specsPotencia = JSON.parse(vehicle.specs_potencia);
-      if (
-        vehicle.specs_dimensiones &&
-        typeof vehicle.specs_dimensiones === "string"
-      )
-        vehicle.specsDimensiones = JSON.parse(vehicle.specs_dimensiones);
-      if (
-        vehicle.specs_performance &&
-        typeof vehicle.specs_performance === "string"
-      )
-        vehicle.specsPerformance = JSON.parse(vehicle.specs_performance);
-      if (
-        vehicle.specs_carroceria &&
-        typeof vehicle.specs_carroceria === "string"
-      )
-        vehicle.specsCarroceria = JSON.parse(vehicle.specs_carroceria);
-      if (vehicle.specs_chasis && typeof vehicle.specs_chasis === "string")
-        vehicle.specsChasis = JSON.parse(vehicle.specs_chasis);
-      if (
-        vehicle.specs_cantidades &&
-        typeof vehicle.specs_cantidades === "string"
-      )
-        vehicle.specsCantidades = JSON.parse(vehicle.specs_cantidades);
-      if (
-        vehicle.specs_bateria_carga &&
-        typeof vehicle.specs_bateria_carga === "string"
-      )
-        vehicle.specsBateriaCarga = JSON.parse(vehicle.specs_bateria_carga);
+      // Helper que acepta string JSON (datos legacy) u objeto ya parseado
+      // (lo que devuelve Supabase para columnas JSONB nativas).
+      // Sin esto, los vehículos cargados con jsonb literal se ven vacíos en el form.
+      const parseJson = (val: unknown) => {
+        if (val === null || val === undefined) return [];
+        if (typeof val === "string") {
+          try {
+            return JSON.parse(val);
+          } catch {
+            return [];
+          }
+        }
+        return val;
+      };
 
-      if (
-        vehicle.equip_multimedia &&
-        typeof vehicle.equip_multimedia === "string"
-      )
-        vehicle.equipMultimedia = JSON.parse(vehicle.equip_multimedia);
-      if (
-        vehicle.equip_asistencia &&
-        typeof vehicle.equip_asistencia === "string"
-      )
-        vehicle.equipAsistencia = JSON.parse(vehicle.equip_asistencia);
-      if (vehicle.equip_confort && typeof vehicle.equip_confort === "string")
-        vehicle.equipConfort = JSON.parse(vehicle.equip_confort);
-      if (
-        vehicle.equip_tren_rodaje &&
-        typeof vehicle.equip_tren_rodaje === "string"
-      )
-        vehicle.equipTrenRodaje = JSON.parse(vehicle.equip_tren_rodaje);
-      if (
-        vehicle.equip_seguridad &&
-        typeof vehicle.equip_seguridad === "string"
-      )
-        vehicle.equipSeguridad = JSON.parse(vehicle.equip_seguridad);
+      vehicle.specsConsumo = parseJson(vehicle.specs_consumo);
+      vehicle.specsMotorizacion = parseJson(vehicle.specs_motorizacion);
+      vehicle.specsPotencia = parseJson(vehicle.specs_potencia);
+      vehicle.specsDimensiones = parseJson(vehicle.specs_dimensiones);
+      vehicle.specsPerformance = parseJson(vehicle.specs_performance);
+      vehicle.specsCarroceria = parseJson(vehicle.specs_carroceria);
+      vehicle.specsChasis = parseJson(vehicle.specs_chasis);
+      vehicle.specsCantidades = parseJson(vehicle.specs_cantidades);
+      vehicle.specsBateriaCarga = parseJson(vehicle.specs_bateria_carga);
 
-      if (vehicle.equip_variantes_carroceria && typeof vehicle.equip_variantes_carroceria === "string")
-        vehicle.equipVariantesCarroceria = JSON.parse(vehicle.equip_variantes_carroceria);
-      if (vehicle.equip_carga && typeof vehicle.equip_carga === "string")
-        vehicle.equipCarga = JSON.parse(vehicle.equip_carga);
-      if (vehicle.equip_variantes_compartimento && typeof vehicle.equip_variantes_compartimento === "string")
-        vehicle.equipVariantesCompartimento = JSON.parse(vehicle.equip_variantes_compartimento);
-      if (vehicle.equip_equipamiento_compartimento && typeof vehicle.equip_equipamiento_compartimento === "string")
-        vehicle.equipEquipamientoCompartimento = JSON.parse(vehicle.equip_equipamiento_compartimento);
-      if (vehicle.equip_puesto_conduccion && typeof vehicle.equip_puesto_conduccion === "string")
-        vehicle.equipPuestoConduccion = JSON.parse(vehicle.equip_puesto_conduccion);
+      vehicle.equipMultimedia = parseJson(vehicle.equip_multimedia);
+      vehicle.equipAsistencia = parseJson(vehicle.equip_asistencia);
+      vehicle.equipConfort = parseJson(vehicle.equip_confort);
+      vehicle.equipTrenRodaje = parseJson(vehicle.equip_tren_rodaje);
+      vehicle.equipSeguridad = parseJson(vehicle.equip_seguridad);
+
+      vehicle.equipVariantesCarroceria = parseJson(vehicle.equip_variantes_carroceria);
+      vehicle.equipCarga = parseJson(vehicle.equip_carga);
+      vehicle.equipVariantesCompartimento = parseJson(vehicle.equip_variantes_compartimento);
+      vehicle.equipEquipamientoCompartimento = parseJson(vehicle.equip_equipamiento_compartimento);
+      vehicle.equipPuestoConduccion = parseJson(vehicle.equip_puesto_conduccion);
 
       // Convertir snake_case a camelCase
       vehicle.fuelType = vehicle.fuel_type;
