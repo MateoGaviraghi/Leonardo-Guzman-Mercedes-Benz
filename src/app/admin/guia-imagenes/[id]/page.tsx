@@ -22,62 +22,54 @@ export default function GuiaImagenesPage() {
       if (!response.ok) throw new Error("Error al cargar vehículo");
       const data = await response.json();
 
-      // Parsear campos JSON si vienen como strings
+      // Helper que acepta string JSON (datos legacy) u objeto/array ya
+      // parseado (lo que devuelve Supabase para columnas JSONB nativas).
+      const parseJson = (val: unknown) => {
+        if (val === null || val === undefined) return undefined;
+        if (typeof val === "string") {
+          try {
+            return JSON.parse(val);
+          } catch {
+            return undefined;
+          }
+        }
+        return val;
+      };
+
       const vehicle = data.vehicle;
       if (vehicle) {
-        // Parsear especificaciones (JSONB arrays)
-        if (typeof vehicle.specs_consumo === "string")
-          vehicle.specsConsumo = JSON.parse(vehicle.specs_consumo);
-        else vehicle.specsConsumo = vehicle.specs_consumo;
+        // Specs
+        vehicle.specsConsumo = parseJson(vehicle.specs_consumo);
+        vehicle.specsMotorizacion = parseJson(vehicle.specs_motorizacion);
+        vehicle.specsPotencia = parseJson(vehicle.specs_potencia);
 
-        if (typeof vehicle.specs_motorizacion === "string")
-          vehicle.specsMotorizacion = JSON.parse(vehicle.specs_motorizacion);
-        else vehicle.specsMotorizacion = vehicle.specs_motorizacion;
+        // Equipamiento (categorías genéricas)
+        vehicle.equipExterior = parseJson(vehicle.equip_exterior);
+        vehicle.equipInterior = parseJson(vehicle.equip_interior);
+        vehicle.equipMultimedia = parseJson(vehicle.equip_multimedia);
+        vehicle.equipAsistencia = parseJson(vehicle.equip_asistencia);
+        vehicle.equipConfort = parseJson(vehicle.equip_confort);
+        vehicle.equipTrenRodaje = parseJson(vehicle.equip_tren_rodaje);
+        vehicle.equipSeguridad = parseJson(vehicle.equip_seguridad);
 
-        if (typeof vehicle.specs_potencia === "string")
-          vehicle.specsPotencia = JSON.parse(vehicle.specs_potencia);
-        else vehicle.specsPotencia = vehicle.specs_potencia;
+        // Equipamiento Sprinter/Vito (categorías específicas de vans)
+        vehicle.equipVariantesCarroceria = parseJson(
+          vehicle.equip_variantes_carroceria
+        );
+        vehicle.equipCarga = parseJson(vehicle.equip_carga);
+        vehicle.equipVariantesCompartimento = parseJson(
+          vehicle.equip_variantes_compartimento
+        );
+        vehicle.equipEquipamientoCompartimento = parseJson(
+          vehicle.equip_equipamiento_compartimento
+        );
+        vehicle.equipPuestoConduccion = parseJson(
+          vehicle.equip_puesto_conduccion
+        );
 
-        // Parsear equipamiento (JSONB arrays)
-        if (typeof vehicle.equip_exterior === "string")
-          vehicle.equipExterior = JSON.parse(vehicle.equip_exterior);
-        else vehicle.equipExterior = vehicle.equip_exterior;
-
-        if (typeof vehicle.equip_interior === "string")
-          vehicle.equipInterior = JSON.parse(vehicle.equip_interior);
-        else vehicle.equipInterior = vehicle.equip_interior;
-
-        if (typeof vehicle.equip_multimedia === "string")
-          vehicle.equipMultimedia = JSON.parse(vehicle.equip_multimedia);
-        else vehicle.equipMultimedia = vehicle.equip_multimedia;
-
-        if (typeof vehicle.equip_asistencia === "string")
-          vehicle.equipAsistencia = JSON.parse(vehicle.equip_asistencia);
-        else vehicle.equipAsistencia = vehicle.equip_asistencia;
-
-        if (typeof vehicle.equip_confort === "string")
-          vehicle.equipConfort = JSON.parse(vehicle.equip_confort);
-        else vehicle.equipConfort = vehicle.equip_confort;
-
-        if (typeof vehicle.equip_tren_rodaje === "string")
-          vehicle.equipTrenRodaje = JSON.parse(vehicle.equip_tren_rodaje);
-        else vehicle.equipTrenRodaje = vehicle.equip_tren_rodaje;
-
-        if (typeof vehicle.equip_seguridad === "string")
-          vehicle.equipSeguridad = JSON.parse(vehicle.equip_seguridad);
-        else vehicle.equipSeguridad = vehicle.equip_seguridad;
-
-        if (typeof vehicle.charging_tab1_content === "string")
-          vehicle.chargingTab1Content = JSON.parse(
-            vehicle.charging_tab1_content
-          );
-        else vehicle.chargingTab1Content = vehicle.charging_tab1_content;
-
-        if (typeof vehicle.charging_tab2_content === "string")
-          vehicle.chargingTab2Content = JSON.parse(
-            vehicle.charging_tab2_content
-          );
-        else vehicle.chargingTab2Content = vehicle.charging_tab2_content;
+        // Autonomía / carga (eléctricos)
+        vehicle.chargingTab1Content = parseJson(vehicle.charging_tab1_content);
+        vehicle.chargingTab2Content = parseJson(vehicle.charging_tab2_content);
 
         // Convertir snake_case a camelCase para campos simples
         vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
@@ -690,6 +682,231 @@ export default function GuiaImagenesPage() {
                 </div>
               </div>
             )}
+
+            {/* Variantes de la carrocería (Sprinter / Vito) */}
+            {vehicle.equipVariantesCarroceria &&
+              vehicle.equipVariantesCarroceria.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                    Variantes de la carrocería
+                  </h3>
+                  <div className="space-y-3">
+                    {vehicle.equipVariantesCarroceria.map((item, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 p-3 rounded border border-gray-200"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <code className="text-sm font-mono text-gray-700">
+                            {basePath}/equipment/variantes-carroceria/
+                            {index + 1}.[formato]
+                          </code>
+                          <button
+                            onClick={() =>
+                              copyToClipboard(
+                                `${basePath}/equipment/variantes-carroceria/${index + 1}`
+                              )
+                            }
+                            className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          >
+                            Copiar
+                          </button>
+                        </div>
+                        {item.title && (
+                          <p className="text-sm font-semibold text-gray-800 mb-1">
+                            📌 {item.title}
+                          </p>
+                        )}
+                        {item.description && (
+                          <p className="text-xs text-gray-600">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {/* Acceso y carga (Sprinter / Vito) */}
+            {vehicle.equipCarga && vehicle.equipCarga.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                  Acceso y carga
+                </h3>
+                <div className="space-y-3">
+                  {vehicle.equipCarga.map((item, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 p-3 rounded border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <code className="text-sm font-mono text-gray-700">
+                          {basePath}/equipment/carga/{index + 1}.[formato]
+                        </code>
+                        <button
+                          onClick={() =>
+                            copyToClipboard(
+                              `${basePath}/equipment/carga/${index + 1}`
+                            )
+                          }
+                          className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          Copiar
+                        </button>
+                      </div>
+                      {item.title && (
+                        <p className="text-sm font-semibold text-gray-800 mb-1">
+                          📌 {item.title}
+                        </p>
+                      )}
+                      {item.description && (
+                        <p className="text-xs text-gray-600">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Variantes del compartimento (Sprinter / Vito) */}
+            {vehicle.equipVariantesCompartimento &&
+              vehicle.equipVariantesCompartimento.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                    Variantes del compartimento
+                  </h3>
+                  <div className="space-y-3">
+                    {vehicle.equipVariantesCompartimento.map((item, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 p-3 rounded border border-gray-200"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <code className="text-sm font-mono text-gray-700">
+                            {basePath}/equipment/variantes-compartimento/
+                            {index + 1}.[formato]
+                          </code>
+                          <button
+                            onClick={() =>
+                              copyToClipboard(
+                                `${basePath}/equipment/variantes-compartimento/${index + 1}`
+                              )
+                            }
+                            className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          >
+                            Copiar
+                          </button>
+                        </div>
+                        {item.title && (
+                          <p className="text-sm font-semibold text-gray-800 mb-1">
+                            📌 {item.title}
+                          </p>
+                        )}
+                        {item.description && (
+                          <p className="text-xs text-gray-600">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {/* Equipamiento del compartimento (Sprinter / Vito) */}
+            {vehicle.equipEquipamientoCompartimento &&
+              vehicle.equipEquipamientoCompartimento.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                    Equipamiento del compartimento
+                  </h3>
+                  <div className="space-y-3">
+                    {vehicle.equipEquipamientoCompartimento.map(
+                      (item, index) => (
+                        <div
+                          key={index}
+                          className="bg-gray-50 p-3 rounded border border-gray-200"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <code className="text-sm font-mono text-gray-700">
+                              {basePath}/equipment/equipamiento-compartimento/
+                              {index + 1}.[formato]
+                            </code>
+                            <button
+                              onClick={() =>
+                                copyToClipboard(
+                                  `${basePath}/equipment/equipamiento-compartimento/${index + 1}`
+                                )
+                              }
+                              className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                              Copiar
+                            </button>
+                          </div>
+                          {item.title && (
+                            <p className="text-sm font-semibold text-gray-800 mb-1">
+                              📌 {item.title}
+                            </p>
+                          )}
+                          {item.description && (
+                            <p className="text-xs text-gray-600">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+
+            {/* Puesto de conducción (Sprinter / Vito) */}
+            {vehicle.equipPuestoConduccion &&
+              vehicle.equipPuestoConduccion.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="font-semibold text-gray-800 mb-3 border-b pb-2">
+                    Puesto de conducción
+                  </h3>
+                  <div className="space-y-3">
+                    {vehicle.equipPuestoConduccion.map((item, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 p-3 rounded border border-gray-200"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <code className="text-sm font-mono text-gray-700">
+                            {basePath}/equipment/puesto-conduccion/
+                            {index + 1}.[formato]
+                          </code>
+                          <button
+                            onClick={() =>
+                              copyToClipboard(
+                                `${basePath}/equipment/puesto-conduccion/${index + 1}`
+                              )
+                            }
+                            className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          >
+                            Copiar
+                          </button>
+                        </div>
+                        {item.title && (
+                          <p className="text-sm font-semibold text-gray-800 mb-1">
+                            📌 {item.title}
+                          </p>
+                        )}
+                        {item.description && (
+                          <p className="text-xs text-gray-600">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
           </section>
 
           {/* AUTONOMÍA Y CARGA (Solo eléctricos) */}
@@ -835,6 +1052,8 @@ export default function GuiaImagenesPage() {
   ├── hero/
   │   ├── hero.[formato]         (desktop)
   │   └── hero-mobile.[formato]  (mobile)
+  ├── foto-card/
+  │   └── card.[formato]
   ├── exterior/
   ├── colors/
   ├── interior/
@@ -844,7 +1063,12 @@ export default function GuiaImagenesPage() {
   │   ├── asistencia/
   │   ├── confort/
   │   ├── tren-rodaje/
-  │   └── seguridad/
+  │   ├── seguridad/
+  │   ├── variantes-carroceria/        (Sprinter / Vito)
+  │   ├── carga/                       (Sprinter / Vito)
+  │   ├── variantes-compartimento/     (Sprinter / Vito)
+  │   ├── equipamiento-compartimento/  (Sprinter / Vito)
+  │   └── puesto-conduccion/           (Sprinter / Vito)
   └── autonomy/ (solo eléctricos)
       ├── card1.[formato]
       ├── card2.[formato]
