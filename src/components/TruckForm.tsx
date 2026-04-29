@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Vehicle } from "@/data/vehicles";
 import { createSupabaseBrowser } from "@/lib/supabase-client";
+import JsonImport from "@/components/admin/JsonImport";
 
 type TruckSection = {
   title: string;
@@ -370,6 +371,13 @@ export default function TruckForm({
             {error}
           </div>
         )}
+
+        {/* IMPORTAR JSON (acelera la carga manual) */}
+        <JsonImport
+          onImport={(data) =>
+            setFormData((prev) => ({ ...prev, ...data }))
+          }
+        />
 
         {/* INFORMACIÓN BÁSICA */}
         <section className="bg-white p-6 rounded-lg shadow space-y-4">

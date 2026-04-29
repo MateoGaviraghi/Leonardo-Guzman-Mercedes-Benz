@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import type { Vehicle } from "@/data/vehicles";
 import { getInitialEquipmentTab } from "@/lib/parseVehicle";
+import { RichText } from "@/components/RichText";
 
 // Helper to check if image exists
 const getImagePath = (
@@ -427,7 +428,7 @@ function ImageCarousel({
           </h3>
         )}
         {items[selectedIndex]?.description && (
-          <p
+          <RichText
             className={`text-sm sm:text-base md:text-lg font-light max-w-3xl mx-auto leading-relaxed ${
               isAMG
                 ? "text-gray-400"
@@ -437,7 +438,7 @@ function ImageCarousel({
             }`}
           >
             {items[selectedIndex].description}
-          </p>
+          </RichText>
         )}
       </div>
 
@@ -1142,9 +1143,9 @@ export default function VehicleDetailClient({
                                 </h4>
                               )}
                               {item.description && (
-                                <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                <RichText className="text-sm text-gray-200 font-light leading-relaxed">
                                   {item.description}
-                                </p>
+                                </RichText>
                               )}
                             </div>
                           )}
@@ -1207,9 +1208,9 @@ export default function VehicleDetailClient({
                                 </h4>
                               )}
                               {item.description && (
-                                <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                <RichText className="text-sm text-gray-200 font-light leading-relaxed">
                                   {item.description}
-                                </p>
+                                </RichText>
                               )}
                             </div>
                           )}
@@ -1275,9 +1276,9 @@ export default function VehicleDetailClient({
                                   </h4>
                                 )}
                                 {item.description && (
-                                  <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                  <RichText className="text-sm text-gray-200 font-light leading-relaxed">
                                     {item.description}
-                                  </p>
+                                  </RichText>
                                 )}
                               </div>
                             )}
@@ -1343,9 +1344,9 @@ export default function VehicleDetailClient({
                                   </h4>
                                 )}
                                 {item.description && (
-                                  <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                  <RichText className="text-sm text-gray-200 font-light leading-relaxed">
                                     {item.description}
-                                  </p>
+                                  </RichText>
                                 )}
                               </div>
                             )}
@@ -1408,9 +1409,9 @@ export default function VehicleDetailClient({
                                 </h4>
                               )}
                               {item.description && (
-                                <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                <RichText className="text-sm text-gray-200 font-light leading-relaxed">
                                   {item.description}
-                                </p>
+                                </RichText>
                               )}
                             </div>
                           )}
@@ -1476,9 +1477,9 @@ export default function VehicleDetailClient({
                                   </h4>
                                 )}
                                 {item.description && (
-                                  <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                  <RichText className="text-sm text-gray-200 font-light leading-relaxed">
                                     {item.description}
-                                  </p>
+                                  </RichText>
                                 )}
                               </div>
                             )}
@@ -1544,9 +1545,9 @@ export default function VehicleDetailClient({
                                   </h4>
                                 )}
                                 {item.description && (
-                                  <p className="text-sm text-gray-200 font-light leading-relaxed">
+                                  <RichText className="text-sm text-gray-200 font-light leading-relaxed">
                                     {item.description}
-                                  </p>
+                                  </RichText>
                                 )}
                               </div>
                             )}
@@ -2034,13 +2035,13 @@ export default function VehicleDetailClient({
                             </h3>
                           )}
                           {item.description && (
-                            <p
+                            <RichText
                               className={`text-base md:text-lg font-light leading-relaxed ${
                                 isAMG ? "text-gray-300" : "text-gray-600"
                               }`}
                             >
                               {item.description}
-                            </p>
+                            </RichText>
                           )}
                         </div>
                       </motion.div>
@@ -2103,13 +2104,13 @@ export default function VehicleDetailClient({
                             </h3>
                           )}
                           {item.description && (
-                            <p
+                            <RichText
                               className={`text-base md:text-lg font-light leading-relaxed ${
                                 isAMG ? "text-gray-300" : "text-gray-600"
                               }`}
                             >
                               {item.description}
-                            </p>
+                            </RichText>
                           )}
                         </div>
                       </motion.div>
