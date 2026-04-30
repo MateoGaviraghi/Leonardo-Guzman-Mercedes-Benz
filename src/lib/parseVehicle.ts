@@ -23,6 +23,12 @@ export function parseVehicleFromDB(vehicle: any) {
     ["equip_confort", "equipConfort"],
     ["equip_tren_rodaje", "equipTrenRodaje"],
     ["equip_seguridad", "equipSeguridad"],
+    // Categorías específicas Sprinter / Vito
+    ["equip_variantes_carroceria", "equipVariantesCarroceria"],
+    ["equip_carga", "equipCarga"],
+    ["equip_variantes_compartimento", "equipVariantesCompartimento"],
+    ["equip_equipamiento_compartimento", "equipEquipamientoCompartimento"],
+    ["equip_puesto_conduccion", "equipPuestoConduccion"],
     ["charging_tab1_content", "chargingTab1Content"],
     ["charging_tab2_content", "chargingTab2Content"],
     ["truck_sections", "truckSections"],

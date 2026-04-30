@@ -53,6 +53,22 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     { id: "arocs", name: "Arocs" },
   ];
 
+  // Sprinter subcategories — filtran por `id` (slug) del vehículo, no por v.category.
+  const sprinterSubcategories = [
+    { id: "all", name: "Todos" },
+    { id: "sprinter-furgon", name: "Furgón" },
+    { id: "sprinter-furgon-mixto", name: "Furgón Mixto" },
+    { id: "sprinter-combi", name: "Combi" },
+    { id: "sprinter-chasis", name: "Chasis" },
+  ];
+
+  // Vans subcategories — idem (filtran por id del vehículo).
+  const vansSubcategories = [
+    { id: "all", name: "Todos" },
+    { id: "vito-mixto", name: "Vito Mixto" },
+    { id: "vito-tourer", name: "Vito Tourer" },
+  ];
+
   // Carrocerías - Auto subcategories
   const autoBodyTypes = [
     { id: "all", name: "Todos" },
@@ -81,6 +97,8 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     if (category === "trucks") return truckSubcategories;
     if (category === "auto") return autoBodyTypes;
     if (category === "suv") return suvBodyTypes;
+    if (category === "sprinter") return sprinterSubcategories;
+    if (category === "vans") return vansSubcategories;
     return [];
   };
 
@@ -172,15 +190,21 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
             if (brand === "mercedes-benz" && isAMG) return false;
           }
 
-          // Filter by subcategory (body type) - match vehicle category with selected subcategory
+          // Filter by subcategory (body type)
           if (subcategory !== "all") {
-            const vehicleCat = v.category.toLowerCase().trim();
-            // Check if the vehicle's category matches or contains the subcategory
-            if (
-              !vehicleCat.includes(subcategory) &&
-              vehicleCat !== subcategory
-            ) {
-              return false;
+            // Sprinter y Vans usan el `id` (slug) del vehículo porque todos
+            // comparten la misma `category` ("sprinter" o "vans") y los
+            // distinguimos por id (sprinter-furgon, vito-tourer, etc.).
+            if (category === "sprinter" || category === "vans") {
+              if (v.id !== subcategory) return false;
+            } else {
+              const vehicleCat = v.category.toLowerCase().trim();
+              if (
+                !vehicleCat.includes(subcategory) &&
+                vehicleCat !== subcategory
+              ) {
+                return false;
+              }
             }
           }
 
@@ -335,7 +359,11 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div
             className={
-              category === "trucks" || category === "auto" || category === "suv"
+              category === "trucks" ||
+              category === "auto" ||
+              category === "suv" ||
+              category === "sprinter" ||
+              category === "vans"
                 ? "flex flex-col lg:flex-row gap-8 lg:gap-12"
                 : ""
             }
@@ -351,6 +379,68 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
                         <Link
                           key={subcat.id}
                           href={`/vehicles?category=trucks&subcategory=${subcat.id}`}
+                          scroll={false}
+                          className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
+                            subcategory === subcat.id
+                              ? "text-black bg-white border-white"
+                              : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
+                          }`}
+                        >
+                          {subcat.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </nav>
+                </div>
+              </aside>
+            )}
+
+            {/* Sprinter Sidebar */}
+            {category === "sprinter" && (
+              <aside className="w-full lg:w-80 shrink-0">
+                <div className="backdrop-blur-md rounded-lg overflow-hidden transition-all bg-neutral-900/80 border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                  <div className="p-4 lg:p-5 border-b border-white/15">
+                    <h3 className="text-xs font-bold tracking-widest text-white/60 uppercase">
+                      Modelo
+                    </h3>
+                  </div>
+                  <nav className="p-3 lg:p-4 overflow-x-auto lg:overflow-x-visible">
+                    <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
+                      {sprinterSubcategories.map((subcat) => (
+                        <Link
+                          key={subcat.id}
+                          href={`/vehicles?category=sprinter&subcategory=${subcat.id}`}
+                          scroll={false}
+                          className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
+                            subcategory === subcat.id
+                              ? "text-black bg-white border-white"
+                              : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
+                          }`}
+                        >
+                          {subcat.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </nav>
+                </div>
+              </aside>
+            )}
+
+            {/* Vans Sidebar */}
+            {category === "vans" && (
+              <aside className="w-full lg:w-80 shrink-0">
+                <div className="backdrop-blur-md rounded-lg overflow-hidden transition-all bg-neutral-900/80 border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                  <div className="p-4 lg:p-5 border-b border-white/15">
+                    <h3 className="text-xs font-bold tracking-widest text-white/60 uppercase">
+                      Modelo
+                    </h3>
+                  </div>
+                  <nav className="p-3 lg:p-4 overflow-x-auto lg:overflow-x-visible">
+                    <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
+                      {vansSubcategories.map((subcat) => (
+                        <Link
+                          key={subcat.id}
+                          href={`/vehicles?category=vans&subcategory=${subcat.id}`}
                           scroll={false}
                           className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
                             subcategory === subcat.id
@@ -505,7 +595,9 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
                 className={`grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16 ${
                   category === "trucks" ||
                   category === "auto" ||
-                  category === "suv"
+                  category === "suv" ||
+                  category === "sprinter" ||
+                  category === "vans"
                     ? "lg:grid-cols-2"
                     : "lg:grid-cols-3"
                 }`}

@@ -728,7 +728,21 @@ export default function VehicleDetailClient({
       </section>
 
       {/* Aspectos Destacados - Diseño mejorado */}
-      {vehicle.aspecto1Valor && (
+      {vehicle.aspecto1Valor && (() => {
+        // Cuántos aspectos tiene el vehículo (1..4) — grid se adapta para
+        // mantener los items siempre centrados en desktop.
+        const aspectoCount = [1, 2, 3, 4].filter(
+          (n) => vehicle[`aspecto${n}Valor` as keyof Vehicle]
+        ).length;
+        const gridClass =
+          aspectoCount === 4
+            ? "lg:grid-cols-4 max-w-7xl"
+            : aspectoCount === 3
+            ? "lg:grid-cols-3 max-w-5xl"
+            : aspectoCount === 2
+            ? "lg:grid-cols-2 max-w-3xl"
+            : "lg:grid-cols-1 max-w-md";
+        return (
         <section
           className={`py-16 sm:py-20 md:py-24 lg:py-32 text-white relative overflow-hidden ${
             isAMG
@@ -752,7 +766,7 @@ export default function VehicleDetailClient({
               Aspectos Destacados
             </motion.h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${gridClass} gap-6 sm:gap-8 mx-auto`}>
               {[1, 2, 3, 4].map((num) => {
                 const valor = vehicle[`aspecto${num}Valor` as keyof Vehicle] as
                   | string
@@ -836,7 +850,8 @@ export default function VehicleDetailClient({
             </div>
           </div>
         </section>
-      )}
+        );
+      })()}
 
       {/* Exterior - Carousel */}
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some(
