@@ -577,6 +577,110 @@ function AccordionItem({
   );
 }
 
+// Card grid reutilizable para el contenido de un tab dentro de Exterior/Interior.
+// Mismo patrón visual que la sección "Equipamiento" (cards con imagen + título + descripción).
+//
+// `variant` controla los colores para que las cards se vean bien tanto sobre
+// fondos claros (Exterior, fondo blanco) como sobre fondos oscuros (Interior, fondo negro).
+function EquipmentCardGrid({
+  items,
+  basePath,
+  category,
+  variant,
+  isAMG = false,
+}: {
+  items: { title?: string; description?: string }[];
+  basePath: string;
+  /** Subcarpeta bajo `equipment/`. Ej: "variantes-carroceria", "carga", "puesto-conduccion". */
+  category: string;
+  /** "light" → fondo claro: títulos en negro, descripciones gris medio.
+   *  "dark"  → fondo oscuro: títulos en blanco, descripciones gris claro. */
+  variant: "light" | "dark";
+  isAMG?: boolean;
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
+    >
+      {items.map((item, index) => {
+        const imagePath = `${basePath}/equipment/${category}/${index + 1}`;
+        return (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.08 }}
+            className={`group ${
+              isAMG
+                ? "rounded-lg overflow-hidden border border-[#5AC3B6]/20 hover:border-[#5AC3B6]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(90,195,182,0.15)]"
+                : ""
+            }`}
+          >
+            <div
+              className={`relative aspect-[4/3] overflow-hidden mb-3 sm:mb-4 ${
+                isAMG
+                  ? "bg-neutral-800"
+                  : variant === "light"
+                  ? "bg-zinc-100"
+                  : "bg-zinc-800"
+              }`}
+            >
+              <MultiFormatImage
+                basePath={imagePath}
+                alt={item.title || category}
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              {isAMG && (
+                <div className="absolute inset-0 bg-gradient-to-t from-[#5AC3B6]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              )}
+            </div>
+            {(item.title || item.description) && (
+              <div className={`py-2 sm:py-3 ${isAMG ? "px-3" : ""}`}>
+                {item.title && (
+                  <h4
+                    className={`text-base sm:text-lg font-light mb-1 sm:mb-2 ${
+                      isAMG
+                        ? "text-[#5AC3B6]"
+                        : variant === "light"
+                        ? "text-black"
+                        : "text-white"
+                    }`}
+                  >
+                    {item.title}
+                  </h4>
+                )}
+                {item.description && (
+                  <RichText
+                    className={`text-sm font-light leading-relaxed ${
+                      variant === "light" ? "text-gray-600" : "text-gray-200"
+                    }`}
+                  >
+                    {item.description}
+                  </RichText>
+                )}
+              </div>
+            )}
+          </motion.div>
+        );
+      })}
+    </motion.div>
+  );
+}
+
+// Helper para calcular qué tabs están disponibles en una sección (Exterior/Interior).
+// Devuelve solo los tabs que tienen contenido — así no renderizamos botones vacíos.
+function buildAvailableTabs<T extends { id: string; label: string; available: boolean }>(
+  defs: T[]
+): Array<Pick<T, "id" | "label">> {
+  return defs.filter((t) => t.available).map(({ id, label }) => ({ id, label }));
+}
+
 export default function VehicleDetailClient({
   vehicle: initialVehicle,
   hasColorImages = false,
@@ -596,6 +700,55 @@ export default function VehicleDetailClient({
   );
   const [activeAutonomyTab, setActiveAutonomyTab] = useState<string>("tab1");
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // ───────────── Tabs internos de Exterior / Interior ─────────────
+  // Cada sección puede tener varios sub-temas (Aspectos destacados, Variantes,
+  // Acceso/carga, Compartimento, Puesto de conducción). Los renderizamos como
+  // tabs clickeables — mismo patrón que la sección "Equipamiento" — en lugar
+  // de empilar 5 secciones full-width separadas.
+  //
+  // Inicializamos cada estado con el primer tab disponible para no arrancar
+  // apuntando a un tab que el vehículo no tiene.
+  const [activeExteriorTab, setActiveExteriorTab] = useState<string>(() => {
+    const hasAspectos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some(
+      (n) =>
+        initialVehicle[`exterior${n}Title` as keyof Vehicle] ||
+        initialVehicle[`exterior${n}Description` as keyof Vehicle]
+    );
+    if (hasAspectos) return "aspectos";
+    if (
+      (initialVehicle.equipVariantesCarroceria as unknown as unknown[] | undefined)
+        ?.length
+    )
+      return "variantes-carroceria";
+    if ((initialVehicle.equipCarga as unknown as unknown[] | undefined)?.length)
+      return "carga";
+    return "aspectos";
+  });
+
+  const [activeInteriorTab, setActiveInteriorTab] = useState<string>(() => {
+    const hasAspectos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some(
+      (n) =>
+        initialVehicle[`interior${n}Title` as keyof Vehicle] ||
+        initialVehicle[`interior${n}Description` as keyof Vehicle]
+    );
+    if (hasAspectos) return "aspectos";
+    if (
+      (initialVehicle.equipVariantesCompartimento as unknown as unknown[] | undefined)
+        ?.length
+    )
+      return "variantes-compartimento";
+    if (
+      (initialVehicle.equipEquipamientoCompartimento as unknown as unknown[] | undefined)
+        ?.length
+    )
+      return "equipamiento-compartimento";
+    if (
+      (initialVehicle.equipPuestoConduccion as unknown as unknown[] | undefined)?.length
+    )
+      return "puesto-conduccion";
+    return "aspectos";
+  });
 
   // Detectar scroll para mostrar/ocultar botón de ir arriba
   useEffect(() => {
@@ -853,117 +1006,57 @@ export default function VehicleDetailClient({
         );
       })()}
 
-      {/* Exterior - Carousel */}
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some(
-        (num) =>
-          vehicle[`exterior${num}Title` as keyof Vehicle] ||
-          vehicle[`exterior${num}Description` as keyof Vehicle]
-      ) && (
-        <section
-          className={`py-24 md:py-32 relative ${
-            isAMG
-              ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
-              : "bg-white text-black"
-          }`}
-        >
-          {isAMG && (
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
-          )}
-          <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <motion.h2
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className={`text-3xl md:text-5xl font-light mb-16 text-center ${
-                isAMG ? "text-[#5AC3B6]" : ""
-              }`}
-            >
-              Exterior
-            </motion.h2>
-
-            <ImageCarousel
-              items={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-                .map((num) => ({
-                  num,
-                  title: vehicle[`exterior${num}Title` as keyof Vehicle] as
-                    | string
-                    | undefined,
-                  description: vehicle[
-                    `exterior${num}Description` as keyof Vehicle
-                  ] as string | undefined,
-                }))
-                .filter((item) => item.title || item.description)}
-              basePath={basePath}
-              type="exterior"
-              isAMG={isAMG}
-            />
-          </div>
-        </section>
-      )}
-
-      {/* Interior - Carousel */}
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some(
-        (num) =>
-          vehicle[`interior${num}Title` as keyof Vehicle] ||
-          vehicle[`interior${num}Description` as keyof Vehicle]
-      ) && (
-        <section
-          className={`py-24 md:py-32 text-white relative ${
-            isAMG
-              ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950"
-              : "bg-black"
-          }`}
-        >
-          {isAMG && (
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/30 to-transparent" />
-          )}
-          <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <motion.h2
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className={`text-3xl md:text-5xl font-light mb-16 text-center ${
-                isAMG ? "text-[#5AC3B6]" : ""
-              }`}
-            >
-              Interior
-            </motion.h2>
-
-            <ImageCarousel
-              items={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-                .map((num) => ({
-                  num,
-                  title: vehicle[`interior${num}Title` as keyof Vehicle] as
-                    | string
-                    | undefined,
-                  description: vehicle[
-                    `interior${num}Description` as keyof Vehicle
-                  ] as string | undefined,
-                }))
-                .filter((item) => item.title || item.description)}
-              basePath={basePath}
-              type="interior"
-              isAMG={isAMG}
-            />
-          </div>
-        </section>
-      )}
-
-      {/* === Secciones específicas Sprinter / Vito ===
-          Cada una se renderiza solo si tiene al menos una entry en la DB.
-          Las imágenes viven en /public/vehicles/<id>/equipment/<categoría>/<num>.<formato>
-      */}
-
-      {/* Variantes de la carrocería */}
+      {/* ═════════════════════════════════════════════════════════════
+          EXTERIOR — sección con tabs internos (patrón MB Argentina).
+          Tabs disponibles según los datos del vehículo:
+            • Aspectos destacados   ← exterior_1..10
+            • Variantes carrocería  ← equip_variantes_carroceria   (Sprinter)
+            • Acceso y carga        ← equip_carga                  (Sprinter)
+          Si solo hay 1 tab no mostramos la barra de navegación (UX más limpia).
+          ════════════════════════════════════════════════════════════ */}
       {(() => {
-        const items = (
-          vehicle.equipVariantesCarroceria as
-            | Array<{ title?: string; description?: string }>
-            | undefined
-        )
-          ?.map((it, i) => ({ ...it, num: i + 1 }))
+        const aspectosItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+          .map((num) => ({
+            num,
+            title: vehicle[`exterior${num}Title` as keyof Vehicle] as
+              | string
+              | undefined,
+            description: vehicle[
+              `exterior${num}Description` as keyof Vehicle
+            ] as string | undefined,
+          }))
           .filter((it) => it.title || it.description);
-        if (!items || items.length === 0) return null;
+        const variantesCarroceria =
+          (vehicle.equipVariantesCarroceria as
+            | Array<{ title?: string; description?: string }>
+            | undefined) ?? [];
+        const accesoCarga =
+          (vehicle.equipCarga as
+            | Array<{ title?: string; description?: string }>
+            | undefined) ?? [];
+
+        const tabs = buildAvailableTabs([
+          {
+            id: "aspectos",
+            label: "Aspectos destacados",
+            available: aspectosItems.length > 0,
+          },
+          {
+            id: "variantes-carroceria",
+            label: "Variantes de la carrocería",
+            available: variantesCarroceria.length > 0,
+          },
+          {
+            id: "carga",
+            label: "Acceso y carga",
+            available: accesoCarga.length > 0,
+          },
+        ]);
+
+        if (tabs.length === 0) return null;
+        // Si el tab activo ya no existe (caso edge), caemos al primero disponible.
+        const active = tabs.find((t) => t.id === activeExteriorTab)?.id ?? tabs[0].id;
+
         return (
           <section
             className={`py-24 md:py-32 relative ${
@@ -980,34 +1073,135 @@ export default function VehicleDetailClient({
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                className={`text-3xl md:text-5xl font-light mb-10 sm:mb-12 text-center ${
                   isAMG ? "text-[#5AC3B6]" : ""
                 }`}
               >
-                Variantes de la carrocería
+                Exterior
               </motion.h2>
-              <ImageCarousel
-                items={items}
-                basePath={basePath}
-                type="equipment/variantes-carroceria"
-                isAMG={isAMG}
-                variant="light"
-              />
+
+              {/* Tabs nav — solo si hay más de un tab */}
+              {tabs.length > 1 && (
+                <div
+                  className={`flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 mb-10 sm:mb-14 md:mb-16 pb-0 border-b ${
+                    isAMG ? "border-[#5AC3B6]/30" : "border-black/15"
+                  }`}
+                >
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveExteriorTab(tab.id)}
+                      className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
+                        active === tab.id
+                          ? isAMG
+                            ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                            : "border-b-2 border-black text-black"
+                          : isAMG
+                          ? "text-gray-400 hover:text-white"
+                          : "text-gray-500 hover:text-black"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Tab content */}
+              <div className="min-h-[300px]">
+                {active === "aspectos" && aspectosItems.length > 0 && (
+                  <ImageCarousel
+                    items={aspectosItems}
+                    basePath={basePath}
+                    type="exterior"
+                    isAMG={isAMG}
+                    variant="light"
+                  />
+                )}
+                {active === "variantes-carroceria" &&
+                  variantesCarroceria.length > 0 && (
+                    <EquipmentCardGrid
+                      items={variantesCarroceria}
+                      basePath={basePath}
+                      category="variantes-carroceria"
+                      variant="light"
+                      isAMG={isAMG}
+                    />
+                  )}
+                {active === "carga" && accesoCarga.length > 0 && (
+                  <EquipmentCardGrid
+                    items={accesoCarga}
+                    basePath={basePath}
+                    category="carga"
+                    variant="light"
+                    isAMG={isAMG}
+                  />
+                )}
+              </div>
             </div>
           </section>
         );
       })()}
 
-      {/* Acceso y carga */}
+      {/* ═════════════════════════════════════════════════════════════
+          INTERIOR — sección con tabs internos (patrón MB Argentina).
+          Tabs disponibles según los datos del vehículo:
+            • Aspectos destacados        ← interior_1..10
+            • Variantes del compartimento ← equip_variantes_compartimento
+            • Equipamiento compartimento  ← equip_equipamiento_compartimento
+            • Puesto de conducción        ← equip_puesto_conduccion
+          ════════════════════════════════════════════════════════════ */}
       {(() => {
-        const items = (
-          vehicle.equipCarga as
-            | Array<{ title?: string; description?: string }>
-            | undefined
-        )
-          ?.map((it, i) => ({ ...it, num: i + 1 }))
+        const aspectosItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+          .map((num) => ({
+            num,
+            title: vehicle[`interior${num}Title` as keyof Vehicle] as
+              | string
+              | undefined,
+            description: vehicle[
+              `interior${num}Description` as keyof Vehicle
+            ] as string | undefined,
+          }))
           .filter((it) => it.title || it.description);
-        if (!items || items.length === 0) return null;
+        const variantesCompartimento =
+          (vehicle.equipVariantesCompartimento as
+            | Array<{ title?: string; description?: string }>
+            | undefined) ?? [];
+        const equipamientoCompartimento =
+          (vehicle.equipEquipamientoCompartimento as
+            | Array<{ title?: string; description?: string }>
+            | undefined) ?? [];
+        const puestoConduccion =
+          (vehicle.equipPuestoConduccion as
+            | Array<{ title?: string; description?: string }>
+            | undefined) ?? [];
+
+        const tabs = buildAvailableTabs([
+          {
+            id: "aspectos",
+            label: "Aspectos destacados",
+            available: aspectosItems.length > 0,
+          },
+          {
+            id: "variantes-compartimento",
+            label: "Variantes del compartimento",
+            available: variantesCompartimento.length > 0,
+          },
+          {
+            id: "equipamiento-compartimento",
+            label: "Compartimento de pasajeros",
+            available: equipamientoCompartimento.length > 0,
+          },
+          {
+            id: "puesto-conduccion",
+            label: "Puesto de conducción",
+            available: puestoConduccion.length > 0,
+          },
+        ]);
+
+        if (tabs.length === 0) return null;
+        const active = tabs.find((t) => t.id === activeInteriorTab)?.id ?? tabs[0].id;
+
         return (
           <section
             className={`py-24 md:py-32 text-white relative ${
@@ -1024,151 +1218,79 @@ export default function VehicleDetailClient({
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                className={`text-3xl md:text-5xl font-light mb-10 sm:mb-12 text-center ${
                   isAMG ? "text-[#5AC3B6]" : ""
                 }`}
               >
-                Acceso y carga
+                Interior
               </motion.h2>
-              <ImageCarousel
-                items={items}
-                basePath={basePath}
-                type="equipment/carga"
-                isAMG={isAMG}
-                variant="dark"
-              />
-            </div>
-          </section>
-        );
-      })()}
 
-      {/* Variantes del compartimento */}
-      {(() => {
-        const items = (
-          vehicle.equipVariantesCompartimento as
-            | Array<{ title?: string; description?: string }>
-            | undefined
-        )
-          ?.map((it, i) => ({ ...it, num: i + 1 }))
-          .filter((it) => it.title || it.description);
-        if (!items || items.length === 0) return null;
-        return (
-          <section
-            className={`py-24 md:py-32 relative ${
-              isAMG
-                ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
-                : "bg-white text-black"
-            }`}
-          >
-            {isAMG && (
-              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
-            )}
-            <div className="max-w-7xl mx-auto px-6 md:px-12">
-              <motion.h2
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
-                  isAMG ? "text-[#5AC3B6]" : ""
-                }`}
-              >
-                Variantes del compartimento
-              </motion.h2>
-              <ImageCarousel
-                items={items}
-                basePath={basePath}
-                type="equipment/variantes-compartimento"
-                isAMG={isAMG}
-                variant="light"
-              />
-            </div>
-          </section>
-        );
-      })()}
+              {/* Tabs nav — solo si hay más de un tab */}
+              {tabs.length > 1 && (
+                <div
+                  className={`flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6 lg:gap-8 mb-10 sm:mb-14 md:mb-16 pb-0 border-b ${
+                    isAMG ? "border-[#5AC3B6]/30" : "border-white/20"
+                  }`}
+                >
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveInteriorTab(tab.id)}
+                      className={`pb-3 sm:pb-4 px-2 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base font-light transition-all whitespace-nowrap ${
+                        active === tab.id
+                          ? isAMG
+                            ? "border-b-2 border-[#5AC3B6] text-[#5AC3B6]"
+                            : "border-b-2 border-white text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-      {/* Equipamiento del compartimento */}
-      {(() => {
-        const items = (
-          vehicle.equipEquipamientoCompartimento as
-            | Array<{ title?: string; description?: string }>
-            | undefined
-        )
-          ?.map((it, i) => ({ ...it, num: i + 1 }))
-          .filter((it) => it.title || it.description);
-        if (!items || items.length === 0) return null;
-        return (
-          <section
-            className={`py-24 md:py-32 text-white relative ${
-              isAMG
-                ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950"
-                : "bg-black"
-            }`}
-          >
-            {isAMG && (
-              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/30 to-transparent" />
-            )}
-            <div className="max-w-7xl mx-auto px-6 md:px-12">
-              <motion.h2
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
-                  isAMG ? "text-[#5AC3B6]" : ""
-                }`}
-              >
-                Equipamiento del compartimento
-              </motion.h2>
-              <ImageCarousel
-                items={items}
-                basePath={basePath}
-                type="equipment/equipamiento-compartimento"
-                isAMG={isAMG}
-                variant="dark"
-              />
-            </div>
-          </section>
-        );
-      })()}
-
-      {/* Puesto de conducción */}
-      {(() => {
-        const items = (
-          vehicle.equipPuestoConduccion as
-            | Array<{ title?: string; description?: string }>
-            | undefined
-        )
-          ?.map((it, i) => ({ ...it, num: i + 1 }))
-          .filter((it) => it.title || it.description);
-        if (!items || items.length === 0) return null;
-        return (
-          <section
-            className={`py-24 md:py-32 relative ${
-              isAMG
-                ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
-                : "bg-white text-black"
-            }`}
-          >
-            {isAMG && (
-              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
-            )}
-            <div className="max-w-7xl mx-auto px-6 md:px-12">
-              <motion.h2
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
-                  isAMG ? "text-[#5AC3B6]" : ""
-                }`}
-              >
-                Puesto de conducción
-              </motion.h2>
-              <ImageCarousel
-                items={items}
-                basePath={basePath}
-                type="equipment/puesto-conduccion"
-                isAMG={isAMG}
-                variant="light"
-              />
+              {/* Tab content */}
+              <div className="min-h-[300px]">
+                {active === "aspectos" && aspectosItems.length > 0 && (
+                  <ImageCarousel
+                    items={aspectosItems}
+                    basePath={basePath}
+                    type="interior"
+                    isAMG={isAMG}
+                    variant="dark"
+                  />
+                )}
+                {active === "variantes-compartimento" &&
+                  variantesCompartimento.length > 0 && (
+                    <EquipmentCardGrid
+                      items={variantesCompartimento}
+                      basePath={basePath}
+                      category="variantes-compartimento"
+                      variant="dark"
+                      isAMG={isAMG}
+                    />
+                  )}
+                {active === "equipamiento-compartimento" &&
+                  equipamientoCompartimento.length > 0 && (
+                    <EquipmentCardGrid
+                      items={equipamientoCompartimento}
+                      basePath={basePath}
+                      category="equipamiento-compartimento"
+                      variant="dark"
+                      isAMG={isAMG}
+                    />
+                  )}
+                {active === "puesto-conduccion" && puestoConduccion.length > 0 && (
+                  <EquipmentCardGrid
+                    items={puestoConduccion}
+                    basePath={basePath}
+                    category="puesto-conduccion"
+                    variant="dark"
+                    isAMG={isAMG}
+                  />
+                )}
+              </div>
             </div>
           </section>
         );
