@@ -253,11 +253,23 @@ function ImageCarousel({
   basePath,
   type,
   isAMG = false,
+  variant = "auto",
 }: {
   items: { title?: string; description?: string; num: number }[];
   basePath: string;
-  type: "exterior" | "interior";
+  /**
+   * Subpath bajo `${basePath}/`. Acepta segmentos anidados:
+   *   - "exterior", "interior" (legacy, ajustan estilo)
+   *   - "equipment/variantes-carroceria", "equipment/carga", etc.
+   */
+  type: string;
   isAMG?: boolean;
+  /**
+   * "auto"  → usa "interior" si type==="interior", sino "exterior" (light).
+   * "light" → fondo claro, texto oscuro (forzar).
+   * "dark"  → fondo oscuro, texto claro (forzar).
+   */
+  variant?: "auto" | "light" | "dark";
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
@@ -286,7 +298,11 @@ function ImageCarousel({
 
   if (items.length === 0) return null;
 
-  const isInterior = type === "interior";
+  // Estilo: legacy "exterior"/"interior" mantienen el comportamiento original;
+  // las secciones nuevas pueden forzar variant para elegir tema.
+  const isInterior =
+    variant === "dark" ||
+    (variant === "auto" && type === "interior");
 
   return (
     <div className="relative">
@@ -563,8 +579,13 @@ function AccordionItem({
 
 export default function VehicleDetailClient({
   vehicle: initialVehicle,
+  hasColorImages = false,
 }: {
   vehicle: Vehicle;
+  /** Server detectó si hay archivos `1.<formato>` en /public/vehicles/<id>/colors/.
+   *  Si es false, ocultamos la sección "Colores Disponibles" en lugar de mostrar
+   *  un carrusel vacío. */
+  hasColorImages?: boolean;
 }) {
   const vehicleId = initialVehicle.id;
   const vehicle = initialVehicle;
@@ -913,32 +934,259 @@ export default function VehicleDetailClient({
         </section>
       )}
 
-      {/* Colores - Carousel de variantes de color */}
-      <section
-        className={`py-24 md:py-32 relative ${
-          isAMG
-            ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
-            : "bg-white text-black"
-        }`}
-      >
-        {isAMG && (
-          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
-        )}
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <motion.h2
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className={`text-3xl md:text-5xl font-light mb-16 text-center ${
-              isAMG ? "text-[#5AC3B6]" : ""
+      {/* === Secciones específicas Sprinter / Vito ===
+          Cada una se renderiza solo si tiene al menos una entry en la DB.
+          Las imágenes viven en /public/vehicles/<id>/equipment/<categoría>/<num>.<formato>
+      */}
+
+      {/* Variantes de la carrocería */}
+      {(() => {
+        const items = (
+          vehicle.equipVariantesCarroceria as
+            | Array<{ title?: string; description?: string }>
+            | undefined
+        )
+          ?.map((it, i) => ({ ...it, num: i + 1 }))
+          .filter((it) => it.title || it.description);
+        if (!items || items.length === 0) return null;
+        return (
+          <section
+            className={`py-24 md:py-32 relative ${
+              isAMG
+                ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
+                : "bg-white text-black"
             }`}
           >
-            Colores Disponibles
-          </motion.h2>
+            {isAMG && (
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+            )}
+            <div className="max-w-7xl mx-auto px-6 md:px-12">
+              <motion.h2
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                  isAMG ? "text-[#5AC3B6]" : ""
+                }`}
+              >
+                Variantes de la carrocería
+              </motion.h2>
+              <ImageCarousel
+                items={items}
+                basePath={basePath}
+                type="equipment/variantes-carroceria"
+                isAMG={isAMG}
+                variant="light"
+              />
+            </div>
+          </section>
+        );
+      })()}
 
-          <ColorCarousel vehicleId={vehicleId} isAMG={isAMG} />
-        </div>
-      </section>
+      {/* Acceso y carga */}
+      {(() => {
+        const items = (
+          vehicle.equipCarga as
+            | Array<{ title?: string; description?: string }>
+            | undefined
+        )
+          ?.map((it, i) => ({ ...it, num: i + 1 }))
+          .filter((it) => it.title || it.description);
+        if (!items || items.length === 0) return null;
+        return (
+          <section
+            className={`py-24 md:py-32 text-white relative ${
+              isAMG
+                ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950"
+                : "bg-black"
+            }`}
+          >
+            {isAMG && (
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/30 to-transparent" />
+            )}
+            <div className="max-w-7xl mx-auto px-6 md:px-12">
+              <motion.h2
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                  isAMG ? "text-[#5AC3B6]" : ""
+                }`}
+              >
+                Acceso y carga
+              </motion.h2>
+              <ImageCarousel
+                items={items}
+                basePath={basePath}
+                type="equipment/carga"
+                isAMG={isAMG}
+                variant="dark"
+              />
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* Variantes del compartimento */}
+      {(() => {
+        const items = (
+          vehicle.equipVariantesCompartimento as
+            | Array<{ title?: string; description?: string }>
+            | undefined
+        )
+          ?.map((it, i) => ({ ...it, num: i + 1 }))
+          .filter((it) => it.title || it.description);
+        if (!items || items.length === 0) return null;
+        return (
+          <section
+            className={`py-24 md:py-32 relative ${
+              isAMG
+                ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
+                : "bg-white text-black"
+            }`}
+          >
+            {isAMG && (
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+            )}
+            <div className="max-w-7xl mx-auto px-6 md:px-12">
+              <motion.h2
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                  isAMG ? "text-[#5AC3B6]" : ""
+                }`}
+              >
+                Variantes del compartimento
+              </motion.h2>
+              <ImageCarousel
+                items={items}
+                basePath={basePath}
+                type="equipment/variantes-compartimento"
+                isAMG={isAMG}
+                variant="light"
+              />
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* Equipamiento del compartimento */}
+      {(() => {
+        const items = (
+          vehicle.equipEquipamientoCompartimento as
+            | Array<{ title?: string; description?: string }>
+            | undefined
+        )
+          ?.map((it, i) => ({ ...it, num: i + 1 }))
+          .filter((it) => it.title || it.description);
+        if (!items || items.length === 0) return null;
+        return (
+          <section
+            className={`py-24 md:py-32 text-white relative ${
+              isAMG
+                ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950"
+                : "bg-black"
+            }`}
+          >
+            {isAMG && (
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/30 to-transparent" />
+            )}
+            <div className="max-w-7xl mx-auto px-6 md:px-12">
+              <motion.h2
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                  isAMG ? "text-[#5AC3B6]" : ""
+                }`}
+              >
+                Equipamiento del compartimento
+              </motion.h2>
+              <ImageCarousel
+                items={items}
+                basePath={basePath}
+                type="equipment/equipamiento-compartimento"
+                isAMG={isAMG}
+                variant="dark"
+              />
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* Puesto de conducción */}
+      {(() => {
+        const items = (
+          vehicle.equipPuestoConduccion as
+            | Array<{ title?: string; description?: string }>
+            | undefined
+        )
+          ?.map((it, i) => ({ ...it, num: i + 1 }))
+          .filter((it) => it.title || it.description);
+        if (!items || items.length === 0) return null;
+        return (
+          <section
+            className={`py-24 md:py-32 relative ${
+              isAMG
+                ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
+                : "bg-white text-black"
+            }`}
+          >
+            {isAMG && (
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+            )}
+            <div className="max-w-7xl mx-auto px-6 md:px-12">
+              <motion.h2
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                  isAMG ? "text-[#5AC3B6]" : ""
+                }`}
+              >
+                Puesto de conducción
+              </motion.h2>
+              <ImageCarousel
+                items={items}
+                basePath={basePath}
+                type="equipment/puesto-conduccion"
+                isAMG={isAMG}
+                variant="light"
+              />
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* Colores — solo si el server detectó imágenes en /colors/ */}
+      {hasColorImages && (
+        <section
+          className={`py-24 md:py-32 relative ${
+            isAMG
+              ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
+              : "bg-white text-black"
+          }`}
+        >
+          {isAMG && (
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
+          )}
+          <div className="max-w-7xl mx-auto px-6 md:px-12">
+            <motion.h2
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className={`text-3xl md:text-5xl font-light mb-16 text-center ${
+                isAMG ? "text-[#5AC3B6]" : ""
+              }`}
+            >
+              Colores Disponibles
+            </motion.h2>
+
+            <ColorCarousel vehicleId={vehicleId} isAMG={isAMG} />
+          </div>
+        </section>
+      )}
 
       {/* Equipamiento - Con sistema de tabs */}
       {vehicle.equipmentGeneralTitle &&
