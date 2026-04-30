@@ -33,11 +33,14 @@ export default function HomeHero() {
           <p className="text-xs md:text-sm font-bold tracking-[0.3em] text-white/80 mb-4 uppercase">
             Leonardo Guzman
           </p>
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight mb-6 leading-tight">
-            Concesionario Oficial <br /> Mercedes-Benz
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight mb-4 leading-tight">
+            Automotores Mega SA
           </h1>
-          <p className="text-lg md:text-2xl lg:text-3xl text-gray-300 font-light tracking-wide mb-10">
-            Automotores Mega SA, Argentina Entre Ríos
+          <p className="text-xl md:text-3xl lg:text-4xl text-white font-light tracking-wide mb-2">
+            Concesionario Oficial Mercedes-Benz
+          </p>
+          <p className="text-base md:text-lg lg:text-xl text-gray-300 font-light tracking-wide mb-10">
+            Argentina, Entre Ríos
           </p>
 
           <div className="flex items-center gap-8">

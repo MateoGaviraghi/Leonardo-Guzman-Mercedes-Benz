@@ -30,13 +30,13 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Leonardo Guzman | Vendedor Oficial Mercedes-Benz",
+  title: "Leonardo Guzman | Promotor de Ventas Oficial Mercedes-Benz",
   description:
-    "Vendedor oficial de Automotores Mega, concesionaria Mercedes-Benz.",
+    "Promotor de ventas oficial de Automotores Mega, concesionaria Mercedes-Benz.",
   openGraph: {
-    title: "Leonardo Guzman | Vendedor Oficial Mercedes-Benz",
+    title: "Leonardo Guzman | Promotor de Ventas Oficial Mercedes-Benz",
     description:
-      "Vendedor oficial de Automotores Mega, concesionaria Mercedes-Benz.",
+      "Promotor de ventas oficial de Automotores Mega, concesionaria Mercedes-Benz.",
     images: [
       {
         url: "/og-image.png",
@@ -49,9 +49,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Leonardo Guzman | Vendedor Oficial Mercedes-Benz",
+    title: "Leonardo Guzman | Promotor de Ventas Oficial Mercedes-Benz",
     description:
-      "Vendedor oficial de Automotores Mega, concesionaria Mercedes-Benz.",
+      "Promotor de ventas oficial de Automotores Mega, concesionaria Mercedes-Benz.",
     images: ["/og-image.png"],
   },
 };
