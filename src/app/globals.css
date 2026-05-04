@@ -8,8 +8,23 @@
   --color-mb-blue: #00adef;
   --color-mb-glow: #00adef;
 
+  /* Tokens de superficie semánticos (layering oscuro) */
+  --color-surface-0: #050505;
+  --color-surface-1: #0a0a0c;
+  --color-surface-2: #101013;
+  --color-surface-3: #16161a;
+
+  /* Tokens de stroke (borders/dividers) */
+  --color-stroke-subtle: rgba(255, 255, 255, 0.06);
+  --color-stroke-default: rgba(255, 255, 255, 0.1);
+  --color-stroke-strong: rgba(255, 255, 255, 0.18);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-fraunces), Georgia, serif;
+
+  --text-display: clamp(2.75rem, 6vw + 1rem, 5.5rem);
+  --text-display-md: clamp(2rem, 3.5vw + 1rem, 3.5rem);
 }
 
 :root {
@@ -18,9 +33,18 @@
 }
 
 body {
+  /*
+   * Re-declare font tokens en body porque next/font inyecta
+   * --font-fraunces / --font-geist-sans en este nodo (no en :root),
+   * y `var()` se resuelve en el scope donde se usa la prop.
+   */
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "kern", "liga", "calt";
   overflow-x: hidden;
 }
 
@@ -47,4 +71,59 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Hero video fade-in (800ms expo-out) — mantiene opacity 0.9 al final */
+@keyframes hero-video-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+.hero-video-fade {
+  animation: hero-video-fade-in 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Globals defensivos ─── */
+
+/* Selección global de texto */
+::selection {
+  background-color: #ffffff;
+  color: #050505;
+}
+
+/* Scrollbar global (override del default del navegador) */
+*::-webkit-scrollbar {
+  width: 8px;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Focus-visible coherente con el lenguaje de marca */
+:focus-visible {
+  outline: 2px solid #00adef;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

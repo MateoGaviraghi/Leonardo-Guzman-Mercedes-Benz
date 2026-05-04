@@ -25,10 +25,13 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     if (category === prevCategory) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsTransitioning(true);
+    // El overlay hace 300ms de wipe-in (translateX -100% → 0%).
+    // Cuando isTransitioning vuelve a false, AnimatePresence dispara el exit
+    // de 300ms (translateX 0% → 100%). Total: 600ms.
     const timer = setTimeout(() => {
       setIsTransitioning(false);
       setPrevCategory(category);
-    }, 1600);
+    }, 300);
     return () => clearTimeout(timer);
   }, [category, prevCategory]);
 
@@ -242,33 +245,17 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pb-12">
-      {/* Transition Overlay with Logo - Same as template.tsx */}
+    <div className="min-h-screen bg-surface-0 text-white pb-12">
+      {/* Transition wipe — barrido horizontal blanco (300ms in + 300ms out) */}
       <AnimatePresence>
         {isTransitioning && (
-          <>
-            <motion.div
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 0 }}
-              transition={{ delay: 0.8, duration: 0.8, ease: "easeInOut" }}
-              className="fixed inset-0 z-[100] bg-black pointer-events-none"
-            />
-            <motion.div
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-none"
-            >
-              <div className="relative w-32 h-32">
-                <Image
-                  src="/logo-mercedes-benz.png"
-                  alt="Mercedes-Benz Logo"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </motion.div>
-          </>
+          <motion.div
+            initial={{ x: "-100%" }}
+            animate={{ x: "0%" }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.3, ease: [0.65, 0, 0.35, 1] }}
+            className="fixed inset-0 z-[100] bg-white pointer-events-none"
+          />
         )}
       </AnimatePresence>
 
@@ -292,7 +279,7 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-5xl md:text-8xl font-serif font-bold tracking-tighter mb-6"
+            className="text-5xl md:text-8xl font-serif font-bold tracking-[-0.02em] mb-6"
           >
             {category === "all" && "Toda Nuestra Gama"}
             {category === "auto" && "Autos"}
@@ -312,8 +299,8 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
         </div>
       </div>
 
-      {/* Category Filter Buttons - Above Grid */}
-      <div className="bg-black border-b border-white/10 py-6 mb-16">
+      {/* Category Filter Buttons - Sticky bajo el navbar */}
+      <div className="sticky top-20 z-30 bg-surface-0/85 backdrop-blur-xl border-b border-white/10 py-5 mb-12">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="flex flex-wrap lg:flex-nowrap justify-center gap-3 lg:gap-4">
             {categories.map((cat) => (
@@ -338,7 +325,7 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
         className={`w-full pt-12 pb-12 relative ${
           (category === "auto" || category === "suv") && brand === "amg"
             ? "bg-[radial-gradient(ellipse_at_top,rgba(90,195,182,0.08)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(90,195,182,0.05)_0%,transparent_40%)] bg-neutral-950"
-            : ""
+            : "bg-surface-1"
         }`}
       >
         {/* AMG Decorative Elements */}
@@ -592,7 +579,7 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
             {/* Vehicle Grid */}
             <div className="flex-1">
               <div
-                className={`grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16 ${
+                className={`grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12 ${
                   category === "trucks" ||
                   category === "auto" ||
                   category === "suv" ||

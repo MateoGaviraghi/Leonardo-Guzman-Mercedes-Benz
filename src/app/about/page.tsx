@@ -7,10 +7,9 @@ import { motion } from "framer-motion";
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-black text-white pt-32 pb-20 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-zinc-900/30 rounded-full blur-[120px] -z-10"></div>
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[120px] -z-10"></div>
+    <div className="min-h-screen bg-surface-0 text-white pt-32 pb-20 relative overflow-hidden">
+      {/* Background — gradiente cálido único de la página */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_15%_10%,rgba(255,243,224,0.025),transparent_70%)]"></div>
 
       <div className="max-w-[1400px] mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">

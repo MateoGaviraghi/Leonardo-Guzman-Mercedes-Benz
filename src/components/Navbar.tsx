@@ -39,7 +39,7 @@ export default function Navbar() {
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-mb-black/90 backdrop-blur-md py-4"
+            ? "bg-black/55 backdrop-blur-2xl backdrop-saturate-150 py-3.5"
             : "bg-transparent py-6"
         }`}
       >
@@ -53,7 +53,7 @@ export default function Navbar() {
                   src="/logo-mercedes-benz.png"
                   alt="Mercedes-Benz Logo"
                   fill
-                  className="object-contain transition-transform duration-500 group-hover:rotate-180"
+                  className="object-contain"
                   priority
                 />
               </div>
@@ -69,22 +69,14 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Links - Centered */}
-            <div className="flex items-center justify-center gap-8">
-              <Link
-                href="/"
-                className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
-              >
-                Inicio
-                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
-              </Link>
-
+            <div className="flex items-center justify-center gap-9 lg:gap-10">
               <div
                 className="relative group"
                 onMouseEnter={() => setIsDropdownOpen(true)}
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
-                <button className="flex items-center gap-2 text-xs font-bold text-gray-300 group-hover:text-white transition-colors tracking-[0.15em] uppercase py-4">
-                  VEHÍCULOS 0KM
+                <button className="flex items-center gap-2 text-xs font-medium text-gray-300 group-hover:text-white transition-colors tracking-[0.18em] uppercase py-4">
+                  VEHÍCULOS
                   <ChevronDown
                     size={12}
                     className={`transition-transform duration-300 ${
@@ -127,18 +119,18 @@ export default function Navbar() {
 
               <Link
                 href="/usados"
-                className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
+                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
               >
                 Usados
-                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
               </Link>
 
               <Link
                 href="/financiacion"
-                className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
+                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
               >
                 Financiación
-                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
               </Link>
 
               <Link
@@ -146,27 +138,27 @@ export default function Navbar() {
                 className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group whitespace-nowrap"
               >
                 Plan de Ahorro
-                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
               </Link>
 
               <Link
                 href="/about"
-                className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
+                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
               >
                 Sobre Mí
-                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
               </Link>
               <Link
                 href="/contact"
-                className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group"
+                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
               >
                 Contacto
-                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-white transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
               </Link>
             </div>
 
             {/* Social Media Icons - Desktop Right Side */}
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4 pl-5 ml-1 border-l border-white/10">
               <a
                 href="https://www.instagram.com/leoguzmanmbenz/"
                 target="_blank"
@@ -219,7 +211,7 @@ export default function Navbar() {
                   src="/logo-mercedes-benz.png"
                   alt="Mercedes-Benz Logo"
                   fill
-                  className="object-contain transition-transform duration-500 group-hover:rotate-180"
+                  className="object-contain"
                   priority
                 />
               </div>

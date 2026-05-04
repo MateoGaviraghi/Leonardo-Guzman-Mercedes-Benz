@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 interface VehicleCardProps {
   title: string;
@@ -40,26 +41,59 @@ export default function VehicleCard({
     }
   };
 
+  // Tilt 3D sutil mouse-tracked (±5°). Spring para que vuelva suavemente.
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const mxSpring = useSpring(mx, { stiffness: 150, damping: 20 });
+  const mySpring = useSpring(my, { stiffness: 150, damping: 20 });
+  const rotateX = useTransform(mySpring, [-0.5, 0.5], [5, -5]);
+  const rotateY = useTransform(mxSpring, [-0.5, 0.5], [-5, 5]);
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mx.set((e.clientX - rect.left) / rect.width - 0.5);
+    my.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    mx.set(0);
+    my.set(0);
+  };
+
   return (
-    <Link
-      href={href}
-      className={`group block relative w-full aspect-[16/9] overflow-hidden transition-all duration-500 ${
-        isAMG
-          ? "bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 border border-[#5AC3B6]/30 hover:border-[#5AC3B6]/70 shadow-[0_4px_30px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(90,195,182,0.1)] hover:shadow-[0_8px_40px_rgba(90,195,182,0.25),inset_0_1px_0_rgba(90,195,182,0.2)]"
-          : "bg-neutral-900 border-2 border-transparent hover:border-white/20"
-      }`}
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformPerspective: 1000 }}
+      className="will-change-transform"
     >
-      {/* Background Image */}
+      <Link
+        href={href}
+        className={`group block relative w-full aspect-[16/9] overflow-hidden transition-all duration-500 ${
+          isAMG
+            ? "bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 border border-[#5AC3B6]/30 hover:border-[#5AC3B6]/70 shadow-[0_4px_30px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(90,195,182,0.1)] hover:shadow-[0_8px_40px_rgba(90,195,182,0.25),inset_0_1px_0_rgba(90,195,182,0.2)]"
+            : "bg-neutral-900 border-2 border-transparent hover:border-white/20"
+        }`}
+      >
+      {/* Background Image — reveal cinematográfico izq → der al entrar viewport */}
       {!imageError ? (
-        <Image
-          src={currentSrc}
-          alt={title}
-          fill
-          sizes="(max-width: 768px) 100vw, 50vw"
-          onError={handleImageError}
-          unoptimized
-          className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-        />
+        <motion.div
+          initial={{ clipPath: "inset(0 100% 0 0)" }}
+          whileInView={{ clipPath: "inset(0 0% 0 0)" }}
+          viewport={{ once: true, margin: "-15%" }}
+          transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          className="absolute inset-0"
+        >
+          <Image
+            src={currentSrc}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            onError={handleImageError}
+            unoptimized
+            className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+          />
+        </motion.div>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-zinc-800">
           <span className="text-zinc-500 text-sm">Sin imagen</span>
@@ -146,5 +180,6 @@ export default function VehicleCard({
         )}
       </div>
     </Link>
+    </motion.div>
   );
 }

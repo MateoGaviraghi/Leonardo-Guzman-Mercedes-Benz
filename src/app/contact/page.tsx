@@ -34,9 +34,9 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pt-32 pb-20 relative overflow-hidden">
-      {/* Background Gradient */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-900/20 rounded-full blur-[120px] -z-10"></div>
+    <div className="min-h-screen bg-surface-0 text-white pt-32 pb-20 relative overflow-hidden">
+      {/* Background — mb-blue muy bajo, anclado bottom-right */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_55%_45%_at_85%_90%,rgba(0,173,239,0.04),transparent_65%)]"></div>
 
       <div className="max-w-[1400px] mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
@@ -223,7 +223,7 @@ export default function ContactPage() {
 
               <button
                 type="submit"
-                className="w-full bg-white text-black font-bold py-5 tracking-[0.2em] text-sm hover:bg-gray-200 transition-all duration-300 flex items-center justify-center gap-3 uppercase group"
+                className="w-full bg-white text-black font-medium py-5 tracking-[0.25em] text-[11px] hover:bg-gray-200 transition-all duration-300 flex items-center justify-center gap-3 uppercase group"
               >
                 Enviar Consulta WhatsApp{" "}
                 <Send

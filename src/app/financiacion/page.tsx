@@ -48,7 +48,7 @@ export default function FinanciacionPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
+    <div className="min-h-screen bg-surface-0 text-white selection:bg-white selection:text-black">
       {/* Hero Section with Image */}
       <section className="relative h-[600px] md:h-[700px] lg:h-[800px] overflow-hidden">
         {/* Background Image */}
@@ -93,7 +93,7 @@ export default function FinanciacionPage() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="group bg-white text-black px-8 py-4 font-semibold text-sm tracking-wider hover:bg-gray-200 transition-all duration-300 flex items-center gap-3"
+              className="group bg-white text-black px-8 py-3.5 text-[11px] tracking-[0.25em] font-medium hover:bg-gray-200 transition-all duration-300 inline-flex items-center gap-3 uppercase"
             >
               Realizar consulta
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -103,10 +103,9 @@ export default function FinanciacionPage() {
       </section>
 
       {/* Main Content Section */}
-      <section className="py-20 md:py-32 relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-zinc-900/30 rounded-full blur-[120px] -z-10"></div>
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[120px] -z-10"></div>
+      <section className="py-20 md:py-28 relative overflow-hidden">
+        {/* Background — doble vignette horizontal único de la página */}
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_40%_70%_at_0%_50%,rgba(255,255,255,0.025),transparent_60%),radial-gradient(ellipse_40%_70%_at_100%_50%,rgba(255,255,255,0.025),transparent_60%)]"></div>
 
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           {/* Section Header */}
@@ -196,7 +195,7 @@ export default function FinanciacionPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 md:py-32 relative overflow-hidden border-t border-white/5">
+      <section className="py-20 md:py-28 relative overflow-hidden border-t border-white/5 bg-surface-1">
         <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/50 to-black/50 -z-10"></div>
 
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 text-center">
@@ -219,7 +218,7 @@ export default function FinanciacionPage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="group bg-white text-black px-10 py-5 font-semibold text-sm tracking-wider hover:bg-gray-200 transition-all duration-300 inline-flex items-center gap-3"
+                className="group bg-white text-black px-8 py-3.5 text-[11px] tracking-[0.25em] font-medium hover:bg-gray-200 transition-all duration-300 inline-flex items-center gap-3"
               >
                 Contactame
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

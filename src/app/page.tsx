@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import VehicleCard from "@/components/VehicleCard";
 import { useState, useEffect } from "react";
@@ -95,16 +95,16 @@ export default function Home() {
   const currentVehicles = getVehiclesByCategory();
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
+    <div className="min-h-screen bg-black text-white">
       {/* Cinematic Hero Section */}
       <section className="relative h-screen w-full overflow-hidden">
-        {/* Video Background */}
+        {/* Video Background — fade-in 800ms expo-out (animación CSS, ver globals.css) */}
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
+          className="hero-video-fade absolute inset-0 w-full h-full object-cover"
         >
           <source
             src="/Mercedes_Benz_Reveal_Video_Generated.mp4"
@@ -112,7 +112,8 @@ export default function Home() {
           />
         </video>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30"></div>
+        {/* Overlay radial asimétrico — refuerza el bloque de texto bottom-left */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_15%_85%,rgba(0,0,0,0.85),transparent_60%),radial-gradient(ellipse_at_top,transparent_50%,rgba(0,0,0,0.4))]"></div>
 
         <div className="relative z-10 h-full flex flex-col justify-end pb-24 px-6 md:px-12 max-w-[1400px] mx-auto">
           <motion.div
@@ -127,7 +128,7 @@ export default function Home() {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight mb-4 leading-tight">
               Automotores Mega SA
             </h1>
-            <p className="text-xl md:text-3xl lg:text-4xl text-white font-light tracking-wide mb-2">
+            <p className="text-xl lg:text-2xl text-white font-light tracking-wide mb-2">
               Concesionario Oficial Mercedes-Benz
             </p>
             <p className="text-base md:text-lg lg:text-xl text-gray-300 font-light tracking-wide mb-10">
@@ -150,7 +151,7 @@ export default function Home() {
       </section>
 
       {/* Editorial Grid Section */}
-      <section className="py-32 bg-black">
+      <section className="py-20 md:py-28 bg-surface-0">
         {/* Header - Constrained Width */}
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-12">
           <div className="flex flex-col items-center text-center border-b border-white/10 pb-8">
@@ -192,18 +193,40 @@ export default function Home() {
               <p className="text-gray-500">Cargando vehículos...</p>
             </div>
           ) : currentVehicles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
-              {currentVehicles.map((vehicle) => (
-                <VehicleCard
-                  key={vehicle.id}
-                  title={vehicle.name}
-                  category={vehicle.category}
-                  href={`/vehicles/${vehicle.id}`}
-                  image={`/vehicles/${vehicle.id}/foto-card/card`}
-                  fuelType={vehicle.fuel_type}
-                />
-              ))}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedCategory}
+                exit={{
+                  opacity: 0,
+                  y: -8,
+                  transition: { duration: 0.25, ease: "easeOut" },
+                }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12"
+              >
+                {currentVehicles.map((vehicle, index) => (
+                  <motion.div
+                    key={vehicle.id}
+                    initial={{ y: 24, opacity: 0 }}
+                    whileInView={{ y: 0, opacity: 1 }}
+                    viewport={{ once: true, margin: "-10%" }}
+                    transition={{
+                      duration: 0.6,
+                      ease: "easeOut",
+                      delay: index * 0.08,
+                    }}
+                  >
+                    <VehicleCard
+                      title={vehicle.name}
+                      category={vehicle.category}
+                      href={`/vehicles/${vehicle.id}`}
+                      image={`/vehicles/${vehicle.id}/foto-card/card`}
+                      fuelType={vehicle.fuel_type}
+                      isAMG={vehicle.is_amg}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
           ) : (
             <div className="flex justify-center">
               <div className="w-full md:w-1/2">
@@ -224,9 +247,16 @@ export default function Home() {
       </section>
 
       {/* Minimalist About Section */}
-      <section className="py-32 bg-zinc-900 text-white">
+      <section className="py-20 md:py-28 bg-surface-1 text-white">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-16">
-          <div className="lg:col-span-5">
+          {/* Foto: entra desde la derecha al aparecer en viewport (no scrub) */}
+          <motion.div
+            initial={{ opacity: 0, x: 60 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-15%" }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-5"
+          >
             <div className="aspect-[3/4] bg-zinc-800 relative overflow-hidden">
               <Image
                 src="/foto-home.jpg"
@@ -235,8 +265,16 @@ export default function Home() {
                 className="object-cover hover:scale-105 transition-transform duration-700"
               />
             </div>
-          </div>
-          <div className="lg:col-span-7 flex flex-col justify-center">
+          </motion.div>
+
+          {/* Texto: entra desde abajo con leve delay para coreografiar con la foto */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-15%" }}
+            transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-7 flex flex-col justify-center"
+          >
             <h2 className="text-4xl md:text-6xl font-serif mb-12 leading-tight">
               Más que un vehículo, <br /> un estilo de vida.
             </h2>
@@ -255,12 +293,12 @@ export default function Home() {
             <div className="mt-12">
               <Link
                 href="/contact"
-                className="inline-block bg-white text-black px-10 py-4 text-sm font-bold tracking-widest hover:bg-gray-200 transition-colors"
+                className="inline-block bg-white text-black px-8 py-3.5 text-[11px] tracking-[0.25em] font-medium hover:bg-gray-200 transition-colors"
               >
                 CONTACTAR
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
     </div>

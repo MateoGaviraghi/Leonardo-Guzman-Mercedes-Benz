@@ -2,7 +2,9 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   Handshake,
   Shield,
@@ -16,9 +18,56 @@ import {
 
 export default function PlanAhorroPage() {
   const [heroLoaded, setHeroLoaded] = useState(false);
+  const counterRef = useRef<HTMLDivElement>(null);
+
+  // Counter 0 → 45 con expo-out al entrar viewport. Once + reduced-motion safe.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Race fix: child useEffects corren antes que el del SmoothScrollProvider.
+    const w = window as Window & { __gsapScrollTriggerRegistered?: boolean };
+    if (!w.__gsapScrollTriggerRegistered) {
+      gsap.registerPlugin(ScrollTrigger);
+      w.__gsapScrollTriggerRegistered = true;
+    }
+
+    const el = counterRef.current;
+    if (!el) return;
+
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (reduced) {
+      el.textContent = "45";
+      return;
+    }
+
+    el.textContent = "0";
+
+    const trigger = ScrollTrigger.create({
+      trigger: el,
+      start: "top 85%",
+      once: true,
+      onEnter: () => {
+        const obj = { value: 0 };
+        gsap.to(obj, {
+          value: 45,
+          duration: 1.5,
+          ease: "expo.out",
+          onUpdate: () => {
+            el.textContent = Math.round(obj.value).toString();
+          },
+        });
+      },
+    });
+
+    return () => {
+      trigger.kill();
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-surface-0 text-white">
       {/* Hero Section - Fullscreen */}
       <section className="relative h-screen w-full overflow-hidden">
         {/* Desktop Hero */}
@@ -56,7 +105,7 @@ export default function PlanAhorroPage() {
             transition={{ duration: 1, delay: 0.3 }}
             className="text-center max-w-5xl"
           >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif tracking-tight mb-6">
               ARMA TU PLAN A LA MEDIDA
             </h1>
           </motion.div>
@@ -84,7 +133,7 @@ export default function PlanAhorroPage() {
       </section>
 
       {/* Sección Nosotros */}
-      <section className="py-20 md:py-32 bg-black">
+      <section className="py-20 md:py-28 bg-surface-0">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -112,7 +161,7 @@ export default function PlanAhorroPage() {
       </section>
 
       {/* Sección Por qué elegirnos */}
-      <section className="py-20 md:py-32 bg-zinc-950">
+      <section className="py-20 md:py-28 bg-surface-1">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -134,7 +183,10 @@ export default function PlanAhorroPage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-center group"
             >
-              <div className="text-7xl md:text-8xl font-thin text-white mb-6 transition-colors duration-300 group-hover:text-gray-300">
+              <div
+                ref={counterRef}
+                className="text-7xl md:text-8xl font-thin text-white mb-6 transition-colors duration-300 group-hover:text-gray-300"
+              >
                 45
               </div>
               <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto mb-4"></div>
@@ -285,7 +337,7 @@ export default function PlanAhorroPage() {
       </section>
 
       {/* CTA Final */}
-      <section className="py-20 md:py-32 bg-black">
+      <section className="py-20 md:py-28 bg-surface-0">
         <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -309,7 +361,7 @@ export default function PlanAhorroPage() {
           >
             <a
               href="/contact"
-              className="inline-block px-10 py-4 bg-white text-black font-medium text-lg tracking-wide hover:bg-gray-200 transition-colors duration-300"
+              className="inline-block bg-white text-black px-8 py-3.5 text-[11px] tracking-[0.25em] font-medium hover:bg-gray-200 transition-colors duration-300 uppercase"
             >
               CONTACTAME
             </a>

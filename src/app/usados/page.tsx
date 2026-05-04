@@ -32,7 +32,7 @@ export default function UsadosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pb-20">
+    <div className="min-h-screen bg-surface-0 text-white pb-20">
       {/* Hero Section */}
       <div className="relative h-[85vh] flex items-center justify-center overflow-hidden mb-20">
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black z-10"></div>
@@ -231,7 +231,7 @@ export default function UsadosPage() {
 
               <button
                 type="submit"
-                className="w-full bg-white text-black font-bold py-4 tracking-[0.2em] text-sm hover:bg-gray-200 transition-all duration-300 flex items-center justify-center gap-3 uppercase mt-4"
+                className="w-full bg-white text-black font-medium py-5 tracking-[0.25em] text-[11px] hover:bg-gray-200 transition-all duration-300 flex items-center justify-center gap-3 uppercase mt-4"
               >
                 Consultar Disponibilidad <Send size={16} />
               </button>

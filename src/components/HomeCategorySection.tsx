@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import VehicleCard from "@/components/VehicleCard";
 import type { Vehicle } from "@/data/vehicles";
 
@@ -111,18 +112,32 @@ export default function HomeCategorySection({
       {/* Categories Grid */}
       <div className="max-w-[1200px] mx-auto px-6 md:px-12 mb-24">
         {currentVehicles.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
-            {currentVehicles.map((vehicle) => (
-              <VehicleCard
-                key={vehicle.id}
-                title={vehicle.name}
-                category={vehicle.category}
-                href={`/vehicles/${vehicle.id}`}
-                image={`/vehicles/${vehicle.id}/foto-card/card`}
-                fuelType={vehicle.fuel_type}
-              />
-            ))}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedCategory}
+              exit={{ opacity: 0, y: -8, transition: { duration: 0.25, ease: "easeOut" } }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12"
+            >
+              {currentVehicles.map((vehicle, index) => (
+                <motion.div
+                  key={vehicle.id}
+                  initial={{ y: 24, opacity: 0 }}
+                  whileInView={{ y: 0, opacity: 1 }}
+                  viewport={{ once: true, margin: "-10%" }}
+                  transition={{ duration: 0.6, ease: "easeOut", delay: index * 0.08 }}
+                >
+                  <VehicleCard
+                    title={vehicle.name}
+                    category={vehicle.category}
+                    href={`/vehicles/${vehicle.id}`}
+                    image={`/vehicles/${vehicle.id}/foto-card/card`}
+                    fuelType={vehicle.fuel_type}
+                    isAMG={vehicle.is_amg}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
         ) : (
           <div className="flex justify-center">
             <div className="w-full md:w-1/2">
