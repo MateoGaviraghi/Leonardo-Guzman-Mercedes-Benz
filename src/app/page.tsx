@@ -137,7 +137,7 @@ export default function Home() {
 
             <div className="flex items-center gap-8">
               <Link
-                href="/vehicles"
+                href="/experiencia"
                 className="group flex items-center gap-4 text-white hover:text-gray-300 transition-colors"
               >
                 <span className="text-sm font-bold tracking-widest border-b border-white pb-1 group-hover:border-gray-300 uppercase">
@@ -159,7 +159,7 @@ export default function Home() {
               Ingeniería de precisión. <br />
             </h2>
             <Link
-              href="/vehicles"
+              href="/experiencia"
               className="text-sm font-bold tracking-widest text-white hover:text-gray-400 transition-colors uppercase"
             >
               VER TODOS LOS MODELOS

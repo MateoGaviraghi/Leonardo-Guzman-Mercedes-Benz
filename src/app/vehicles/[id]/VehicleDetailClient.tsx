@@ -2554,7 +2554,7 @@ export default function VehicleDetailClient({
               </Link>
 
               <Link
-                href="/vehicles"
+                href="/experiencia"
                 className={`group px-10 py-4 border font-light text-sm tracking-wider uppercase transition-all duration-300 ${
                   isAMG
                     ? "border-[#5AC3B6]/50 text-white hover:bg-[#5AC3B6]/10 hover:border-[#5AC3B6]"

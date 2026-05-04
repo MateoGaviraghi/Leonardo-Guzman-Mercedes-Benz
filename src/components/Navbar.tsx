@@ -5,15 +5,13 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, Instagram, Facebook, Phone } from "lucide-react";
+import { Menu, X, Instagram, Facebook, Phone } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
   const hideOnRoutes = pathname.startsWith("/crm") || pathname.startsWith("/admin");
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMobileVehiclesOpen, setIsMobileVehiclesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -23,14 +21,6 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const vehicleCategories = [
-    { name: "Autos", href: "/vehicles?category=auto" },
-    { name: "SUVs", href: "/vehicles?category=suv" },
-    { name: "Vans", href: "/vehicles?category=vans" },
-    { name: "Sprinter", href: "/vehicles?category=sprinter" },
-    { name: "Trucks", href: "/vehicles?category=trucks" },
-  ];
 
   if (hideOnRoutes) return null;
 
@@ -70,52 +60,13 @@ export default function Navbar() {
 
             {/* Desktop Links - Centered */}
             <div className="flex items-center justify-center gap-9 lg:gap-10">
-              <div
-                className="relative group"
-                onMouseEnter={() => setIsDropdownOpen(true)}
-                onMouseLeave={() => setIsDropdownOpen(false)}
+              <Link
+                href="/experiencia"
+                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
               >
-                <button className="flex items-center gap-2 text-xs font-medium text-gray-300 group-hover:text-white transition-colors tracking-[0.18em] uppercase py-4">
-                  VEHÍCULOS
-                  <ChevronDown
-                    size={12}
-                    className={`transition-transform duration-300 ${
-                      isDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                <AnimatePresence>
-                  {isDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-56"
-                    >
-                      <div className="bg-black/90 backdrop-blur-2xl border border-white/10 p-1 shadow-2xl">
-                        {vehicleCategories.map((cat) => (
-                          <Link
-                            key={cat.name}
-                            href={cat.href}
-                            className="block px-6 py-3 text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all tracking-widest uppercase border-l-2 border-transparent hover:border-white"
-                          >
-                            {cat.name}
-                          </Link>
-                        ))}
-                        <div className="h-px bg-white/10 my-1 mx-2"></div>
-                        <Link
-                          href="/vehicles"
-                          className="block px-6 py-3 text-xs font-bold text-white hover:bg-white/10 transition-all tracking-widest uppercase text-center"
-                        >
-                          Ver Todos
-                        </Link>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                VEHÍCULOS
+                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
+              </Link>
 
               <Link
                 href="/usados"
@@ -255,48 +206,13 @@ export default function Navbar() {
                 Inicio
               </Link>
 
-              <button
-                onClick={() => setIsMobileVehiclesOpen(!isMobileVehiclesOpen)}
-                className="flex items-center justify-between w-full text-xl font-bold text-white border-b border-white/10 pb-4"
+              <Link
+                href="/experiencia"
+                onClick={() => setIsOpen(false)}
+                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
               >
-                VEHÍCULOS 0KM
-                <ChevronDown
-                  size={20}
-                  className={`transition-transform duration-300 ${
-                    isMobileVehiclesOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              <AnimatePresence>
-                {isMobileVehiclesOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="flex flex-col space-y-4 py-4 pl-4 border-b border-white/10">
-                      {vehicleCategories.map((cat) => (
-                        <Link
-                          key={cat.name}
-                          href={cat.href}
-                          onClick={() => setIsOpen(false)}
-                          className="block text-lg text-gray-400 hover:text-white"
-                        >
-                          {cat.name}
-                        </Link>
-                      ))}
-                      <Link
-                        href="/vehicles"
-                        onClick={() => setIsOpen(false)}
-                        className="block text-lg font-bold text-white pt-2"
-                      >
-                        VER TODOS
-                      </Link>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                Vehículos
+              </Link>
 
               <Link
                 href="/usados"

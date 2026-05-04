@@ -82,7 +82,7 @@ export default function HomeCategorySection({
             Ingeniería de precisión. <br />
           </h2>
           <Link
-            href="/vehicles"
+            href="/experiencia"
             className="text-sm font-bold tracking-widest text-white hover:text-gray-400 transition-colors uppercase"
           >
             VER TODOS LOS MODELOS
