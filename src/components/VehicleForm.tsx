@@ -339,6 +339,7 @@ export default function VehicleForm({
                 <option value="">Seleccionar...</option>
                 <optgroup label="🚗 Autos">
                   <option value="sedanes">Sedanes</option>
+                  <option value="hatchback">Hatchback</option>
                   <option value="compactos">Compactos</option>
                   <option value="coupes">Coupés</option>
                   <option value="convertibles">Convertibles</option>
