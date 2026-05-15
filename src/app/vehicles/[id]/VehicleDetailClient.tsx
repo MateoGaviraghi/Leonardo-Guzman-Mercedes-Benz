@@ -777,18 +777,13 @@ export default function VehicleDetailClient({
       {/* Hero Section - Fullscreen con overlay elegante */}
       <section className="relative h-screen w-full overflow-hidden">
         {/* Mobile Hero - visible only on screens < 768px */}
-        {!hasImageError(`${basePath}/hero/hero-mobile`) && (
-          <Image
-            src={`${basePath}/hero/hero-mobile.jpg`}
-            alt={vehicle.name}
-            fill
-            className="object-cover md:hidden"
-            priority
-            sizes="100vw"
-            onError={() => handleImageError(`${basePath}/hero/hero-mobile`)}
-            unoptimized
-          />
-        )}
+        <MultiFormatImage
+          basePath={`${basePath}/hero/hero-mobile`}
+          alt={vehicle.name}
+          className="object-cover md:hidden"
+          priority
+          sizes="100vw"
+        />
 
         {/* Desktop Hero - visible only on screens >= 768px */}
         <MultiFormatImage
