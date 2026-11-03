@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { parseVehicleFromDB } from "@/lib/parseVehicle";
 import { isPublicVehicle } from "@/lib/vehicles/hidden";
@@ -42,8 +42,10 @@ export default async function VehicleDetailPage({
 }) {
   const { id } = await params;
 
+  // Oculto (lib/vehicles/hidden): un link viejo aterriza en el catálogo, no
+  // en el 404 por defecto de Next.
   if (!isPublicVehicle(id)) {
-    notFound();
+    redirect("/vehicles");
   }
 
   const { data, error } = await supabase
