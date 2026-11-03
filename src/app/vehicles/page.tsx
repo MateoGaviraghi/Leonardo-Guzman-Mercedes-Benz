@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import type { Vehicle } from "@/data/vehicles";
+import { isPublicVehicle } from "@/lib/vehicles/hidden";
 import VehiclesClient from "./VehiclesClient";
 
 export const revalidate = 60;
@@ -17,5 +18,9 @@ export default async function VehiclesPage() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  return <VehiclesClient vehicles={(vehicles ?? []) as Vehicle[]} />;
+  const visible = ((vehicles ?? []) as Vehicle[]).filter((v) =>
+    isPublicVehicle(v.id)
+  );
+
+  return <VehiclesClient vehicles={visible} />;
 }

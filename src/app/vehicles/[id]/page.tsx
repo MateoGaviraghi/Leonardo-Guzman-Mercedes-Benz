@@ -3,6 +3,7 @@ import path from "node:path";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { parseVehicleFromDB } from "@/lib/parseVehicle";
+import { isPublicVehicle } from "@/lib/vehicles/hidden";
 import VehicleDetailClient from "./VehicleDetailClient";
 import TruckDetailClient from "./TruckDetailClient";
 
@@ -40,6 +41,10 @@ export default async function VehicleDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  if (!isPublicVehicle(id)) {
+    notFound();
+  }
 
   const { data, error } = await supabase
     .from("vehicles")

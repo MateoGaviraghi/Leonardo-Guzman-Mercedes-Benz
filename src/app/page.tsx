@@ -18,6 +18,7 @@ import VehicleCardSkeleton from "@/components/VehicleCardSkeleton";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { DUR, EASE, GSAP_EASE, EXIT, HERO_DELAY } from "@/lib/motion-tokens";
 import { waLink, WA_GENERIC_MESSAGE } from "@/lib/site";
+import { isPublicVehicle } from "@/lib/vehicles/hidden";
 import type { Vehicle } from "@/data/vehicles";
 
 /** Categorías del tab nav (home §Acto 2). IDs = claves del filtro cliente
@@ -194,7 +195,10 @@ export default function Home() {
       const response = await fetch("/api/vehicles");
       const data = await response.json();
       if (data.success) {
-        setVehicles(data.vehicles || []);
+        // El fetch no cambia; solo se descartan los ocultos (lib/vehicles/hidden).
+        setVehicles(
+          ((data.vehicles || []) as Vehicle[]).filter((v) => isPublicVehicle(v.id))
+        );
         setFetchError(false);
       } else {
         setFetchError(true);
