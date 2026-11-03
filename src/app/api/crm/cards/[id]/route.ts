@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase-server";
 import { getCardById } from "@/lib/crm/queries";
 import { deleteCard, updateCard } from "@/lib/crm/actions";
+import type { UpdateCardPayload } from "@/types/crm";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -41,8 +42,14 @@ export async function PATCH(request: NextRequest, ctx: RouteContext) {
   } = await supabase.auth.getUser();
 
   try {
-    const body = await request.json();
-    await updateCard(supabase, id, body, user);
+    const body: unknown = await request.json();
+    if (typeof body !== "object" || body === null || Array.isArray(body)) {
+      return NextResponse.json(
+        { success: false, error: "Body inválido" },
+        { status: 400 }
+      );
+    }
+    await updateCard(supabase, id, body as UpdateCardPayload, user);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(

@@ -4,10 +4,92 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Vehicle } from "@/data/vehicles";
 import JsonImport from "@/components/admin/JsonImport";
+import ImportSuggestions from "@/components/admin/ImportSuggestions";
 
 interface VehicleFormProps {
   editVehicleId?: string;
   isEdit?: boolean;
+}
+
+// Estado inicial del formulario. Se usa además como snapshot base para el
+// dirty flag (comparación contra formData serializado).
+const INITIAL_FORM_DATA: Partial<Vehicle> = {
+  name: "",
+  category: "",
+  brand: "Mercedes-Benz",
+  is_amg: false,
+  specsConsumo: [],
+  specsMotorizacion: [],
+  specsPotencia: [],
+  specsDimensiones: [],
+  specsPerformance: [],
+  specsCarroceria: [],
+  specsChasis: [],
+  specsCantidades: [],
+  specsBateriaCarga: [],
+  equipExterior: [],
+  equipInterior: [],
+  equipMultimedia: [],
+  equipAsistencia: [],
+  equipConfort: [],
+  equipTrenRodaje: [],
+  equipSeguridad: [],
+  equipVariantesCarroceria: [],
+  equipCarga: [],
+  equipVariantesCompartimento: [],
+  equipEquipamientoCompartimento: [],
+  equipPuestoConduccion: [],
+};
+
+// Secciones plegables + anclas de navegación (mismo orden que en el form).
+const NAV_SECTIONS: { id: string; label: string }[] = [
+  { id: "info-basica", label: "Info básica" },
+  { id: "aspectos", label: "Aspectos" },
+  { id: "exterior", label: "Exterior" },
+  { id: "colores", label: "Colores" },
+  { id: "interior", label: "Interior" },
+  { id: "especificaciones", label: "Especificaciones" },
+  { id: "dimensiones", label: "Dimensiones" },
+  { id: "equipamiento", label: "Equipamiento" },
+];
+
+// Sección plegable con header clickeable + contador de contenido cargado.
+function CollapsibleSection({
+  id,
+  title,
+  count,
+  open,
+  onToggle,
+  bodyClassName = "space-y-4",
+  children,
+}: {
+  id: string;
+  title: string;
+  count?: string;
+  open: boolean;
+  onToggle: () => void;
+  bodyClassName?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className="bg-white rounded-lg shadow scroll-mt-28">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-3 px-6 py-4 text-left"
+      >
+        <span className="flex items-baseline gap-2 flex-wrap">
+          <span className="text-xl font-semibold text-gray-900">{title}</span>
+          {count && (
+            <span className="text-sm font-normal text-gray-500">· {count}</span>
+          )}
+        </span>
+        <span className="text-gray-400 text-sm">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && <div className={`px-6 pb-6 ${bodyClassName}`}>{children}</div>}
+    </section>
+  );
 }
 
 export default function VehicleForm({
@@ -23,33 +105,42 @@ export default function VehicleForm({
   const [showVariantesCompartimento, setShowVariantesCompartimento] = useState(false);
   const [showEquipamientoCompartimento, setShowEquipamientoCompartimento] = useState(false);
   const [showPuestoConduccion, setShowPuestoConduccion] = useState(false);
-  const [formData, setFormData] = useState<Partial<Vehicle>>({
-    name: "",
-    category: "",
-    brand: "Mercedes-Benz",
-    is_amg: false,
-    specsConsumo: [],
-    specsMotorizacion: [],
-    specsPotencia: [],
-    specsDimensiones: [],
-    specsPerformance: [],
-    specsCarroceria: [],
-    specsChasis: [],
-    specsCantidades: [],
-    specsBateriaCarga: [],
-    equipExterior: [],
-    equipInterior: [],
-    equipMultimedia: [],
-    equipAsistencia: [],
-    equipConfort: [],
-    equipTrenRodaje: [],
-    equipSeguridad: [],
-    equipVariantesCarroceria: [],
-    equipCarga: [],
-    equipVariantesCompartimento: [],
-    equipEquipamientoCompartimento: [],
-    equipPuestoConduccion: [],
+  const [formData, setFormData] = useState<Partial<Vehicle>>(INITIAL_FORM_DATA);
+
+  // Dirty flag: snapshot serializado de lo último guardado/cargado.
+  const [savedSnapshot, setSavedSnapshot] = useState<string>(() =>
+    JSON.stringify(INITIAL_FORM_DATA),
+  );
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Secciones plegables — solo en memoria (sin storage). Info Básica abierta.
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    "info-basica": true,
+    aspectos: false,
+    exterior: false,
+    colores: false,
+    interior: false,
+    especificaciones: false,
+    dimensiones: false,
+    equipamiento: false,
   });
+
+  const toggleSection = (id: string) =>
+    setOpenSections((p) => ({ ...p, [id]: !p[id] }));
+
+  const goToSection = (id: string) => {
+    setOpenSections((p) => ({ ...p, [id]: true }));
+    if (typeof document !== "undefined") {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const isDirty = JSON.stringify(formData) !== savedSnapshot;
+
+  useEffect(() => {
+    if (isDirty && justSaved) setJustSaved(false);
+  }, [isDirty, justSaved]);
 
   useEffect(() => {
     if (isEdit && editVehicleId) {
@@ -164,6 +255,8 @@ export default function VehicleForm({
 
       setVehicleId(vehicle.id);
       setFormData(vehicle);
+      setSavedSnapshot(JSON.stringify(vehicle));
+      setJustSaved(false);
       if ((vehicle.equipVariantesCarroceria || []).length > 0) setShowVariantesCarroceria(true);
       if ((vehicle.equipCarga || []).length > 0) setShowCarga(true);
       if ((vehicle.equipVariantesCompartimento || []).length > 0) setShowVariantesCompartimento(true);
@@ -201,6 +294,10 @@ export default function VehicleForm({
       if (!isEdit && result.vehicle?.id) {
         setVehicleId(result.vehicle.id);
       }
+
+      // Reset del dirty flag: lo guardado pasa a ser el nuevo snapshot.
+      setSavedSnapshot(JSON.stringify(formData));
+      setJustSaved(true);
 
       router.push("/admin");
       router.refresh();
@@ -258,6 +355,54 @@ export default function VehicleForm({
     }));
   };
 
+  // Combustibles conocidos por el select. Si el vehículo trae un fuel_type
+  // que no está en esta lista (ej. datos legacy o cargados fuera del form),
+  // no debe perderse al re-guardar: se agrega como opción extra más abajo.
+  const knownFuelTypes = ["nafta", "electrico", "hibrido", "diesel"];
+  const currentFuelType = formData.fuel_type || "";
+  const isUnknownFuelType =
+    currentFuelType !== "" && !knownFuelTypes.includes(currentFuelType);
+
+  // Contadores de contenido cargado por sección (para los headers plegables).
+  const fdRec = formData as Record<string, unknown>;
+  const isFilled = (v: unknown) => typeof v === "string" && v.trim() !== "";
+  const arrLen = (k: keyof Vehicle) =>
+    (formData[k] as unknown[] | undefined)?.length || 0;
+  const slots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const aspectosCount = [1, 2, 3, 4].filter(
+    (n) => isFilled(fdRec[`aspecto${n}Valor`]) || isFilled(fdRec[`aspecto${n}Label`]),
+  ).length;
+  const exteriorCount = slots.filter(
+    (n) => isFilled(fdRec[`exterior${n}Title`]) || isFilled(fdRec[`exterior${n}Description`]),
+  ).length;
+  const interiorCount = slots.filter(
+    (n) => isFilled(fdRec[`interior${n}Title`]) || isFilled(fdRec[`interior${n}Description`]),
+  ).length;
+  const specsCount =
+    arrLen("specsConsumo") +
+    arrLen("specsMotorizacion") +
+    arrLen("specsPotencia") +
+    arrLen("specsDimensiones") +
+    arrLen("specsPerformance") +
+    arrLen("specsCarroceria") +
+    arrLen("specsChasis") +
+    arrLen("specsCantidades") +
+    arrLen("specsBateriaCarga");
+  const equipCount =
+    arrLen("equipExterior") +
+    arrLen("equipInterior") +
+    arrLen("equipMultimedia") +
+    arrLen("equipAsistencia") +
+    arrLen("equipConfort") +
+    arrLen("equipTrenRodaje") +
+    arrLen("equipSeguridad") +
+    arrLen("equipVariantesCarroceria") +
+    arrLen("equipCarga") +
+    arrLen("equipVariantesCompartimento") +
+    arrLen("equipEquipamientoCompartimento") +
+    arrLen("equipPuestoConduccion") +
+    (isFilled(formData.equipmentGeneralTitle) ? 1 : 0);
+
   if (loading && isEdit) {
     return (
       <div className="min-h-screen bg-gray-50 p-8 text-center">
@@ -288,6 +433,38 @@ export default function VehicleForm({
           </div>
         )}
 
+        {/* NAV DE SECCIONES (saltar sin scrollear) */}
+        <nav className="sticky top-0 z-30 -mx-8 px-8 py-3 bg-gray-50/95 backdrop-blur border-b border-gray-200">
+          <div className="hidden md:flex flex-wrap gap-2">
+            {NAV_SECTIONS.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => goToSection(s.id)}
+                className="px-3 py-1 text-sm rounded-md border border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <div className="md:hidden">
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value) goToSection(e.target.value);
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
+            >
+              <option value="">Saltar a sección…</option>
+              {NAV_SECTIONS.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </nav>
+
         {/* IMPORTAR JSON (acelera la carga manual) */}
         <JsonImport
           onImport={(data) =>
@@ -295,12 +472,23 @@ export default function VehicleForm({
           }
         />
 
-        {/* INFORMACIÓN BÁSICA */}
-        <section className="bg-white p-6 rounded-lg shadow space-y-4">
-          <h2 className="text-xl font-semibold border-b pb-2 text-gray-900">
-            Información Básica
-          </h2>
+        {/* SUGERENCIAS OFICIALES (solo en edición, si existe el archivo local) */}
+        {editVehicleId && (
+          <ImportSuggestions
+            vehicleId={editVehicleId}
+            formData={formData}
+            setFormData={setFormData}
+          />
+        )}
 
+        {/* INFORMACIÓN BÁSICA */}
+        <CollapsibleSection
+          id="info-basica"
+          title="Información Básica"
+          count={formData.name ? formData.name : "sin nombre"}
+          open={openSections["info-basica"]}
+          onToggle={() => toggleSection("info-basica")}
+        >
           {isEdit && vehicleId && (
             <div className="bg-blue-50 border border-blue-200 p-3 rounded-md">
               <p className="text-sm text-gray-700">
@@ -391,6 +579,10 @@ export default function VehicleForm({
                 <option value="nafta">Nafta</option>
                 <option value="electrico">Eléctrico</option>
                 <option value="hibrido">Híbrido</option>
+                <option value="diesel">Diésel</option>
+                {isUnknownFuelType && (
+                  <option value={currentFuelType}>{currentFuelType}</option>
+                )}
               </select>
               <p className="text-xs text-gray-500 mt-1">
                 Los eléctricos muestran un tag especial
@@ -414,13 +606,16 @@ export default function VehicleForm({
               Modelo AMG
             </label>
           </div>
-        </section>
+        </CollapsibleSection>
 
         {/* ASPECTOS DESTACADOS */}
-        <section className="bg-white p-6 rounded-lg shadow space-y-4">
-          <h2 className="text-xl font-semibold border-b pb-2 text-gray-900">
-            Aspectos Destacados
-          </h2>
+        <CollapsibleSection
+          id="aspectos"
+          title="Aspectos Destacados"
+          count={`${aspectosCount} cargados`}
+          open={openSections.aspectos}
+          onToggle={() => toggleSection("aspectos")}
+        >
           <div className="grid grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((num) => (
               <div key={num} className="border-l-4 border-blue-500 pl-4">
@@ -460,28 +655,31 @@ export default function VehicleForm({
               </div>
             ))}
           </div>
-        </section>
+        </CollapsibleSection>
 
         {/* EXTERIOR */}
-        <section className="bg-white p-6 rounded-lg shadow space-y-4">
-          <div className="flex items-center justify-between border-b pb-2">
-            <h2 className="text-xl font-semibold text-gray-900">Exterior</h2>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowVariantesCarroceria((v) => !v)}
-                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showVariantesCarroceria ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
-              >
-                Variantes de carrocería
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCarga((v) => !v)}
-                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showCarga ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
-              >
-                Carga
-              </button>
-            </div>
+        <CollapsibleSection
+          id="exterior"
+          title="Exterior"
+          count={`${exteriorCount} imágenes`}
+          open={openSections.exterior}
+          onToggle={() => toggleSection("exterior")}
+        >
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setShowVariantesCarroceria((v) => !v)}
+              className={`px-3 py-1 text-sm rounded-md border transition-colors ${showVariantesCarroceria ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+            >
+              Variantes de carrocería
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowCarga((v) => !v)}
+              className={`px-3 py-1 text-sm rounded-md border transition-colors ${showCarga ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+            >
+              Carga
+            </button>
           </div>
 
           <div className="grid grid-cols-1 gap-6">
@@ -590,13 +788,15 @@ export default function VehicleForm({
               <button type="button" onClick={() => addSpecItem("equipCarga")} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">+ Agregar ítem</button>
             </div>
           )}
-        </section>
+        </CollapsibleSection>
 
         {/* COLORES */}
-        <section className="bg-white p-6 rounded-lg shadow space-y-4">
-          <h2 className="text-xl font-semibold border-b pb-2 text-gray-900">
-            Colores Disponibles
-          </h2>
+        <CollapsibleSection
+          id="colores"
+          title="Colores Disponibles"
+          open={openSections.colores}
+          onToggle={() => toggleSection("colores")}
+        >
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
             <p className="text-sm text-gray-700 mb-2">
               <strong>📸 Slider de Colores</strong>
@@ -625,35 +825,38 @@ export default function VehicleForm({
               </p>
             </div>
           </div>
-        </section>
+        </CollapsibleSection>
 
         {/* INTERIOR */}
-        <section className="bg-white p-6 rounded-lg shadow space-y-4">
-          <div className="flex items-center justify-between border-b pb-2 flex-wrap gap-2">
-            <h2 className="text-xl font-semibold text-gray-900">Interior</h2>
-            <div className="flex gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setShowVariantesCompartimento((v) => !v)}
-                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showVariantesCompartimento ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
-              >
-                Variantes de compartimento
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowEquipamientoCompartimento((v) => !v)}
-                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showEquipamientoCompartimento ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
-              >
-                Equipamiento de carga
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowPuestoConduccion((v) => !v)}
-                className={`px-3 py-1 text-sm rounded-md border transition-colors ${showPuestoConduccion ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
-              >
-                Puesto de conducción
-              </button>
-            </div>
+        <CollapsibleSection
+          id="interior"
+          title="Interior"
+          count={`${interiorCount} imágenes`}
+          open={openSections.interior}
+          onToggle={() => toggleSection("interior")}
+        >
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setShowVariantesCompartimento((v) => !v)}
+              className={`px-3 py-1 text-sm rounded-md border transition-colors ${showVariantesCompartimento ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+            >
+              Variantes de compartimento
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowEquipamientoCompartimento((v) => !v)}
+              className={`px-3 py-1 text-sm rounded-md border transition-colors ${showEquipamientoCompartimento ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+            >
+              Equipamiento de carga
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowPuestoConduccion((v) => !v)}
+              className={`px-3 py-1 text-sm rounded-md border transition-colors ${showPuestoConduccion ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600"}`}
+            >
+              Puesto de conducción
+            </button>
           </div>
 
           <div className="grid grid-cols-1 gap-6">
@@ -757,14 +960,17 @@ export default function VehicleForm({
               <button type="button" onClick={() => addSpecItem("equipPuestoConduccion")} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">+ Agregar ítem</button>
             </div>
           )}
-        </section>
+        </CollapsibleSection>
 
         {/* ESPECIFICACIONES TÉCNICAS */}
-        <section className="bg-white p-6 rounded-lg shadow space-y-6">
-          <h2 className="text-xl font-semibold border-b pb-2 text-gray-900">
-            Especificaciones Técnicas
-          </h2>
-
+        <CollapsibleSection
+          id="especificaciones"
+          title="Especificaciones Técnicas"
+          count={`${specsCount} ítems`}
+          open={openSections.especificaciones}
+          onToggle={() => toggleSection("especificaciones")}
+          bodyClassName="space-y-6"
+        >
           {/* Consumo y emisión */}
           <div className="border-l-4 border-blue-500 pl-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">
@@ -1260,13 +1466,15 @@ export default function VehicleForm({
               + Agregar item
             </button>
           </div>
-        </section>
+        </CollapsibleSection>
 
         {/* DIMENSIONES (CAROUSEL) */}
-        <section className="bg-white p-6 rounded-lg shadow space-y-4">
-          <h2 className="text-xl font-semibold border-b pb-2 text-gray-900">
-            Dimensiones (Carousel de Diagramas)
-          </h2>
+        <CollapsibleSection
+          id="dimensiones"
+          title="Dimensiones (Carousel de Diagramas)"
+          open={openSections.dimensiones}
+          onToggle={() => toggleSection("dimensiones")}
+        >
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
             <p className="text-sm text-gray-700 mb-2">
               <strong>📸 Carousel de Diagramas</strong>
@@ -1293,14 +1501,17 @@ export default function VehicleForm({
               </p>
             </div>
           </div>
-        </section>
+        </CollapsibleSection>
 
         {/* EQUIPAMIENTO */}
-        <section className="bg-white p-6 rounded-lg shadow space-y-6">
-          <h2 className="text-xl font-semibold border-b pb-2 text-gray-900">
-            Equipamiento
-          </h2>
-
+        <CollapsibleSection
+          id="equipamiento"
+          title="Equipamiento"
+          count={`${equipCount} ítems`}
+          open={openSections.equipamiento}
+          onToggle={() => toggleSection("equipamiento")}
+          bodyClassName="space-y-6"
+        >
           {/* Título y Descripción General */}
           <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">
@@ -1762,30 +1973,9 @@ export default function VehicleForm({
               + Agregar item
             </button>
           </div>
-        </section>
+        </CollapsibleSection>
 
-        {/* BOTONES */}
-        <div className="flex gap-4 justify-end bg-white p-4 border-t rounded-md">
-          <button
-            type="button"
-            onClick={() => router.push("/admin")}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-            disabled={loading}
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {loading
-              ? "Guardando..."
-              : isEdit
-                ? "Actualizar Vehículo"
-                : "Crear Vehículo"}
-          </button>
-        </div>
+        {/* Acciones Cancelar/Guardar movidas a la barra sticky inferior */}
 
         {/* NOTA DE IMÁGENES */}
         <div className="bg-blue-50 border border-blue-200 p-4 rounded-md">
@@ -1803,6 +1993,55 @@ export default function VehicleForm({
             <li>Los campos con texto indican qué imágenes existen</li>
             <li>Formato recomendado: .avif (mejor compresión)</li>
           </ol>
+        </div>
+
+        {/* BARRA STICKY: acciones siempre visibles + estado de cambios */}
+        <div className="sticky bottom-0 z-30 -mx-8 px-8 py-4 bg-white border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] flex items-center justify-between gap-4">
+          <span
+            className={`text-sm flex items-center gap-2 ${
+              isDirty
+                ? "text-amber-600"
+                : justSaved
+                  ? "text-green-600"
+                  : "text-gray-400"
+            }`}
+          >
+            <span
+              className={`inline-block w-2 h-2 rounded-full ${
+                isDirty
+                  ? "bg-amber-500"
+                  : justSaved
+                    ? "bg-green-500"
+                    : "bg-gray-300"
+              }`}
+            />
+            {isDirty
+              ? "Cambios sin guardar"
+              : justSaved
+                ? "Guardado"
+                : "Sin cambios"}
+          </span>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/admin")}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              {loading
+                ? "Guardando..."
+                : isEdit
+                  ? "Actualizar Vehículo"
+                  : "Crear Vehículo"}
+            </button>
+          </div>
         </div>
       </form>
     </div>

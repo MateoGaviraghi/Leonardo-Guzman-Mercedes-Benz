@@ -103,15 +103,14 @@ export function CardForm({
 
     setSaving(true);
 
-    const payload = {
+    // Campos libres. NUNCA incluye current_column/current_zone: el placement lo
+    // decide el server (routeByDate en create/update, o moveCard en cambio de estado).
+    const baseFields = {
       zona_id: zonaId,
       client_name: form.client_name.trim(),
       client_phone: form.client_phone.trim() || null,
       client_email: form.client_email.trim() || null,
-      current_column: form.current_column,
-      current_zone: columnToZone(form.current_column),
       contact_kind: form.contact_kind,
-      next_contact_at: form.next_contact_at || null,
       notes: form.notes.trim() || null,
       product_details: form.product_details.trim() || null,
       product_ids: form.product_ids,
@@ -119,19 +118,73 @@ export function CardForm({
     };
 
     try {
-      const url = isCreating
-        ? "/api/crm/cards"
-        : `/api/crm/cards/${card!.id}`;
-      const method = isCreating ? "POST" : "PATCH";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error ?? "No se pudo guardar");
+      if (isCreating) {
+        // CREATE: current_column/current_zone viajan SOLO como semilla; el server
+        // los valida y aplica la regla de 20 días vía routeByDate.
+        const res = await fetch("/api/crm/cards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...baseFields,
+            current_column: form.current_column,
+            current_zone: columnToZone(form.current_column),
+            next_contact_at: form.next_contact_at || null,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error ?? "No se pudo guardar");
+        }
+      } else {
+        // EDIT: ¿cambió la columna vía el select "Estado en el CRM"?
+        const columnChanged =
+          !!card && form.current_column !== card.current_column;
+
+        // 1) PATCH de campos libres.
+        //    - Sin cambio de columna: incluimos next_contact_at para que la regla
+        //      de 20 días (routeByDate en updateCard) corra normalmente.
+        //    - Con cambio de columna: la fecha viaja con el move (abajo), no en el
+        //      PATCH, para que moveCard sea la única autoridad de placement.
+        const patchBody = columnChanged
+          ? baseFields
+          : { ...baseFields, next_contact_at: form.next_contact_at || null };
+
+        const res = await fetch(`/api/crm/cards/${card!.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(patchBody),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error ?? "No se pudo guardar");
+        }
+
+        // 2) Cambio de columna → ruta canónica moveCard (history + sold_at + reglas).
+        //    Después del PATCH: es el estado final; si falla, la card no se movió.
+        if (columnChanged) {
+          try {
+            await apiMoveCard(card!.id, {
+              to_column: form.current_column,
+              to_zone: columnToZone(form.current_column),
+              next_contact_at: form.next_contact_at || null,
+              reason: "Cambio de estado desde el formulario",
+            });
+          } catch {
+            // Éxito parcial: datos guardados, card no movida. No cerramos el panel.
+            router.refresh();
+            setError(
+              "Guardamos los datos, pero no se pudo mover la tarjeta de estado. Reintentá el cambio de estado."
+            );
+            toast.error(
+              "Movida incompleta",
+              "Los datos se guardaron; la tarjeta no cambió de estado."
+            );
+            setSaving(false);
+            return;
+          }
+        }
       }
+
       toast.success(
         isCreating ? "Cliente creado correctamente" : "Cambios guardados"
       );

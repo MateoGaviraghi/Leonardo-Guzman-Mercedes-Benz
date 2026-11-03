@@ -1,0 +1,10 @@
+Vehiculo: GLC
+ID: f633e4c3-ca13-44e9-8ed6-dfa7337c15d1
+
+Carpetas:
+  hero/ -> 1 archivo: hero.mp4 (video) o hero.jpg / hero.avif (imagen)
+  exterior/ -> Hasta 6 fotos exterior
+  colors/ -> Hasta 7 fotos de colores disponibles
+  interior/ -> Hasta 6 fotos interior
+  equipment/ -> Hasta 8 fotos de equipamiento y multimedia
+  foto-card/ -> 1 foto para la tarjeta del catalogo

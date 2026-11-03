@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Fraunces } from "next/font/google";
+import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { MainWrapper } from "@/components/MainWrapper";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
+import WhatsAppChip from "@/components/WhatsAppChip";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,11 +17,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+// Display serif del sistema (≙ MB Corpo A Title). Mapeada por token
+// --font-display en globals.css: si algún día llega la licencia MB Corpo,
+// el swap es solo este bloque.
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
+  weight: ["500", "600"],
   display: "swap",
-  axes: ["opsz"],
 });
 
 // URL base del sitio — prioridad:
@@ -36,13 +40,18 @@ const siteUrl =
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : "http://localhost:3000");
 
+const siteTitle =
+  "Leonardo Guzman | Mercedes-Benz, en persona — Automotores Mega, Paraná";
+const siteDescription =
+  "Leonardo Guzman, promotor de ventas en Automotores Mega, concesionario oficial Mercedes-Benz en Paraná, Entre Ríos. Conocé la gama y consultá por WhatsApp.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Leonardo Guzmán | Promotor de Ventas en Automotores Mega",
-  description: "Concesionario oficial Mercedes-Benz",
+  title: siteTitle,
+  description: siteDescription,
   openGraph: {
-    title: "Leonardo Guzmán | Promotor de Ventas en Automotores Mega",
-    description: "Concesionario oficial Mercedes-Benz",
+    title: siteTitle,
+    description: siteDescription,
     images: [
       {
         url: "/og-image.png",
@@ -55,8 +64,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Leonardo Guzmán | Promotor de Ventas en Automotores Mega",
-    description: "Concesionario oficial Mercedes-Benz",
+    title: siteTitle,
+    description: siteDescription,
     images: ["/og-image.png"],
   },
 };
@@ -69,12 +78,20 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} antialiased flex flex-col min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} antialiased flex flex-col min-h-screen`}
       >
+        {/* Skip-to-content link — invisible hasta que recibe focus por Tab */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:font-medium focus:tracking-wide focus:rounded"
+        >
+          Saltar al contenido
+        </a>
         <SmoothScrollProvider>
           <Navbar />
           <MainWrapper>{children}</MainWrapper>
           <Footer />
+          <WhatsAppChip />
         </SmoothScrollProvider>
       </body>
     </html>

@@ -1,0 +1,10 @@
+Vehiculo: GLC Coupe
+ID: 4d56e35d-70c2-4573-8170-3bb184f2eb57
+
+Carpetas:
+  hero/ -> 1 archivo: hero.mp4 (video) o hero.jpg / hero.avif (imagen)
+  exterior/ -> Hasta 6 fotos exterior
+  colors/ -> Hasta 7 fotos de colores disponibles
+  interior/ -> Hasta 6 fotos interior
+  equipment/ -> Hasta 8 fotos de equipamiento y multimedia
+  foto-card/ -> 1 foto para la tarjeta del catalogo

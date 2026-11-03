@@ -2,301 +2,486 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Menu, X, Instagram, Facebook, Phone } from "lucide-react";
+import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
+import { SITE, waLink, WA_GENERIC_MESSAGE } from "@/lib/site";
+import { EASE, DUR } from "@/lib/motion-tokens";
+
+/** Links del navbar (chrome-global §2.4) — orden y copy FINAL. */
+const NAV_LINKS = [
+  { label: "Vehículos", href: "/vehicles" },
+  { label: "Experiencia", href: "/experiencia" },
+  { label: "Usados", href: "/usados" },
+  { label: "Financiación", href: "/financiacion" },
+  { label: "Plan de Ahorro", href: "/plan-ahorro" },
+  { label: "Sobre mí", href: "/about" },
+  { label: "Contacto", href: "/contact" },
+] as const;
+
+// Items del menú con numeración editorial 01–08 (Inicio + NAV_LINKS).
+const MENU_ITEMS = [{ label: "Inicio", href: "/" }, ...NAV_LINKS] as const;
 
 export default function Navbar() {
   const pathname = usePathname();
-  const hideOnRoutes = pathname.startsWith("/crm") || pathname.startsWith("/admin");
+  const hideOnRoutes =
+    pathname.startsWith("/crm") || pathname.startsWith("/admin");
 
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // Tema dual: "cine" (negro, default) ↔ "papel" cuando una sección
+  // [data-nav-theme="papel"] alcanza la franja superior del viewport.
+  const [paper, setPaper] = useState(false);
+  // Trackea el pathname que produjo el último reset de "paper" — permite
+  // resetear el tema al cambiar de ruta durante el render (en vez de un
+  // setState síncrono dentro del efecto) antes de que el observer más abajo
+  // determine el valor real de la nueva página.
+  const [paperResetPathname, setPaperResetPathname] = useState(pathname);
+  if (paperResetPathname !== pathname) {
+    setPaperResetPathname(pathname);
+    if (!hideOnRoutes) setPaper(false);
+  }
+  const [amg, setAmg] = useState(
+    () => typeof document !== "undefined" && document.documentElement.hasAttribute("data-amg")
+  );
+  const reduced = useReducedMotion();
+
+  // Refs para restaurar el foco al trigger y para atrapar el foco en el overlay.
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (hideOnRoutes) return;
+
+    let observer: IntersectionObserver | null = null;
+    const intersecting = new Set<Element>();
+
+    // Las secciones papel se montan con la página (post page-transition).
+    const attach = () => {
+      const sections = document.querySelectorAll('[data-nav-theme="papel"]');
+      if (sections.length === 0) return;
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) intersecting.add(entry.target);
+            else intersecting.delete(entry.target);
+          }
+          setPaper(intersecting.size > 0);
+        },
+        // Franja superior del viewport (donde vive el navbar)
+        { rootMargin: "0px 0px -92% 0px", threshold: 0 }
+      );
+      sections.forEach((s) => observer!.observe(s));
+    };
+
+    const t = window.setTimeout(attach, 600);
+    return () => {
+      window.clearTimeout(t);
+      observer?.disconnect();
+    };
+  }, [pathname, hideOnRoutes]);
+
+  // Modo AMG: el atributo lo setea VehiclesClient en <html>. Default false en
+  // server y primer render cliente (sin hydration mismatch); tras hidratar se lee
+  // el valor real y se observan cambios de brand → los acentos animan al entrar.
+  useEffect(() => {
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setAmg(root.hasAttribute("data-amg"));
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ["data-amg"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Scroll-lock del body con restauración de scrollY al cerrar el menú.
+  useEffect(() => {
+    if (!isOpen) return;
+    const scrollY = window.scrollY;
+    const body = document.body;
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    return () => {
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
+
+  // Foco atrapado dentro del overlay + Escape para cerrar + foco de vuelta al trigger.
+  useEffect(() => {
+    if (!isOpen) return;
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+    const trigger = triggerRef.current;
+    const focusables = () =>
+      Array.from(
+        overlay.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      );
+    focusables()[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setIsOpen(false); return; }
+      if (e.key !== "Tab") return;
+      const els = focusables();
+      if (els.length === 0) return;
+      const first = els[0], last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      trigger?.focus();
+    };
+  }, [isOpen]);
+
   if (hideOnRoutes) return null;
+
+  // Paletas del tema dual
+  const textStrong = paper ? "text-ink" : "text-white";
+  const textMuted = paper ? "text-ink-60" : "text-gray-400";
+  const underlineBg = paper ? "bg-ink" : "bg-white";
+  const scrolledBg = paper
+    ? "bg-paper-0/85 backdrop-blur-2xl backdrop-saturate-150 border-b border-stroke-ink"
+    : "bg-black/55 backdrop-blur-2xl backdrop-saturate-150 border-b border-white/[0.08]";
+
+  const underline = (active: boolean) =>
+    `absolute -bottom-2 left-0 right-0 h-[1.5px] ${amg ? "bg-[#5AC3B6]" : underlineBg} transition-[clip-path,background-color] duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
+      active
+        ? "[clip-path:inset(0_0%_0_0)]"
+        : "[clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)]"
+    }`;
+
+  // Coreografía del menú mobile: stagger 45ms por item (y + opacity desde tokens).
+  const menuContainer = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: reduced ? 0 : 0.045, // 45ms entre items (INTENT)
+        delayChildren: reduced ? 0 : 0.05,
+      },
+    },
+  };
+  const menuItem = {
+    hidden: { opacity: 0, y: reduced ? 0 : 12 }, // y = PAGE_TRANSITION.y
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: DUR.element, ease: EASE.secondary },
+    },
+  };
 
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "bg-black/55 backdrop-blur-2xl backdrop-saturate-150 py-3.5"
-            : "bg-transparent py-6"
+        className={`fixed top-0 left-0 right-0 z-50 h-[var(--nav-h)] flex items-center transition-all duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
+          scrolled ? scrolledBg : "bg-transparent"
         }`}
       >
         <div className="w-full px-6 md:px-12">
           <div className="hidden lg:grid lg:grid-cols-[auto_1fr_auto] items-center gap-8">
-            {/* Logo */}
+            {/* Logo — quieto en reposo; micro-giro de énfasis al hover
+                (decisión del usuario 2026-07-13: vida sin idle loop) */}
             <Link href="/" className="flex items-center gap-4 group">
-              {/* Custom Logo Image */}
-              <div className="relative w-12 h-12">
+              <div className="relative w-12 h-12 transition-transform duration-300 ease-[var(--ease-secondary)] group-hover:rotate-[30deg]">
                 <Image
                   src="/logo-mercedes-benz.png"
                   alt="Mercedes-Benz Logo"
                   fill
+                  sizes="48px"
                   className="object-contain"
                   priority
                 />
               </div>
 
               <div className="flex flex-col">
-                <span className="text-lg font-bold tracking-tight text-white leading-none uppercase">
-                  Leonardo Guzman
+                <span className="flex items-baseline gap-2">
+                  <span
+                    className={`text-lg font-medium tracking-tight leading-none uppercase ${textStrong}`}
+                  >
+                    {SITE.name}
+                  </span>
+                  <AnimatePresence>
+                    {amg && (
+                      <motion.span
+                        key="amg-suffix-desktop"
+                        aria-hidden="true"
+                        className="font-sans text-[11px] font-medium tracking-[0.3em] leading-none uppercase text-[#5AC3B6]"
+                        initial={{ clipPath: reduced ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)" }}
+                        animate={{ clipPath: "inset(0 0% 0 0)" }}
+                        exit={{
+                          clipPath: "inset(0 100% 0 0)",
+                          transition: { duration: reduced ? 0 : 0.2, ease: EASE.secondary },
+                        }}
+                        transition={{
+                          duration: reduced ? 0 : 0.4,
+                          delay: reduced ? 0 : 0.2,
+                          ease: EASE.secondary,
+                        }}
+                      >
+                        / AMG
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </span>
-                <span className="text-xs font-medium tracking-[0.15em] text-gray-400 leading-none mt-1 group-hover:text-mb-blue transition-colors uppercase">
-                  Automotores Mega
+                <span
+                  className={`text-xs font-medium tracking-[0.15em] leading-none mt-1 uppercase ${textMuted}`}
+                >
+                  {SITE.dealerShort}
                 </span>
               </div>
             </Link>
 
             {/* Desktop Links - Centered */}
-            <div className="flex items-center justify-center gap-9 lg:gap-10">
-              <Link
-                href="/experiencia"
-                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
-              >
-                VEHÍCULOS
-                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
-              </Link>
-
-              <Link
-                href="/usados"
-                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
-              >
-                Usados
-                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
-              </Link>
-
-              <Link
-                href="/financiacion"
-                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
-              >
-                Financiación
-                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
-              </Link>
-
-              <Link
-                href="/plan-ahorro"
-                className="relative text-xs font-bold text-gray-300 hover:text-white transition-colors tracking-[0.15em] uppercase group whitespace-nowrap"
-              >
-                Plan de Ahorro
-                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
-              </Link>
-
-              <Link
-                href="/about"
-                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
-              >
-                Sobre Mí
-                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
-              </Link>
-              <Link
-                href="/contact"
-                className="relative text-xs font-medium text-gray-300 hover:text-white transition-colors tracking-[0.18em] uppercase group"
-              >
-                Contacto
-                <span className="absolute -bottom-2 left-0 right-0 h-[1.5px] bg-white [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-500 ease-out"></span>
-              </Link>
+            <div className="flex items-center justify-center gap-8 xl:gap-9">
+              {NAV_LINKS.map((link) => {
+                const active = pathname.startsWith(link.href);
+                const linkColor = active
+                  ? textStrong
+                  : paper
+                    ? `text-ink-60 ${amg ? "hover:text-[#5AC3B6]" : "hover:text-ink"}`
+                    : `text-gray-300 ${amg ? "hover:text-[#5AC3B6]" : "hover:text-white"}`;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`relative text-xs font-medium transition-colors duration-[var(--dur-micro)] tracking-[0.08em] uppercase group whitespace-nowrap ${linkColor}`}
+                  >
+                    {link.label}
+                    <span className={underline(active)}></span>
+                  </Link>
+                );
+              })}
             </div>
 
-            {/* Social Media Icons - Desktop Right Side */}
-            <div className="flex items-center gap-4 pl-5 ml-1 border-l border-white/10">
+            {/* Social - Desktop Right Side */}
+            <div
+              className={`flex items-center gap-4 pl-5 ml-1 border-l ${
+                paper ? "border-stroke-ink" : "border-white/10"
+              }`}
+            >
               <a
-                href="https://www.instagram.com/leoguzmanmbenz/"
+                href={SITE.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:opacity-70 transition-opacity duration-300"
-                aria-label="Instagram"
+                className="hover:opacity-70 transition-opacity duration-[var(--dur-micro)]"
+                aria-label="Instagram de Leonardo Guzman"
               >
-                <Instagram className="w-5 h-5 text-white" strokeWidth={1.5} />
+                <Instagram className={`w-5 h-5 ${textStrong}`} strokeWidth={1.5} />
               </a>
               <a
-                href="https://www.facebook.com/leo.guzman.667144"
+                href={SITE.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:opacity-70 transition-opacity duration-300"
-                aria-label="Facebook"
+                className="hover:opacity-70 transition-opacity duration-[var(--dur-micro)]"
+                aria-label="Facebook de Leonardo Guzman"
               >
-                <Facebook className="w-5 h-5 text-white" strokeWidth={1.5} />
+                <Facebook className={`w-5 h-5 ${textStrong}`} strokeWidth={1.5} />
               </a>
               <a
-                href="https://wa.me/5493425037000"
+                href={SITE.whatsapp}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:opacity-70 transition-opacity duration-300"
-                aria-label="WhatsApp"
+                className="hover:opacity-70 transition-opacity duration-[var(--dur-micro)]"
+                aria-label="WhatsApp de Leonardo Guzman"
               >
-                <svg
-                  className="w-5 h-5 text-white"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                </svg>
+                <WhatsAppIcon className={`w-5 h-5 ${textStrong}`} />
               </a>
               <a
-                href="tel:+5493425037000"
-                className="hover:opacity-70 transition-opacity duration-300"
-                aria-label="Teléfono"
+                href={SITE.phoneHref}
+                className="hover:opacity-70 transition-opacity duration-[var(--dur-micro)]"
+                aria-label="Llamar a Leonardo Guzman"
               >
-                <Phone className="w-5 h-5 text-white" strokeWidth={1.5} />
+                <Phone className={`w-5 h-5 ${textStrong}`} strokeWidth={1.5} />
               </a>
             </div>
           </div>
 
           {/* Mobile Layout */}
           <div className="lg:hidden flex items-center justify-between">
-            {/* Logo Mobile */}
+            {/* Logo Mobile — quieto (hover no aplica en touch) */}
             <Link href="/" className="flex items-center gap-4 group">
-              <div className="relative w-12 h-12">
+              <div className="relative w-10 h-10 transition-transform duration-300 ease-[var(--ease-secondary)] group-hover:rotate-[30deg]">
                 <Image
                   src="/logo-mercedes-benz.png"
                   alt="Mercedes-Benz Logo"
                   fill
+                  sizes="40px"
                   className="object-contain"
                   priority
                 />
               </div>
 
               <div className="flex flex-col">
-                <span className="text-lg font-bold tracking-tight text-white leading-none uppercase">
-                  Leonardo Guzman
-                </span>
-                <span className="text-xs font-medium tracking-[0.15em] text-gray-400 leading-none mt-1 group-hover:text-mb-blue transition-colors uppercase">
-                  Automotores Mega
+                <span className="flex items-baseline gap-2">
+                  <span
+                    className={`text-lg font-medium tracking-tight leading-none uppercase ${textStrong}`}
+                  >
+                    {SITE.name}
+                  </span>
+                  <AnimatePresence>
+                    {amg && (
+                      <motion.span
+                        key="amg-suffix-mobile"
+                        aria-hidden="true"
+                        className="font-sans text-[11px] font-medium tracking-[0.3em] leading-none uppercase text-[#5AC3B6]"
+                        initial={{ clipPath: reduced ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)" }}
+                        animate={{ clipPath: "inset(0 0% 0 0)" }}
+                        exit={{
+                          clipPath: "inset(0 100% 0 0)",
+                          transition: { duration: reduced ? 0 : 0.2, ease: EASE.secondary },
+                        }}
+                        transition={{
+                          duration: reduced ? 0 : 0.4,
+                          delay: reduced ? 0 : 0.2,
+                          ease: EASE.secondary,
+                        }}
+                      >
+                        / AMG
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </span>
               </div>
             </Link>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button — nunca muta a X; la única X vive en el overlay */}
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-white hover:text-mb-blue transition-colors"
+              ref={triggerRef}
+              onClick={() => setIsOpen(true)}
+              aria-label="Abrir menú"
+              aria-expanded={isOpen}
+              aria-controls="mobile-menu"
+              className={`${textStrong} transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center`}
             >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
+              <Menu size={24} />
             </button>
           </div>
         </div>
+
+        <AnimatePresence>
+          {amg && (
+            <motion.span
+              key="amg-hairline"
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-0 left-0 right-0 h-[1px] bg-[#5AC3B6]/40"
+              initial={{ scaleX: reduced ? 1 : 0, transformOrigin: "left center" }}
+              animate={{ scaleX: 1, transformOrigin: "left center" }}
+              exit={{
+                scaleX: 0,
+                transformOrigin: "right center",
+                transition: { duration: reduced ? 0 : 0.35, ease: EASE.secondary },
+              }}
+              transition={{ duration: reduced ? 0 : 0.65, ease: EASE.secondary }}
+            />
+          )}
+        </AnimatePresence>
       </nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay — negro pleno, identidad editorial (numeración + display) */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id="mobile-menu"
+            ref={overlayRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menú de navegación"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black pt-24 px-6 lg:hidden"
+            transition={{ duration: DUR.micro, ease: EASE.secondary }} // exit rápido ~0.18s
+            className="fixed inset-0 z-[60] bg-black lg:hidden flex flex-col px-6 pt-24 pb-8 overflow-y-auto"
           >
-            <div className="flex flex-col space-y-6">
-              <Link
-                href="/"
-                onClick={() => setIsOpen(false)}
-                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
-              >
-                Inicio
-              </Link>
+            {/* Único botón de cierre */}
+            <button
+              onClick={() => setIsOpen(false)}
+              aria-label="Cerrar menú"
+              className="absolute top-5 right-6 text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
+              <X size={24} />
+            </button>
 
-              <Link
-                href="/experiencia"
-                onClick={() => setIsOpen(false)}
-                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
-              >
-                Vehículos
-              </Link>
+            {/* Links: numeración mono + display grande, coreografía por item */}
+            <motion.nav
+              variants={menuContainer}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col gap-y-5"
+            >
+              {MENU_ITEMS.map((item, i) => {
+                const active =
+                  item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                return (
+                  <motion.div key={item.href} variants={menuItem} className="flex items-baseline gap-4">
+                    <span
+                      className={`font-mono text-xs tracking-[0.2em] tabular-nums pt-1 ${
+                        active ? "text-white" : "text-white/30"
+                      }`}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      aria-current={active ? "page" : undefined}
+                      className={`font-display leading-[1.02] tracking-tight text-4xl ${
+                        active ? "text-white font-semibold" : "text-white/60 font-normal"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </motion.nav>
 
-              <Link
-                href="/usados"
-                onClick={() => setIsOpen(false)}
-                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
+            {/* Bloque contacto jerarquizado: WhatsApp dominante + secundarios.
+                Anclado cerca de la lista (no mt-auto) para no dejar aire muerto al fondo. */}
+            <motion.div variants={menuItem} initial="hidden" animate="visible" className="mt-14">
+              <a
+                href={waLink(WA_GENERIC_MESSAGE)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-3 h-14 w-full bg-whatsapp text-black text-sm font-semibold uppercase tracking-[0.15em]"
               >
-                Usados
-              </Link>
-
-              <Link
-                href="/financiacion"
-                onClick={() => setIsOpen(false)}
-                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
-              >
-                Financiación
-              </Link>
-
-              <Link
-                href="/plan-ahorro"
-                onClick={() => setIsOpen(false)}
-                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
-              >
-                Plan de Ahorro
-              </Link>
-
-              <Link
-                href="/about"
-                onClick={() => setIsOpen(false)}
-                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
-              >
-                Sobre Mí
-              </Link>
-              <Link
-                href="/contact"
-                onClick={() => setIsOpen(false)}
-                className="text-2xl font-bold text-white border-b border-white/10 pb-4"
-              >
-                Contacto
-              </Link>
-
-              {/* Social Media Icons - Mobile */}
-              <div className="flex items-center gap-6 pt-8 justify-center">
+                <WhatsAppIcon className="w-5 h-5" />
+                Escribir por WhatsApp
+              </a>
+              <div className="mt-5 flex items-center justify-between">
                 <a
-                  href="https://www.instagram.com/leoguzmanmbenz/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-70 transition-opacity duration-300"
-                  aria-label="Instagram"
+                  href={SITE.phoneHref}
+                  className="flex items-center gap-2 text-white/60 text-xs uppercase tracking-[0.15em] min-h-[44px]"
+                  aria-label="Llamar a Leonardo Guzman"
                 >
-                  <Instagram className="w-7 h-7 text-white" strokeWidth={1.5} />
+                  <Phone className="w-4 h-4" strokeWidth={1.5} /> Llamar
                 </a>
-                <a
-                  href="https://www.facebook.com/leo.guzman.667144"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-70 transition-opacity duration-300"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-7 h-7 text-white" strokeWidth={1.5} />
-                </a>
-                <a
-                  href="https://wa.me/5493425037000"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-70 transition-opacity duration-300"
-                  aria-label="WhatsApp"
-                >
-                  <svg
-                    className="w-7 h-7 text-white"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                  </svg>
-                </a>
-                <a
-                  href="tel:+5493425037000"
-                  className="hover:opacity-70 transition-opacity duration-300"
-                  aria-label="Teléfono"
-                >
-                  <Phone className="w-7 h-7 text-white" strokeWidth={1.5} />
-                </a>
+                <div className="flex items-center gap-5">
+                  <a href={SITE.instagram} target="_blank" rel="noopener noreferrer" className="text-white/60 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Instagram de Leonardo Guzman">
+                    <Instagram className="w-6 h-6" strokeWidth={1.5} />
+                  </a>
+                  <a href={SITE.facebook} target="_blank" rel="noopener noreferrer" className="text-white/60 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Facebook de Leonardo Guzman">
+                    <Facebook className="w-6 h-6" strokeWidth={1.5} />
+                  </a>
+                </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

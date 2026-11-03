@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight, ArrowDown } from "lucide-react";
+import { ArrowDown, ArrowRight } from "lucide-react";
+import { gsap } from "gsap";
+import { SplitText } from "gsap/SplitText";
+import { DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
+import ScrollProgress from "@/components/ScrollProgress";
+import ExperienciaLoader from "./components/ExperienciaLoader";
+import CategoriaGrid from "./components/CategoriaGrid";
 
 /**
  * Scroll-scrub via image sequence + canvas (Apple-style).
@@ -64,47 +69,14 @@ const SEGMENTS = [
   },
 ];
 
-const CATEGORIES = [
-  {
-    id: "auto",
-    name: "Autos",
-    href: "/vehicles?category=auto",
-    description: "Sedanes, hatchbacks, coupés y cabriolets.",
-    featuredName: "Clase S",
-    image: "/vehicles/7eba156c-0097-4ee7-acfc-7a2b89d92598/foto-card/card.jpg",
-  },
-  {
-    id: "suv",
-    name: "SUVs",
-    href: "/vehicles?category=suv",
-    description: "Crossovers y todo terreno.",
-    featuredName: "EQA",
-    image: "/vehicles/fe9a948b-abf8-4415-977e-944a4d24ae62/foto-card/card.jpg",
-  },
-  {
-    id: "vans",
-    name: "Vans",
-    href: "/vehicles?category=vans",
-    description: "Vito Tourer y Vito Mixto.",
-    featuredName: "Vito Tourer",
-    image: "/vehicles/vito-tourer/foto-card/card.avif",
-  },
-  {
-    id: "sprinter",
-    name: "Sprinter",
-    href: "/vehicles?category=sprinter",
-    description: "Furgón, Combi, Mixto y Chasis.",
-    featuredName: "Sprinter Furgón",
-    image: "/vehicles/sprinter-furgon/foto-card/card.webp",
-  },
-  {
-    id: "trucks",
-    name: "Trucks",
-    href: "/vehicles?category=trucks",
-    description: "Accelo, Atego, Actros y Arocs.",
-    featuredName: "Actros",
-    image: "/vehicles/ee10dd62-79cb-470b-9c6d-55dfa6314108/foto-card/card.jpg",
-  },
+/**
+ * Destinos "Explorar" de cada capítulo (mapeo segmento → categoría primaria).
+ * Decisión de diseño sobre hrefs YA existentes en la grilla, no dato de negocio.
+ */
+const CHAPTER_HREF = [
+  "/vehicles?category=auto", // seg 0 · Autos y SUVs
+  "/vehicles?category=sprinter", // seg 1 · Vans y Sprinter
+  "/vehicles?category=trucks", // seg 2 · Trucks
 ];
 
 export default function ExperienciaClient() {
@@ -114,8 +86,20 @@ export default function ExperienciaClient() {
   const imagesRef = useRef<HTMLImageElement[][]>([[], [], []]);
 
   // Intro layer (dentro del sticky)
-  const introBlurRef = useRef<HTMLDivElement>(null);
+  const introScrimRef = useRef<HTMLDivElement>(null);
   const introTextRef = useRef<HTMLDivElement>(null);
+  const introTitleRef = useRef<HTMLHeadingElement>(null);
+
+  // Refs de los hijos de cada overlay (coreografía por líneas/elementos)
+  const ovEyebrowRefs = useRef<(HTMLElement | null)[]>([]);
+  const ovTitleRefs = useRef<(HTMLElement | null)[]>([]);
+  const ovLeadRefs = useRef<(HTMLElement | null)[]>([]);
+  const ovExploreRefs = useRef<(HTMLElement | null)[]>([]);
+
+  // Timeline de reveal por capítulo (construida una vez, paused) + pausa
+  // dominante única (un solo overlay activo a la vez).
+  const chapterTimelinesRef = useRef<(gsap.core.Timeline | null)[]>([]);
+  const activePauseRef = useRef<number>(-1);
 
   // Indicador único 01-02-03
   const indicatorRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -123,37 +107,94 @@ export default function ExperienciaClient() {
   const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false);
 
-  // Pre-carga todas las imágenes
+  // Gate de pintado por progreso: un overlay cuyo timeline está en 0 no
+  // puede pintar nada. Se llama tanto desde el rAF de scroll como desde el
+  // onUpdate de cada timeline (GSAP sigue animando en background aunque el
+  // usuario deje de scrollear a mitad de la coreografía — sin esto el
+  // contenedor quedaría con visibility stale, congelado en el último
+  // snapshot del scroll).
+  const syncOverlayVisibility = useCallback(() => {
+    overlayRefs.current.forEach((o, i) => {
+      if (!o) return;
+      const tl = chapterTimelinesRef.current[i];
+      o.style.visibility = tl && tl.progress() > 0 ? "visible" : "hidden";
+    });
+  }, []);
+
+  // Pre-carga del segmento 0 SOLO: el gate `ready` y el `%` cuentan estos 121
+  // frames. Los seg 1 y 2 NO se piden acá — así el burst inicial es ~14MB en
+  // vez de ~33MB y no compiten por ancho de banda con el primer paint del
+  // scrub. Se difieren al effect encadenado de abajo (post-`ready`).
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     let mounted = true;
-    let loaded = 0;
-    const total = SEGMENTS.length * FRAMES_PER_SEGMENT;
+    let loaded0 = 0;
 
-    SEGMENTS.forEach((seg, segIdx) => {
-      const arr: HTMLImageElement[] = [];
-      for (let i = 1; i <= FRAMES_PER_SEGMENT; i++) {
-        const img = new window.Image();
-        img.src = `${seg.folder}/${padFrame(i)}`;
-        const onDone = () => {
-          loaded++;
-          if (mounted) {
-            setProgress(loaded / total);
-            if (loaded === total) setReady(true);
-          }
-        };
-        img.onload = onDone;
-        img.onerror = onDone;
-        arr.push(img);
-      }
-      imagesRef.current[segIdx] = arr;
-    });
+    const seg = SEGMENTS[0];
+    const arr: HTMLImageElement[] = [];
+    for (let i = 1; i <= FRAMES_PER_SEGMENT; i++) {
+      const img = new window.Image();
+      img.src = `${seg.folder}/${padFrame(i)}`;
+      const onDone = () => {
+        loaded0++;
+        if (mounted) {
+          setProgress(loaded0 / FRAMES_PER_SEGMENT);
+          if (loaded0 === FRAMES_PER_SEGMENT) setReady(true);
+        }
+      };
+      img.onload = onDone;
+      img.onerror = onDone;
+      arr.push(img);
+    }
+    imagesRef.current[0] = arr;
 
     return () => {
       mounted = false;
     };
   }, []);
+
+  // Pre-carga diferida de los segmentos 1 y 2: recién arranca cuando el seg 0
+  // está listo (`ready`) y el navegador está ocioso (`requestIdleCallback`, con
+  // fallback a setTimeout). Sin handlers de progress/ready — solo dejan la
+  // imagen decodificada en imagesRef a medida que se resuelven; el fallback de
+  // "último frame decodificado" del rAF cubre cualquier scroll que llegue antes.
+  useEffect(() => {
+    if (!ready || typeof window === "undefined") return;
+
+    const preloadRest = () => {
+      for (let segIdx = 1; segIdx < SEGMENTS.length; segIdx++) {
+        if (imagesRef.current[segIdx].length) continue;
+        const seg = SEGMENTS[segIdx];
+        const arr: HTMLImageElement[] = [];
+        for (let i = 1; i <= FRAMES_PER_SEGMENT; i++) {
+          const img = new window.Image();
+          img.src = `${seg.folder}/${padFrame(i)}`;
+          arr.push(img);
+        }
+        imagesRef.current[segIdx] = arr;
+      }
+    };
+
+    const ric = (
+      window as Window & {
+        requestIdleCallback?: (cb: () => void) => number;
+        cancelIdleCallback?: (id: number) => void;
+      }
+    ).requestIdleCallback;
+
+    if (typeof ric === "function") {
+      const id = ric(preloadRest);
+      return () => {
+        (
+          window as Window & { cancelIdleCallback?: (id: number) => void }
+        ).cancelIdleCallback?.(id);
+      };
+    }
+
+    const t = window.setTimeout(preloadRest, 200);
+    return () => window.clearTimeout(t);
+  }, [ready]);
 
   // Scroll-scrub con single sticky + crossfade entre segmentos
   useEffect(() => {
@@ -218,17 +259,12 @@ export default function ExperienciaClient() {
     });
 
     if (reduced) {
-      // Mostrar el frame de la pausa de cada segmento + overlays visibles
+      // Frame medio de cada segmento; los overlays estáticos los resuelve el
+      // effect de capítulos (estado final + visibility solo del activeIdx).
       SEGMENTS.forEach((_, i) => {
         const c = canvasRefs.current[i];
         const img = imagesRef.current[i][Math.floor(FRAMES_PER_SEGMENT / 2)];
         if (c && img) drawFrame(c, img, getFocusX(i));
-      });
-      overlayRefs.current.forEach((o) => {
-        if (o) {
-          o.style.opacity = "1";
-          o.style.transform = "translateY(0)";
-        }
       });
       return;
     }
@@ -246,17 +282,13 @@ export default function ExperienciaClient() {
       );
 
       // ── INTRO ──
-      const introBlur = introBlurRef.current;
+      // Cold-open: el scrim negro sólido baja su opacity con el scroll
+      // (compositor-safe, sin blur animado).
+      const introScrim = introScrimRef.current;
       const introText = introTextRef.current;
       const introProgress = Math.min(1, globalP / INTRO_END_GLOBAL);
-      if (introBlur) {
-        const blur = 20 * (1 - introProgress);
-        introBlur.style.backdropFilter = `blur(${blur}px)`;
-        (introBlur.style as CSSStyleDeclaration & {
-          webkitBackdropFilter?: string;
-        }).webkitBackdropFilter = `blur(${blur}px)`;
-        introBlur.style.opacity =
-          introProgress >= 1 ? "0" : String(1 - introProgress * 0.3);
+      if (introScrim) {
+        introScrim.style.opacity = String(0.72 * (1 - introProgress));
       }
       if (introText) {
         introText.style.opacity = String(
@@ -279,9 +311,12 @@ export default function ExperienciaClient() {
         Math.floor(globalP * SEGMENTS.length)
       );
 
+      // Pausa dominante: el segmento cuya pausa está abierta según progress,
+      // o -1 si ninguna. Un solo overlay puede estar activo a la vez.
+      let pauseIdx = -1;
+
       SEGMENTS.forEach((seg, i) => {
         const canvas = canvasRefs.current[i];
-        const overlay = overlayRefs.current[i];
         const imgs = imagesRef.current[i];
         if (!canvas || !imgs.length) return;
 
@@ -347,30 +382,54 @@ export default function ExperienciaClient() {
           FRAMES_PER_SEGMENT - 1,
           Math.floor(effectiveLocal * FRAMES_PER_SEGMENT)
         );
-        const img = imgs[frameIdx];
-        if (img && canvasOpacity > 0) drawFrame(canvas, img, getFocusX(i));
+        // Fallback: si el frame objetivo aún no decodificó (scroll rápido a
+        // seg 2/3 antes de que termine su carga en background), se dibuja el
+        // último frame decodificado ≤ frameIdx. Se sigue dibujando en cada
+        // rAF (no se cachea "ya dibujé este frame") para que se autorepare
+        // apenas el frame real decodifique.
+        const isDecoded = (im?: HTMLImageElement) =>
+          !!im && im.complete && im.naturalWidth > 0;
+        let fi = frameIdx;
+        while (fi > 0 && !isDecoded(imgs[fi])) fi--;
+        const img = imgs[fi];
+        if (img && isDecoded(img) && canvasOpacity > 0)
+          drawFrame(canvas, img, getFocusX(i));
 
-        // Overlay con info (visible durante la pausa local del segmento)
-        if (overlay) {
-          // Para el seg 0 usamos effectiveLocal (porque la pausa está sobre el video real)
-          const overlayP = i === 0 ? effectiveLocal : localP;
-          const inPause =
-            overlayP >= seg.pauseStart &&
-            overlayP <= seg.pauseEnd &&
-            canvasOpacity > 0.5;
-          overlay.style.opacity = inPause ? "1" : "0";
-          overlay.style.transform = inPause
-            ? "translateY(0)"
-            : "translateY(20px)";
-        }
+        // La coreografía la posee la timeline GSAP, NO se anima por
+        // inline-style. Para el seg 0 usamos effectiveLocal (la pausa está
+        // sobre el video real). Registramos el segmento dominante — el que
+        // esté en pausa con más opacidad de canvas — para exclusividad.
+        const overlayP = i === 0 ? effectiveLocal : localP;
+        const inPause =
+          overlayP >= seg.pauseStart &&
+          overlayP <= seg.pauseEnd &&
+          canvasOpacity > 0.5;
+        if (inPause) pauseIdx = i;
       });
 
+      // ── EXCLUSIVIDAD DE OVERLAY: un solo capítulo activo a la vez ──
+      if (pauseIdx !== activePauseRef.current) {
+        const prevIdx = activePauseRef.current;
+        if (prevIdx !== -1) {
+          const prevTl = chapterTimelinesRef.current[prevIdx];
+          if (prevTl) prevTl.reverse();
+        }
+        if (pauseIdx !== -1) {
+          const nextTl = chapterTimelinesRef.current[pauseIdx];
+          if (nextTl) nextTl.play();
+        }
+        activePauseRef.current = pauseIdx;
+      }
+
+      // Gate de pintado por progreso (evita que un overlay "reversing" quede
+      // pisando al activo mientras su opacity todavía no llegó a 0).
+      syncOverlayVisibility();
+
       // ── INDICADOR ÚNICO 01-02-03 ──
+      // Activo blanco puro; inactivo cae al text-silver-500 de la clase.
       indicatorRefs.current.forEach((el, i) => {
         if (!el) return;
-        const isActive = i === activeIdx;
-        el.style.opacity = isActive ? "1" : "0.35";
-        el.style.color = isActive ? "rgb(255, 255, 255)" : "rgba(255,255,255,0.6)";
+        el.style.color = i === activeIdx ? "#ffffff" : "";
       });
     };
 
@@ -393,29 +452,213 @@ export default function ExperienciaClient() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", update);
     };
+  }, [ready, syncOverlayVisibility]);
+
+  // ── Entrada del título de la intro: SplitText chars (misma voz que el H1
+  //    del home). Corre cuando la ruta está lista y las fonts cargaron.
+  useEffect(() => {
+    if (!ready || typeof window === "undefined") return;
+
+    const w = window as Window & { __gsapSplitTextRegistered?: boolean };
+    if (!w.__gsapSplitTextRegistered) {
+      gsap.registerPlugin(SplitText);
+      w.__gsapSplitTextRegistered = true;
+    }
+
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (reduced) {
+      // Sin split: el título queda visible tal cual.
+      if (introTitleRef.current)
+        gsap.set(introTitleRef.current, { autoAlpha: 1 });
+      return;
+    }
+
+    // Safety: nunca dejar el título atrapado invisible si SplitText tarda/falla.
+    const safety = window.setTimeout(() => {
+      if (introTitleRef.current)
+        gsap.set(introTitleRef.current, { autoAlpha: 1 });
+    }, 1500);
+
+    let split: SplitText | undefined;
+    document.fonts.ready.then(() => {
+      window.clearTimeout(safety);
+      if (!introTitleRef.current) return;
+      split = SplitText.create(introTitleRef.current, {
+        type: "chars, words",
+        mask: "chars",
+        autoSplit: true,
+        onSplit(self) {
+          return gsap.timeline({ delay: HERO_DELAY }).from(self.chars, {
+            yPercent: 120,
+            duration: DUR.hero,
+            ease: GSAP_EASE.primary,
+            stagger: 0.02,
+          });
+        },
+      });
+    });
+
+    return () => {
+      window.clearTimeout(safety);
+      split?.revert();
+    };
   }, [ready]);
+
+  // ── Sistema de capítulos: una timeline de reveal por overlay (paused),
+  //    disparada por flanco de pausa desde el rAF. Reduced-motion: estado
+  //    final + visibility solo del activeIdx (no apilar 3 bloques).
+  useEffect(() => {
+    if (!ready || typeof window === "undefined") return;
+
+    const w = window as Window & { __gsapSplitTextRegistered?: boolean };
+    if (!w.__gsapSplitTextRegistered) {
+      gsap.registerPlugin(SplitText);
+      w.__gsapSplitTextRegistered = true;
+    }
+
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    if (reduced) {
+      // Estado final de los hijos de TODOS los overlays.
+      SEGMENTS.forEach((_, i) => {
+        const els = [
+          ovEyebrowRefs.current[i],
+          ovLeadRefs.current[i],
+          ovExploreRefs.current[i],
+        ].filter((el): el is HTMLElement => Boolean(el));
+        if (els.length) gsap.set(els, { opacity: 1, y: 0 });
+        if (ovTitleRefs.current[i])
+          gsap.set(ovTitleRefs.current[i], { autoAlpha: 1 });
+      });
+
+      // Listener liviano: mostrar SOLO el overlay del segmento activo.
+      const applyVisibility = () => {
+        const main = mainSectionRef.current;
+        if (!main) return;
+        const rect = main.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const scrollable = main.offsetHeight - vh;
+        const gp = Math.max(
+          0,
+          Math.min(1, -rect.top / Math.max(1, scrollable))
+        );
+        const active = Math.min(
+          SEGMENTS.length - 1,
+          Math.floor(gp * SEGMENTS.length)
+        );
+        overlayRefs.current.forEach((o, i) => {
+          if (o) o.style.visibility = i === active ? "visible" : "hidden";
+        });
+
+        // Intro: toggle discreto (sin animación) por posición de scroll —
+        // en reduced-motion el scrub de salida no corre, así que la intro
+        // debe ocultarse apenas se abandona el primer viewport.
+        const introHidden = window.scrollY > vh * 0.5;
+        if (introTextRef.current) {
+          introTextRef.current.style.opacity = introHidden ? "0" : "1";
+          introTextRef.current.style.pointerEvents = introHidden
+            ? "none"
+            : "auto";
+        }
+        if (introScrimRef.current) {
+          introScrimRef.current.style.opacity = introHidden ? "0" : "0.72";
+        }
+      };
+      window.addEventListener("scroll", applyVisibility, { passive: true });
+      window.addEventListener("resize", applyVisibility);
+      applyVisibility();
+
+      return () => {
+        window.removeEventListener("scroll", applyVisibility);
+        window.removeEventListener("resize", applyVisibility);
+      };
+    }
+
+    // No-reduced: estado inicial oculto ya (evita flash antes de fonts.ready).
+    SEGMENTS.forEach((_, i) => {
+      const els = [
+        ovEyebrowRefs.current[i],
+        ovLeadRefs.current[i],
+        ovExploreRefs.current[i],
+      ].filter((el): el is HTMLElement => Boolean(el));
+      if (els.length) gsap.set(els, { opacity: 0, y: 16 });
+      if (ovTitleRefs.current[i])
+        gsap.set(ovTitleRefs.current[i], { autoAlpha: 0 });
+    });
+
+    const splits: SplitText[] = [];
+    let cancelled = false;
+
+    document.fonts.ready.then(() => {
+      if (cancelled) return;
+      SEGMENTS.forEach((_, i) => {
+        const eyebrow = ovEyebrowRefs.current[i];
+        const title = ovTitleRefs.current[i];
+        const lead = ovLeadRefs.current[i];
+        const explore = ovExploreRefs.current[i];
+        if (!eyebrow || !title || !lead || !explore) return;
+
+        const split = SplitText.create(title, {
+          type: "lines",
+          mask: "lines",
+        });
+        splits.push(split);
+
+        const tl = gsap
+          .timeline({ paused: true, onUpdate: syncOverlayVisibility })
+          .to(
+            eyebrow,
+            { opacity: 1, y: 0, duration: DUR.element, ease: GSAP_EASE.secondary },
+            0
+          )
+          .set(title, { autoAlpha: 1 }, "-=0.1")
+          .from(
+            split.lines,
+            {
+              yPercent: 110,
+              duration: DUR.element,
+              ease: GSAP_EASE.primary,
+              stagger: 0.08,
+            },
+            "-=0.1"
+          )
+          .to(
+            lead,
+            { opacity: 1, y: 0, duration: DUR.element, ease: GSAP_EASE.secondary },
+            "-=0.3"
+          )
+          .to(
+            explore,
+            { opacity: 1, y: 0, duration: DUR.element, ease: GSAP_EASE.secondary },
+            "-=0.3"
+          );
+
+        chapterTimelinesRef.current[i] = tl;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      chapterTimelinesRef.current.forEach((tl) => tl?.kill());
+      chapterTimelinesRef.current = [];
+      activePauseRef.current = -1;
+      splits.forEach((s) => s.revert());
+    };
+  }, [ready, syncOverlayVisibility]);
 
   const totalHeightVh = SEGMENTS.length * SEGMENT_VH;
 
   return (
     <div className="bg-black text-white">
+      {/* Progress de scroll — vive SOLO en esta ruta (chrome-global §2.8) */}
+      <ScrollProgress />
       {/* Loading state */}
-      {!ready && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center pointer-events-none">
-          <p className="text-xs tracking-[0.3em] uppercase text-gray-500 mb-6">
-            Cargando experiencia
-          </p>
-          <div className="w-48 h-px bg-white/10 relative overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 bg-white transition-[width] duration-200 ease-linear"
-              style={{ width: `${Math.round(progress * 100)}%` }}
-            />
-          </div>
-          <p className="text-[10px] tracking-[0.3em] uppercase text-gray-600 mt-4 tabular-nums">
-            {Math.round(progress * 100)}%
-          </p>
-        </div>
-      )}
+      {!ready && <ExperienciaLoader pct={Math.round(progress * 100)} />}
 
       {/* Single sticky que envuelve los 3 segmentos: transiciones fluidas
           (crossfade entre canvas) en lugar de page breaks por segmento. */}
@@ -437,73 +680,119 @@ export default function ExperienciaClient() {
             />
           ))}
 
-          {/* INTRO — capa con blur + título "Tres caminos / Una sola estrella" */}
+          {/* Cold-open: frame 1 nítido + scrim negro que baja su opacity con el scroll */}
           <div
-            ref={introBlurRef}
-            className="absolute inset-0 will-change-[backdrop-filter] pointer-events-none"
-            style={{
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-            }}
+            ref={introScrimRef}
+            aria-hidden
+            className="absolute inset-0 bg-black pointer-events-none will-change-[opacity]"
+            style={{ opacity: 0.72 }}
           />
           <div
             ref={introTextRef}
-            className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 bg-black/60 will-change-[opacity,transform]"
+            className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center will-change-[transform,opacity]"
             style={{ opacity: 1 }}
           >
-            <p className="text-xs md:text-sm font-medium tracking-[0.3em] uppercase text-white/70 mb-6">
+            <p className="text-eyebrow mb-6 font-mono uppercase tracking-[0.14em] text-silver-300">
               La gama · Mercedes-Benz
             </p>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight leading-[1.05] text-white max-w-4xl">
+            <h1
+              ref={introTitleRef}
+              className="text-display-1 max-w-4xl text-balance font-display font-medium text-white [letter-spacing:-0.01em]"
+            >
               Tres caminos.
               <br />
               Una sola estrella.
             </h1>
-            <div className="mt-12 md:mt-16 flex flex-col items-center gap-2 text-white/40 animate-pulse">
-              <span className="text-[10px] tracking-[0.3em] uppercase">
+            <div className="mt-12 flex flex-col items-center gap-2 text-silver-500 md:mt-16">
+              <span className="text-eyebrow font-mono uppercase tracking-[0.14em]">
                 Scroll
               </span>
-              <ArrowDown className="w-4 h-4" />
+              <ArrowDown className="h-4 w-4" strokeWidth={1.5} />
             </div>
           </div>
 
           {/* Vignette + gradiente para legibilidad de los overlays de cada segmento */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/40 pointer-events-none" />
 
-          {/* Overlays de info (uno por segmento, solo activo en su pausa) */}
+          {/* Capítulos: un overlay por segmento. El reveal lo posee GSAP
+              (timeline por segmento); acá cero transición CSS. */}
           {SEGMENTS.map((seg, i) => (
             <div
               key={`overlay-${i}`}
               ref={(el) => {
                 overlayRefs.current[i] = el;
               }}
-              className="absolute inset-0 flex items-end pb-20 md:pb-32 px-6 md:px-12 transition-[opacity,transform] duration-700 ease-out pointer-events-none"
-              style={{ opacity: 0, transform: "translateY(20px)" }}
+              className="pointer-events-none absolute inset-0 flex items-end px-6 pb-24 md:px-12 md:pb-32"
             >
-              <div className="max-w-3xl mx-auto md:mx-0 md:ml-12 lg:ml-24 text-center md:text-left">
-                <p className="text-xs md:text-sm font-medium tracking-[0.3em] uppercase text-white/70 mb-4">
-                  {seg.eyebrow}
+              {/* Seg 2 (Sprinter): carrocería clara bajo el título → scrim
+                  izquierdo levemente más profundo, solo en desktop, para
+                  sostener el contraste del titular. Paint detrás del texto
+                  (el bloque de texto es `relative`). */}
+              {i === 1 && (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/55 via-transparent to-transparent md:block"
+                />
+              )}
+              <div className="relative mx-auto max-w-2xl text-center md:mx-0 md:ml-12 md:text-left lg:ml-24">
+                <p
+                  ref={(el) => {
+                    ovEyebrowRefs.current[i] = el;
+                  }}
+                  className="text-eyebrow mb-4 font-mono uppercase tracking-[0.14em] text-silver-300"
+                >
+                  {`0${i + 1} — ${seg.eyebrow}`}
                 </p>
-                <h2 className="text-4xl md:text-6xl lg:text-7xl font-serif tracking-tight leading-[1.05] text-white mb-6">
+                <h2
+                  ref={(el) => {
+                    ovTitleRefs.current[i] = el;
+                  }}
+                  className="text-display-2 mb-5 text-balance font-display font-medium text-white"
+                >
                   {seg.title}
                 </h2>
-                <p className="text-base md:text-lg font-light text-white/80 max-w-xl leading-relaxed">
+                <p
+                  ref={(el) => {
+                    ovLeadRefs.current[i] = el;
+                  }}
+                  className="text-lead mb-8 max-w-xl font-light text-silver-100 [text-wrap:balance]"
+                >
                   {seg.description}
                 </p>
+                <Link
+                  href={CHAPTER_HREF[i]}
+                  ref={(el) => {
+                    ovExploreRefs.current[i] = el;
+                  }}
+                  className="group/ex pointer-events-auto inline-flex items-center gap-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mb-blue"
+                >
+                  <span className="text-eyebrow font-mono uppercase tracking-[0.14em] text-silver-300 transition-colors duration-[var(--dur-micro)] group-hover/ex:text-white">
+                    Explorar
+                  </span>
+                  <span
+                    aria-hidden
+                    className="flex h-9 w-9 items-center justify-center border border-white/45 transition-colors duration-[var(--dur-micro)] group-hover/ex:border-white/70"
+                  >
+                    <ArrowRight
+                      size={15}
+                      strokeWidth={1.5}
+                      className="text-white transition-transform duration-[var(--dur-micro)] ease-[var(--ease-micro)] group-hover/ex:translate-x-1"
+                    />
+                  </span>
+                </Link>
               </div>
             </div>
           ))}
 
-          {/* Indicador único 01 02 03 — los 3 visibles, el activo destacado */}
-          <div className="absolute top-24 right-6 md:right-12 flex flex-col gap-3 pointer-events-none">
+          {/* Indicador de capítulos: numerales mono, activo blanco. Cero círculos. */}
+          <div className="pointer-events-none absolute right-6 top-24 z-20 flex flex-col gap-3 md:right-12">
             {SEGMENTS.map((_, i) => (
               <div
                 key={`ind-${i}`}
                 ref={(el) => {
                   indicatorRefs.current[i] = el;
                 }}
-                className="text-xs font-medium tracking-[0.3em] uppercase transition-[opacity,color] duration-500 ease-out"
-                style={{ opacity: i === 0 ? 1 : 0.35 }}
+                className="text-eyebrow font-mono uppercase tabular-nums tracking-[0.14em] text-silver-500 transition-colors duration-[var(--dur-micro)]"
               >
                 0{i + 1}
               </div>
@@ -513,60 +802,7 @@ export default function ExperienciaClient() {
       </div>
 
       {/* Grilla final — 5 categorías */}
-      <section className="min-h-screen bg-surface-0 py-24 md:py-32 px-6 md:px-12">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="text-center mb-16 md:mb-20">
-            <p className="text-xs md:text-sm font-medium tracking-[0.3em] uppercase text-gray-500 mb-4">
-              Elegí tu categoría
-            </p>
-            <h2 className="text-4xl md:text-6xl font-serif tracking-tight leading-tight max-w-3xl mx-auto">
-              Una gama para cada propósito.
-            </h2>
-          </div>
-
-          {/* Cards horizontales 3+2 */}
-          <div className="flex flex-wrap gap-4 md:gap-5 justify-center">
-            {CATEGORIES.map((cat) => (
-              <Link
-                key={cat.id}
-                href={cat.href}
-                className="group relative block w-full sm:w-[calc(50%-0.625rem)] lg:w-[calc(33.333%-0.834rem)] aspect-[16/9] overflow-hidden bg-neutral-900 border-2 border-transparent hover:border-white/20 transition-all duration-500"
-              >
-                <Image
-                  src={cat.image}
-                  alt={cat.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  unoptimized
-                  className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                />
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-
-                <div className="absolute bottom-0 left-0 w-full p-5 md:p-6">
-                  <p className="text-[10px] font-medium tracking-[0.3em] uppercase text-white/70 mb-2">
-                    {cat.featuredName}
-                  </p>
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-2xl md:text-3xl font-serif text-white tracking-tight">
-                      {cat.name}
-                    </h3>
-                    <div className="w-9 h-9 rounded-full border border-white/30 flex items-center justify-center opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500">
-                      <ArrowRight
-                        size={15}
-                        className="text-white"
-                        strokeWidth={1.5}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/60 [clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)] transition-[clip-path] duration-700 ease-out" />
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CategoriaGrid />
     </div>
   );
 }

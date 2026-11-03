@@ -1,0 +1,10 @@
+Vehiculo: Nuevo Clase E Sedan
+ID: 662ffbf7-3dfa-4e16-98ab-3f042b3e1112
+
+Carpetas:
+  hero/ -> 1 archivo: hero.mp4 (video) o hero.jpg / hero.avif (imagen)
+  exterior/ -> Hasta 6 fotos exterior
+  colors/ -> Hasta 7 fotos de colores disponibles
+  interior/ -> Hasta 6 fotos interior
+  equipment/ -> Hasta 8 fotos de equipamiento y multimedia
+  foto-card/ -> 1 foto para la tarjeta del catalogo

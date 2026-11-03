@@ -1,0 +1,10 @@
+Vehiculo: Actros 2045 y 2545
+ID: 82bf00f8-f8bf-440a-9b47-bf6ff96523ed
+
+Carpetas:
+  hero/ -> 1 archivo: hero.mp4 (video) o hero.jpg / hero.avif (imagen)
+  exterior/ -> Hasta 6 fotos exterior
+  colors/ -> Hasta 7 fotos de colores disponibles
+  interior/ -> Hasta 6 fotos interior
+  equipment/ -> Hasta 8 fotos de equipamiento y multimedia
+  foto-card/ -> 1 foto para la tarjeta del catalogo

@@ -14,6 +14,40 @@ import { routeByDate } from "./date-logic";
 type Supabase = SupabaseClient<Database>;
 
 // =========================================================================
+// Whitelist de columnas escribibles desde el cliente (mass-assignment guard)
+// =========================================================================
+// Espeja exactamente las claves de CreateCardPayload (menos product_ids/
+// interest_ids, que se manejan aparte como relaciones). Nunca dejar pasar
+// created_by/created_at/sold_at/id: esos se derivan server-side (moveCard
+// para sold_at, el propio createCard para created_by).
+const ALLOWED_CARD_FIELDS = [
+  "zona_id",
+  "client_name",
+  "client_phone",
+  "client_email",
+  "contact_kind",
+  "last_contact_at",
+  "next_contact_at",
+  "expected_close_at",
+  "notes",
+  "product_details",
+] as const;
+
+type AllowedCardField = (typeof ALLOWED_CARD_FIELDS)[number];
+
+function whitelistCardFields<T extends Record<string, unknown>>(
+  fields: T
+): Pick<T, Extract<keyof T, AllowedCardField>> {
+  const clean = {} as Pick<T, Extract<keyof T, AllowedCardField>>;
+  for (const key of Object.keys(fields) as (keyof T)[]) {
+    if ((ALLOWED_CARD_FIELDS as readonly string[]).includes(key as string)) {
+      (clean as Record<string, unknown>)[key as string] = fields[key];
+    }
+  }
+  return clean;
+}
+
+// =========================================================================
 // CREATE
 // =========================================================================
 export async function createCard(
@@ -21,28 +55,46 @@ export async function createCard(
   payload: CreateCardPayload,
   user: User | null
 ): Promise<string> {
-  const { product_ids = [], interest_ids = [], ...cardFields } = payload;
+  const { product_ids = [], interest_ids = [], ...rawFields } = payload;
+  const cardFields = whitelistCardFields(rawFields);
 
   if (!payload.zona_id) {
     throw new Error("zona_id es obligatorio para crear una tarjeta");
   }
 
-  // Regla de los 20 días: si la fecha al crear ya es >20d, va directo a Agenda.
-  // Si es ≤20d, respetamos la columna/zona que eligió el usuario.
+  // Placement inicial SOLICITADO por el cliente = semilla, nunca write crudo.
+  // Se valida contra el enum (descarta basura de un body crafteado) y se pasa
+  // por routeByDate, que aplica la regla de 20 días y respeta 'ventas'.
+  const requestedColumn: CardColumn =
+    payload.current_column && payload.current_column in COLUMN_LABELS
+      ? payload.current_column
+      : "contacto";
+  const requestedZone: CardZone =
+    payload.current_zone && payload.current_zone in ZONE_LABELS
+      ? payload.current_zone
+      : "pizarron";
+
   const routed = routeByDate(
     cardFields.next_contact_at ?? null,
-    cardFields.current_column ?? "contacto",
-    cardFields.current_zone ?? "pizarron"
+    requestedColumn,
+    requestedZone
   );
-  cardFields.current_column = routed.column;
-  cardFields.current_zone = routed.zone;
+
+  const insertPayload: Record<string, unknown> = {
+    ...cardFields,
+    current_column: routed.column,
+    current_zone: routed.zone,
+    created_by: user?.id ?? null,
+  };
+
+  // Cierra el residual de crear directo en Ventas sin fecha de venta.
+  if (routed.zone === "ventas") {
+    insertPayload.sold_at = new Date().toISOString().slice(0, 10);
+  }
 
   const { data: card, error } = (await supabase
     .from("crm_cards")
-    .insert({
-      ...cardFields,
-      created_by: user?.id ?? null,
-    } as never)
+    .insert(insertPayload as never)
     .select("id")
     .single()) as { data: { id: string } | null; error: unknown };
 
@@ -74,7 +126,7 @@ export async function createCard(
     cardId: card.id,
     action: "created",
     description: `Cliente ${payload.client_name} creado en ${
-      COLUMN_LABELS[payload.current_column ?? "contacto"]
+      COLUMN_LABELS[routed.column]
     }`,
     userId: user?.id,
     userEmail: user?.email ?? null,
@@ -92,7 +144,8 @@ export async function updateCard(
   payload: UpdateCardPayload,
   user: User | null
 ): Promise<void> {
-  const { product_ids, interest_ids, ...fields } = payload;
+  const { product_ids, interest_ids, ...rawFields } = payload;
+  const fields = whitelistCardFields(rawFields);
 
   // Snapshot previo para historial
   const { data: prevRaw } = await supabase
@@ -102,22 +155,26 @@ export async function updateCard(
     .single();
   const prev = prevRaw as unknown as CrmCardRow | null;
 
-  // Regla de los 20 días: si se está cambiando next_contact_at, re-rutear.
-  // Sólo se aplica cuando el caller incluye explícitamente ese campo.
+  // Regla de los 20 días: si se cambia next_contact_at, re-derivar columna/zona
+  // SERVER-SIDE a partir del estado previo + la nueva fecha. current_column/
+  // current_zone NUNCA salen del body (fuera de la whitelist): la única forma de
+  // mover una card es esta derivación por fecha o moveCard.
+  const routing: { current_column?: CardColumn; current_zone?: CardZone } = {};
   if (prev && "next_contact_at" in fields) {
     const routed = routeByDate(
       fields.next_contact_at ?? null,
       prev.current_column,
       prev.current_zone
     );
-    fields.current_column = routed.column;
-    fields.current_zone = routed.zone;
+    routing.current_column = routed.column;
+    routing.current_zone = routed.zone;
   }
 
-  if (Object.keys(fields).length > 0) {
+  const updatePayload = { ...fields, ...routing };
+  if (Object.keys(updatePayload).length > 0) {
     const { error } = await supabase
       .from("crm_cards")
-      .update(fields as never)
+      .update(updatePayload as never)
       .eq("id", cardId);
     if (error) throw error;
   }

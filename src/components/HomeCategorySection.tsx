@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import VehicleCard from "@/components/VehicleCard";
 import type { Vehicle } from "@/data/vehicles";
+import { usePrefersReducedMotion } from "@/components/vehicle-detail/usePrefersReducedMotion";
 
 const categoryNav = [
   { id: "AUTOS", label: "AUTOS" },
@@ -72,6 +73,7 @@ export default function HomeCategorySection({
 }) {
   const [selectedCategory, setSelectedCategory] = useState("AUTOS");
   const currentVehicles = getVehiclesByCategory(vehicles, selectedCategory);
+  const reduced = usePrefersReducedMotion();
 
   return (
     <section className="py-32 bg-black">
@@ -121,8 +123,9 @@ export default function HomeCategorySection({
               {currentVehicles.map((vehicle, index) => (
                 <motion.div
                   key={vehicle.id}
-                  initial={{ y: 24, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
+                  initial={reduced ? false : { y: 24, opacity: 0 }}
+                  whileInView={reduced ? undefined : { y: 0, opacity: 1 }}
+                  animate={reduced ? { y: 0, opacity: 1 } : undefined}
                   viewport={{ once: true, margin: "-10%" }}
                   transition={{ duration: 0.6, ease: "easeOut", delay: index * 0.08 }}
                 >

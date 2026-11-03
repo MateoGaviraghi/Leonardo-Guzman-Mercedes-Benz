@@ -1,12 +1,16 @@
 "use client";
 
 import VehicleCard from "@/components/VehicleCard";
+import VehicleCardSkeleton from "@/components/VehicleCardSkeleton";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useRef, type MouseEvent } from "react";
 import Image from "next/image";
+import { ChevronDown } from "lucide-react";
 import type { Vehicle } from "@/data/vehicles";
+import { gsap } from "gsap";
+import { EASE, DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
 
 function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
   const searchParams = useSearchParams();
@@ -15,25 +19,44 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
   const subcategory = searchParams.get("subcategory") || "all";
   const fuelType = searchParams.get("fuelType") || "all";
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [prevCategory, setPrevCategory] = useState(category);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  // Panel de filtros mobile (dropdown propio in-flow, sin librería).
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const revealedRef = useRef<Set<Element>>(new Set());
+  const firstBatchRef = useRef(true);
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+  const REVEAL_STAGGER = 0.06; // const nombrada (mata el 0.06 magico de fix 4)
 
-  // Sincroniza una transición temporal (1.6s) con un timer externo cuando cambia
-  // la categoría. Es un caso legítimo de useEffect (driving an external timer),
-  // pero react-hooks/set-state-in-effect no lo distingue.
+  // Categorías ya visitadas: cada una monta su <video> una vez y queda montado.
+  // key estable (id de categoría) → jamás re-monta ni re-descarga al revisitar.
+  const [visitedCats, setVisitedCats] = useState<string[]>([category]);
   useEffect(() => {
-    if (category === prevCategory) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsTransitioning(true);
-    // El overlay hace 300ms de wipe-in (translateX -100% → 0%).
-    // Cuando isTransitioning vuelve a false, AnimatePresence dispara el exit
-    // de 300ms (translateX 0% → 100%). Total: 600ms.
-    const timer = setTimeout(() => {
-      setIsTransitioning(false);
-      setPrevCategory(category);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [category, prevCategory]);
+    // Diferido un frame: el commit del <video> nuevo (preload=metadata, play)
+    // no debe caer en la misma tarea que el click de cambio de categoría.
+    const raf = requestAnimationFrame(() => {
+      setVisitedCats((prev) => (prev.includes(category) ? prev : [...prev, category]));
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [category]);
+
+  // Pausa los <video> de categorías no activas (siguen montados para el
+  // crossfade, pero no hace falta que decodifiquen frames a opacity-0).
+  // pause()/play() no tocan currentTime: al revisitar una categoría el
+  // video resume desde donde quedó, sin salto de frame.
+  useEffect(() => {
+    videoRefs.current.forEach((el, cat) => {
+      if (cat === category) {
+        el.play().catch(() => {});
+      } else {
+        el.pause();
+      }
+    });
+  }, [category, visitedCats]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,8 +66,51 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = (e: MediaQueryListEvent) =>
+      setPrefersReducedMotion(e.matches);
+    mq.addEventListener("change", handleChange);
+    return () => mq.removeEventListener("change", handleChange);
+  }, []);
+
+  // Modo AMG: señaliza al navbar vía atributo en <html>. El navbar lo observa
+  // con MutationObserver y electrifica sus acentos (teal #5AC3B6).
+  const isAmgActive =
+    brand === "amg" && (category === "auto" || category === "suv");
+  // Mirror del estado AMG en <html>, dependiente de [isAmgActive]: re-afirma el
+  // atributo cuando cambia el valor y en el doble-invoke de StrictMode. El
+  // cleanup-on-unmount (abajo, deps []) quita el atributo al salir de /vehicles.
+  useEffect(() => {
+    const html = document.documentElement;
+    if (isAmgActive) html.setAttribute("data-amg", "");
+    else html.removeAttribute("data-amg");
+  }, [isAmgActive]);
+  // Quitar el atributo solo al desmontar de verdad (salir de /vehicles). Si
+  // StrictMode simula un desmontaje, el mirror de arriba lo re-afirma en el
+  // render siguiente.
+  useEffect(() => {
+    return () => {
+      document.documentElement.removeAttribute("data-amg");
+    };
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Navegación shallow de los controles de filtro: actualiza la URL (query)
+  // sin disparar una navegación de Next (cero fetch del RSC payload). Next
+  // 14.1+ soporta pushState/replaceState nativos como shallow routing: el
+  // useSearchParams de este mismo componente reacciona sin round-trip. El
+  // href real se conserva en cada <Link> (SEO/deep-links intactos: carga
+  // directa con query sigue siendo SSR); solo interceptamos el click.
+  const shallowNavigate = (
+    e: MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    e.preventDefault();
+    window.history.pushState(null, "", href);
   };
 
   // Truck subcategories
@@ -126,6 +192,8 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
       "coupes",
       "coupé",
       "coupés",
+      "hatchback",
+      "hatchbacks",
       "electrico",
       "electricos",
       "eléctrico",
@@ -178,49 +246,52 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     return cat;
   };
 
-  // Filter vehicles based on category, brand, and subcategory
-  const filteredVehicles =
-    category === "all"
-      ? vehicles
-      : vehicles.filter((v) => {
-          const mainCategory = getMainCategory(v.category);
-          if (mainCategory !== category) return false;
+  // Predicado de filtrado (misma lógica de siempre, 100% intacta) como función
+  // pura: se evalúa por card sobre la lista COMPLETA de vehículos montada, así
+  // filtrar solo togglea `hidden` (display:none) sin remount ni re-animación.
+  const matchesFilters = (v: Vehicle): boolean => {
+    if (category === "all") return true;
+    const mainCategory = getMainCategory(v.category);
+    if (mainCategory !== category) return false;
 
-          // Filter by brand for auto and suv categories
-          if ((category === "auto" || category === "suv") && brand !== "all") {
-            const isAMG = v.is_amg || false;
-            if (brand === "amg" && !isAMG) return false;
-            if (brand === "mercedes-benz" && isAMG) return false;
-          }
+    // Filter by brand for auto and suv categories
+    if ((category === "auto" || category === "suv") && brand !== "all") {
+      const isAMG = v.is_amg || false;
+      if (brand === "amg" && !isAMG) return false;
+      if (brand === "mercedes-benz" && isAMG) return false;
+    }
 
-          // Filter by subcategory (body type)
-          if (subcategory !== "all") {
-            // Sprinter y Vans usan el `id` (slug) del vehículo porque todos
-            // comparten la misma `category` ("sprinter" o "vans") y los
-            // distinguimos por id (sprinter-furgon, vito-tourer, etc.).
-            if (category === "sprinter" || category === "vans") {
-              if (v.id !== subcategory) return false;
-            } else {
-              const vehicleCat = v.category.toLowerCase().trim();
-              if (
-                !vehicleCat.includes(subcategory) &&
-                vehicleCat !== subcategory
-              ) {
-                return false;
-              }
-            }
-          }
+    // Filter by subcategory (body type)
+    if (subcategory !== "all") {
+      // Sprinter y Vans usan el `id` (slug) del vehículo porque todos
+      // comparten la misma `category` ("sprinter" o "vans") y los
+      // distinguimos por id (sprinter-furgon, vito-tourer, etc.).
+      if (category === "sprinter" || category === "vans") {
+        if (v.id !== subcategory) return false;
+      } else {
+        const vehicleCat = v.category.toLowerCase().trim();
+        if (!vehicleCat.includes(subcategory) && vehicleCat !== subcategory) {
+          return false;
+        }
+      }
+    }
 
-          // Filter by fuel type
-          if (fuelType !== "all") {
-            const vehicleFuel = (v.fuel_type || "").toLowerCase().trim();
-            if (vehicleFuel !== fuelType) {
-              return false;
-            }
-          }
+    // Filter by fuel type
+    if (fuelType !== "all") {
+      const vehicleFuel = (v.fuel_type || "").toLowerCase().trim();
+      if (vehicleFuel !== fuelType) {
+        return false;
+      }
+    }
 
-          return true;
-        });
+    return true;
+  };
+  const matchCount = vehicles.filter(matchesFilters).length;
+
+  // Contador de filtros activos para el trigger del panel mobile. Brand no
+  // cuenta: vive fuera del panel (toggle MB/AMG siempre visible en mobile).
+  const activeFilterCount =
+    (subcategory !== "all" ? 1 : 0) + (fuelType !== "all" ? 1 : 0);
 
   const categories = [
     { id: "all", name: "Todos" },
@@ -231,55 +302,135 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     { id: "trucks", name: "Trucks" },
   ];
 
-  // Dynamic video selection based on category
-  const getHeroVideo = () => {
-    const videoMap: { [key: string]: string } = {
-      all: "/heros Vehiculos/MercedesBenz-todos.mp4",
-      auto: "/heros Vehiculos/mercedes benz auto.mp4",
-      suv: "/heros Vehiculos/mercedes benz suv.mp4",
-      vans: "/heros Vehiculos/mercedes benz vans.mp4",
-      sprinter: "/heros Vehiculos/mercedes benz sprinter.mp4",
-      trucks: "/heros Vehiculos/mercedes benz truck.mp4",
-    };
-    return videoMap[category] || videoMap.all;
+  // Mapa estático categoría→video. Cada categoría visitada monta su propio
+  // <video> con esta src (ver visitedCats); un mp4 ya visto no se re-pide.
+  const CATEGORY_VIDEOS: Record<string, string> = {
+    all: "/heros Vehiculos/MercedesBenz-todos.mp4",
+    auto: "/heros Vehiculos/mercedes benz auto.mp4",
+    suv: "/heros Vehiculos/mercedes benz suv.mp4",
+    vans: "/heros Vehiculos/mercedes benz vans.mp4",
+    sprinter: "/heros Vehiculos/mercedes benz sprinter.mp4",
+    trucks: "/heros Vehiculos/mercedes benz truck.mp4",
   };
+
+  // Grid — entrada de las VehicleCard vía IntersectionObserver (reemplaza
+  // ScrollTrigger.batch, ver AMENDMENT F4-2 / DEFECTO E): robusto ante
+  // hidden-toggle porque IO re-evalúa en cada cambio de layout, sin
+  // posiciones stale. Corre UNA sola vez (deps []); el cambio de filtro NO
+  // recrea nada — cero ScrollTrigger.refresh.
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>(".vcard-reveal"));
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduced) {
+      gsap.set(cards, { opacity: 1, scale: 1, clearProps: "transform" });
+      cards.forEach((c) => revealedRef.current.add(c));
+      return;
+    }
+
+    // Cascada hero→banda→cards: en el primer paint, las cards visibles arrancan
+    // tras el hero.
+    const CARD_COORD_DELAY = HERO_DELAY + 0.25;
+    let rafId = 0;
+    let pending: HTMLElement[] = [];
+
+    const flush = () => {
+      rafId = 0;
+      if (pending.length === 0) return;
+      const group = pending;
+      pending = [];
+      const coordinated = firstBatchRef.current; // el 1er grupo (above-fold) cae tras el hero
+      firstBatchRef.current = false;
+      const baseDelay = coordinated ? CARD_COORD_DELAY : 0;
+      group.forEach((el, i) => {
+        gsap.fromTo(
+          el,
+          { opacity: 0, scale: 0.96 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: DUR.element,
+            ease: GSAP_EASE.primary,
+            delay: baseDelay + i * REVEAL_STAGGER,
+            force3D: true,
+            clearProps: "transform", // deja opacity:1 inline -> persiste al togglear hidden
+            overwrite: true,
+          },
+        );
+      });
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const el = entry.target as HTMLElement;
+          io.unobserve(el); // una sola vez por card
+          if (revealedRef.current.has(el)) continue;
+          revealedRef.current.add(el);
+          pending.push(el);
+        }
+        if (pending.length && !rafId) rafId = requestAnimationFrame(flush);
+      },
+      { root: null, rootMargin: "0px 0px -12% 0px", threshold: 0.01 }, // ~ "top 88%"
+    );
+
+    cards.forEach((c) => io.observe(c));
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      io.disconnect();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-surface-0 text-white pb-12">
-      {/* Transition wipe — barrido horizontal blanco (300ms in + 300ms out) */}
-      <AnimatePresence>
-        {isTransitioning && (
-          <motion.div
-            initial={{ x: "-100%" }}
-            animate={{ x: "0%" }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.3, ease: [0.65, 0, 0.35, 1] }}
-            className="fixed inset-0 z-[100] bg-white pointer-events-none"
-          />
-        )}
-      </AnimatePresence>
-
       {/* Hero Section with Video */}
-      <div className="relative h-[85vh] flex items-center justify-center overflow-hidden mb-20">
-        <div className="absolute inset-0 bg-linear-to-b from-black/10 via-black/40 to-black z-10"></div>
-        {/* Video Background */}
-        <video
-          key={category}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-80"
-        >
-          <source src={getHeroVideo()} type="video/mp4" />
-        </video>
+      <div className="relative h-[100svh] flex items-center justify-center overflow-hidden mb-20">
+        {/* Video Background — un <video> persistente por categoría visitada.
+            Crossfade por opacity (compositor). El saliente sigue visible hasta
+            que el entrante llega a opacity-80 → cero frame negro, cero re-descarga. */}
+        <div className="absolute inset-0">
+          {visitedCats.map((cat) => (
+            <video
+              key={cat}
+              ref={(el) => {
+                if (el) videoRefs.current.set(cat, el);
+                else videoRefs.current.delete(cat);
+              }}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              className={`absolute inset-0 w-full h-full object-cover brightness-90 contrast-105 transition-opacity duration-[var(--dur-element)] ease-[var(--ease-secondary)] ${
+                category === cat ? "opacity-80" : "opacity-0"
+              }`}
+            >
+              <source src={CATEGORY_VIDEOS[cat] ?? CATEGORY_VIDEOS.all} type="video/mp4" />
+            </video>
+          ))}
+        </div>
+
+        {/* Scrim en capas: base inferior (ancla el texto) + viñeta superior (equilibra navbar) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-mb-black/80 via-mb-black/25 to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-0 h-1/3 bg-gradient-to-b from-mb-black/45 to-transparent z-10 pointer-events-none" />
 
         <div className="relative z-20 text-center px-6 max-w-4xl mx-auto">
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={
+              prefersReducedMotion
+                ? { opacity: 1, y: 0 }
+                : { opacity: 0, y: 16 }
+            }
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-5xl md:text-8xl font-serif font-bold tracking-[-0.02em] mb-6"
+            transition={{
+              duration: DUR.hero,
+              ease: EASE.primary,
+              delay: prefersReducedMotion ? 0 : HERO_DELAY,
+            }}
+            className="text-5xl md:text-8xl font-bold font-serif tracking-[-0.02em] mb-6 [text-shadow:0_2px_24px_rgba(5,5,5,0.45)]"
           >
             {category === "all" && "Toda Nuestra Gama"}
             {category === "auto" && "Autos"}
@@ -289,9 +440,17 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
             {category === "trucks" && "Trucks"}
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 30 }}
+            initial={
+              prefersReducedMotion
+                ? { opacity: 1, y: 0 }
+                : { opacity: 0, y: 16 }
+            }
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{
+              duration: DUR.hero,
+              ease: EASE.primary,
+              delay: prefersReducedMotion ? 0 : HERO_DELAY + 0.15,
+            }}
             className="text-xl md:text-2xl text-gray-300 font-light tracking-wide"
           >
             Ingeniería alemana. Excelencia garantizada.
@@ -299,42 +458,64 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
         </div>
       </div>
 
-      {/* Category Filter Buttons - Sticky bajo el navbar */}
-      <div className="sticky top-20 z-30 bg-surface-0/85 backdrop-blur-xl border-b border-white/10 py-5 mb-12">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="flex flex-wrap lg:flex-nowrap justify-center gap-3 lg:gap-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/vehicles?category=${cat.id}`}
-                className={`text-xs lg:text-sm font-bold tracking-widest uppercase transition-all px-4 py-3 lg:px-8 lg:py-4 border-2 ${
-                  category === cat.id
-                    ? "text-black bg-white border-white"
-                    : "text-white bg-transparent border-white/60 hover:bg-white hover:text-black hover:border-white"
-                }`}
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
+      {/* Category Filter Band — "banda de instrumentos" (sticky bajo el navbar) */}
+      <motion.div
+        initial={
+          prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }
+        }
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: DUR.element,
+          ease: EASE.primary,
+          delay: prefersReducedMotion ? 0 : HERO_DELAY + 0.1,
+        }}
+        className="lg:sticky lg:top-[calc(var(--nav-h)-1px)] z-30 bg-transparent backdrop-blur-md border-b border-white/10 mb-6 lg:mb-12"
+      >
+        <div className="mx-auto max-w-[1400px]">
+          {/* Mobile: grid fijo 2 filas × 3 (all·auto·suv / vans·sprinter·trucks),
+              labels completos, cero scroll horizontal. Desktop: flex centrado (intacto). */}
+          <ul className="grid grid-cols-3 lg:flex h-auto lg:h-14 lg:items-stretch lg:justify-center">
+            {categories.map((cat) => {
+              const active = category === cat.id;
+              return (
+                <li key={cat.id} className="relative flex">
+                  <Link
+                    href={`/vehicles?category=${cat.id}`}
+                    scroll={false}
+                    onClick={(e) => shallowNavigate(e, `/vehicles?category=${cat.id}`)}
+                    aria-current={active ? "true" : undefined}
+                    className={`group relative flex h-12 lg:h-full w-full items-center justify-center px-2 lg:px-7 focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-3px] focus-visible:outline-white/60 transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
+                      active ? "bg-white lg:bg-transparent" : "bg-transparent"
+                    }`}
+                  >
+                    <span
+                      className={`relative z-10 text-[11px] lg:text-xs uppercase leading-none tracking-[0.08em] transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
+                        active
+                          ? "text-black lg:text-white font-semibold"
+                          : "text-white/60 lg:text-white/60 font-normal group-hover:text-white"
+                      }`}
+                    >
+                      {cat.name}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </div>
-      </div>
+      </motion.div>
 
       {/* Main Content Container */}
-      <div
-        className={`w-full pt-12 pb-12 relative ${
-          (category === "auto" || category === "suv") && brand === "amg"
-            ? "bg-[radial-gradient(ellipse_at_top,rgba(90,195,182,0.08)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(90,195,182,0.05)_0%,transparent_40%)] bg-neutral-950"
-            : "bg-surface-1"
-        }`}
-      >
+      <div className="w-full pt-6 lg:pt-12 pb-12 relative bg-mb-black">
         {/* AMG Decorative Elements */}
         {(category === "auto" || category === "suv") && brand === "amg" && (
           <>
-            {/* Top border accent */}
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/40 to-transparent" />
-            {/* Bottom border accent */}
-            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#5AC3B6]/30 to-transparent" />
+            {/* Animated aurora background — luces teal a la deriva sobre negro */}
+            <div className="amg-aurora" aria-hidden="true">
+              <div className="amg-blob amg-blob--1" />
+              <div className="amg-blob amg-blob--2" />
+              <div className="amg-blob amg-blob--3" />
+            </div>
             {/* AMG Performance Badge */}
             <div className="absolute top-6 right-6 md:right-12 opacity-30 pointer-events-none hidden lg:block">
               <span className="text-[10px] font-bold tracking-[0.4em] text-[#5AC3B6] uppercase">
@@ -343,272 +524,380 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
             </div>
           </>
         )}
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div
-            className={
-              category === "trucks" ||
-              category === "auto" ||
-              category === "suv" ||
-              category === "sprinter" ||
-              category === "vans"
-                ? "flex flex-col lg:flex-row gap-8 lg:gap-12"
-                : ""
-            }
-          >
-            {/* Trucks Sidebar */}
-            {category === "trucks" && (
-              <aside className="w-full lg:w-80 shrink-0">
-                <div className="backdrop-blur-md rounded-lg overflow-hidden transition-all bg-neutral-900/80 border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-                  {/* Subcategories */}
-                  <nav className="p-3 lg:p-4 overflow-x-auto lg:overflow-x-visible">
-                    <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
-                      {truckSubcategories.map((subcat) => (
-                        <Link
-                          key={subcat.id}
-                          href={`/vehicles?category=trucks&subcategory=${subcat.id}`}
-                          scroll={false}
-                          className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
-                            subcategory === subcat.id
-                              ? "text-black bg-white border-white"
-                              : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
-                          }`}
-                        >
-                          {subcat.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </nav>
-                </div>
-              </aside>
-            )}
-
-            {/* Sprinter Sidebar */}
-            {category === "sprinter" && (
-              <aside className="w-full lg:w-80 shrink-0">
-                <div className="backdrop-blur-md rounded-lg overflow-hidden transition-all bg-neutral-900/80 border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-                  <div className="p-4 lg:p-5 border-b border-white/15">
-                    <h3 className="text-xs font-bold tracking-widest text-white/60 uppercase">
-                      Modelo
-                    </h3>
-                  </div>
-                  <nav className="p-3 lg:p-4 overflow-x-auto lg:overflow-x-visible">
-                    <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
-                      {sprinterSubcategories.map((subcat) => (
-                        <Link
-                          key={subcat.id}
-                          href={`/vehicles?category=sprinter&subcategory=${subcat.id}`}
-                          scroll={false}
-                          className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
-                            subcategory === subcat.id
-                              ? "text-black bg-white border-white"
-                              : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
-                          }`}
-                        >
-                          {subcat.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </nav>
-                </div>
-              </aside>
-            )}
-
-            {/* Vans Sidebar */}
-            {category === "vans" && (
-              <aside className="w-full lg:w-80 shrink-0">
-                <div className="backdrop-blur-md rounded-lg overflow-hidden transition-all bg-neutral-900/80 border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-                  <div className="p-4 lg:p-5 border-b border-white/15">
-                    <h3 className="text-xs font-bold tracking-widest text-white/60 uppercase">
-                      Modelo
-                    </h3>
-                  </div>
-                  <nav className="p-3 lg:p-4 overflow-x-auto lg:overflow-x-visible">
-                    <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
-                      {vansSubcategories.map((subcat) => (
-                        <Link
-                          key={subcat.id}
-                          href={`/vehicles?category=vans&subcategory=${subcat.id}`}
-                          scroll={false}
-                          className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
-                            subcategory === subcat.id
-                              ? "text-black bg-white border-white"
-                              : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
-                          }`}
-                        >
-                          {subcat.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </nav>
-                </div>
-              </aside>
-            )}
-
-            {/* Auto & SUV Sidebar with Brand Toggle */}
-            {(category === "auto" || category === "suv") && (
-              <aside className="w-full lg:w-80 shrink-0">
-                <div
-                  className={`backdrop-blur-md rounded-lg overflow-hidden transition-all duration-500 ${
-                    brand === "amg"
-                      ? "bg-gradient-to-b from-neutral-900/95 to-neutral-950/95 border border-[#5AC3B6]/25 shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_rgba(90,195,182,0.1)_inset]"
-                      : "bg-neutral-900/80 border border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
-                  }`}
-                >
-                  {/* Brand Toggle */}
-                  <div
-                    className={`p-4 lg:p-5 border-b ${
-                      brand === "amg"
-                        ? "border-[#5AC3B6]/30"
-                        : "border-white/15"
+        <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12">
+          {category !== "all" && (
+            <>
+              {/* ── TOGGLE MARCA MOBILE (fuera del panel, siempre visible) ── */}
+              {(category === "auto" || category === "suv") && (
+                <div className="lg:hidden mb-6 grid grid-cols-2 gap-2">
+                  <Link
+                    href={`/vehicles?category=${category}&brand=mercedes-benz`}
+                    scroll={false}
+                    onClick={(e) =>
+                      shallowNavigate(
+                        e,
+                        `/vehicles?category=${category}&brand=mercedes-benz`,
+                      )
+                    }
+                    className={`flex h-14 items-center justify-center border transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
+                      brand === "mercedes-benz"
+                        ? "border-white bg-white/[0.06]"
+                        : "border-white/20"
                     }`}
                   >
-                    <div className="flex gap-3 lg:gap-4">
-                      <Link
-                        href={`/vehicles?category=${category}&brand=mercedes-benz`}
-                        scroll={false}
-                        className={`flex-1 py-4 lg:py-5 px-3 lg:px-4 text-center font-bold transition-all flex flex-col items-center justify-center gap-2 rounded-md ${
-                          brand === "mercedes-benz"
-                            ? "bg-white/10 border-2 border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-                            : "bg-black/50 border-2 border-white/20 hover:border-white/40 hover:bg-black/70"
-                        }`}
-                      >
-                        <div className="relative w-full h-5 lg:h-6 flex items-center justify-center">
-                          <Image
-                            src="/logosParaSlidebar/mercedesBenzLogoLetras.png"
-                            alt="Mercedes-Benz"
-                            width={110}
-                            height={26}
-                            className="object-contain"
-                            style={{
-                              filter: "brightness(0) invert(1)",
-                            }}
-                          />
-                        </div>
-                      </Link>
-                      <Link
-                        href={`/vehicles?category=${category}&brand=amg`}
-                        scroll={false}
-                        className={`flex-1 py-4 lg:py-5 px-3 lg:px-4 text-center font-bold transition-all duration-500 flex flex-col items-center justify-center gap-2 rounded-md relative overflow-hidden ${
-                          brand === "amg"
-                            ? "bg-gradient-to-br from-[#5AC3B6]/25 via-[#5AC3B6]/15 to-[#5AC3B6]/20 border-2 border-[#5AC3B6] shadow-[0_0_30px_rgba(90,195,182,0.35),inset_0_1px_0_rgba(255,255,255,0.1)]"
-                            : "bg-black/50 border-2 border-white/20 hover:border-[#5AC3B6]/40 hover:bg-black/70"
-                        }`}
-                      >
-                        {brand === "amg" && (
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(90,195,182,0.2),transparent_70%)]" />
-                        )}
-                        <div className="relative z-10 w-full h-5 lg:h-6 flex items-center justify-center">
-                          <Image
-                            src="/logosParaSlidebar/logoAmgPhotoroom.png"
-                            alt="AMG"
-                            width={75}
-                            height={26}
-                            className="object-contain"
-                            style={{
-                              filter:
-                                brand === "amg"
-                                  ? "brightness(1.2) drop-shadow(0 0 8px rgba(90,195,182,0.5))"
-                                  : "brightness(0) invert(1)",
-                            }}
-                          />
-                        </div>
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Filters */}
-                  <div className="p-3 lg:p-4 overflow-x-auto lg:overflow-x-visible lg:max-h-[65vh] lg:overflow-y-auto custom-scrollbar space-y-6">
-                    {/* Carrocerías */}
-                    <div>
-                      <h3 className="text-xs font-bold tracking-widest text-white/60 mb-3 uppercase">
-                        Carrocerías
-                      </h3>
-                      <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
-                        {getBodyTypes().map((bodyType) => (
-                          <Link
-                            key={bodyType.id}
-                            href={`/vehicles?category=${category}&brand=${brand}&subcategory=${bodyType.id}&fuelType=${fuelType}`}
-                            scroll={false}
-                            className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
-                              subcategory === bodyType.id
-                                ? brand === "amg"
-                                  ? "text-black bg-[#5AC3B6] border-[#5AC3B6] shadow-md"
-                                  : "text-black bg-white border-white"
-                                : brand === "amg"
-                                ? "text-white bg-transparent border-[#5AC3B6]/30 hover:bg-[#5AC3B6]/10 hover:border-[#5AC3B6]/50"
-                                : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
-                            }`}
-                          >
-                            {bodyType.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Tipo de combustible */}
-                    <div>
-                      <h3 className="text-xs font-bold tracking-widest text-white/60 mb-3 uppercase">
-                        Tipo de combustible
-                      </h3>
-                      <div className="flex lg:flex-col gap-2 min-w-max lg:min-w-0">
-                        {fuelTypes.map((fuel) => (
-                          <Link
-                            key={fuel.id}
-                            href={`/vehicles?category=${category}&brand=${brand}&subcategory=${subcategory}&fuelType=${fuel.id}`}
-                            scroll={false}
-                            className={`whitespace-nowrap text-sm font-semibold tracking-wide uppercase transition-all px-5 py-3 border rounded-md text-center lg:text-left ${
-                              fuelType === fuel.id
-                                ? brand === "amg"
-                                  ? "text-black bg-[#5AC3B6] border-[#5AC3B6] shadow-md"
-                                  : "text-black bg-white border-white"
-                                : brand === "amg"
-                                ? "text-white bg-transparent border-[#5AC3B6]/30 hover:bg-[#5AC3B6]/10 hover:border-[#5AC3B6]/50"
-                                : "text-white bg-transparent border-white/30 hover:bg-white/10 hover:border-white/50"
-                            }`}
-                          >
-                            {fuel.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </aside>
-            )}
-
-            {/* Vehicle Grid */}
-            <div className="flex-1">
-              <div
-                className={`grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12 ${
-                  category === "trucks" ||
-                  category === "auto" ||
-                  category === "suv" ||
-                  category === "sprinter" ||
-                  category === "vans"
-                    ? "lg:grid-cols-2"
-                    : "lg:grid-cols-3"
-                }`}
-              >
-                {filteredVehicles.map((vehicle) => (
-                  <VehicleCard
-                    key={vehicle.id}
-                    title={vehicle.name}
-                    category={vehicle.category}
-                    href={`/vehicles/${vehicle.id}`}
-                    image={`/vehicles/${vehicle.id}/foto-card/card`}
-                    fuelType={vehicle.fuel_type}
-                    isAMG={brand === "amg"}
+                    <Image
+                      src="/logosParaSlidebar/mercedesBenzLogoLetras.png"
+                      alt="Mercedes-Benz"
+                      width={110}
+                      height={26}
+                      className="h-5 w-auto object-contain"
+                      style={{ filter: "brightness(0) invert(1)" }}
+                    />
+                  </Link>
+                  <Link
+                    href={`/vehicles?category=${category}&brand=amg`}
+                    scroll={false}
+                    onClick={(e) =>
+                      shallowNavigate(e, `/vehicles?category=${category}&brand=amg`)
+                    }
+                    aria-label="AMG"
+                    className={`h-14 border bg-mb-black bg-cover bg-center bg-no-repeat transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
+                      brand === "amg" ? "border-white" : "border-white/20"
+                    }`}
+                    style={{ backgroundImage: "url('/logo-amg.jpg')" }}
                   />
-                ))}
-              </div>
-
-              {filteredVehicles.length === 0 && (
-                <div className="text-center py-20 text-gray-500">
-                  No se encontraron vehículos en esta categoría.
                 </div>
               )}
-            </div>
+
+              {/* ── PANEL DE FILTROS MOBILE (in-flow, dropdown propio) ── */}
+              <div className="lg:hidden mb-8">
+                <button
+                  onClick={() => setFiltersOpen((o) => !o)}
+                  aria-expanded={filtersOpen}
+                  aria-controls="filtros-panel"
+                  className="flex w-full items-center justify-between border border-white/25 px-4 h-12 text-xs font-semibold uppercase tracking-[0.15em] text-white"
+                >
+                  <span className="flex items-center gap-2">
+                    Filtros
+                    {activeFilterCount > 0 && (
+                      <span className="flex h-5 min-w-5 items-center justify-center bg-white px-1 text-[10px] font-bold text-black tabular-nums">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${filtersOpen ? "rotate-180" : ""}`}
+                    strokeWidth={1.5}
+                  />
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {filtersOpen && (
+                    <motion.div
+                      id="filtros-panel"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: DUR.element, ease: EASE.secondary }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex flex-col gap-6 pt-6">
+                        {/* SECCIÓN CARROCERÍA / MODELO */}
+                        {getBodyTypes().length > 0 && (
+                          <section>
+                            <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
+                              {category === "auto" || category === "suv"
+                                ? "Carrocería"
+                                : "Modelo"}
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2">
+                              {getBodyTypes().map((bt) => {
+                                const href =
+                                  category === "auto" || category === "suv"
+                                    ? `/vehicles?category=${category}&brand=${brand}&subcategory=${bt.id}&fuelType=${fuelType}`
+                                    : `/vehicles?category=${category}&subcategory=${bt.id}`;
+                                return (
+                                  <Link
+                                    key={bt.id}
+                                    href={href}
+                                    scroll={false}
+                                    onClick={(e) => shallowNavigate(e, href)}
+                                    className={`flex h-11 items-center justify-center border px-3 text-[11px] font-semibold uppercase tracking-widest text-center transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
+                                      subcategory === bt.id
+                                        ? "text-black bg-white border-white"
+                                        : "text-white/70 border-white/25"
+                                    }`}
+                                  >
+                                    {bt.name}
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          </section>
+                        )}
+
+                        {/* SECCIÓN COMBUSTIBLE (solo auto/suv) */}
+                        {(category === "auto" || category === "suv") && (
+                          <section>
+                            <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
+                              Combustible
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2">
+                              {fuelTypes.map((fuel) => {
+                                const href = `/vehicles?category=${category}&brand=${brand}&subcategory=${subcategory}&fuelType=${fuel.id}`;
+                                return (
+                                  <Link
+                                    key={fuel.id}
+                                    href={href}
+                                    scroll={false}
+                                    onClick={(e) => shallowNavigate(e, href)}
+                                    className={`flex h-11 items-center justify-center border px-3 text-[11px] font-semibold uppercase tracking-widest transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
+                                      fuelType === fuel.id
+                                        ? "text-black bg-white border-white"
+                                        : "text-white/70 border-white/25"
+                                    }`}
+                                  >
+                                    {fuel.name}
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          </section>
+                        )}
+
+                        {/* Limpiar filtros: solo si hay activos */}
+                        {activeFilterCount > 0 && (
+                          <Link
+                            href={`/vehicles?category=${category}`}
+                            scroll={false}
+                            onClick={(e) => shallowNavigate(e, `/vehicles?category=${category}`)}
+                            className="h-11 flex items-center justify-center text-[11px] font-medium uppercase tracking-[0.15em] text-white/50 underline underline-offset-4"
+                          >
+                            Limpiar filtros
+                          </Link>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Trucks Filter Bar */}
+              {category === "trucks" && (
+                <div className="hidden lg:block">
+                <div className="mb-10 flex flex-wrap items-center justify-center gap-2">
+                  {truckSubcategories.map((subcat) => {
+                    const href = `/vehicles?category=trucks&subcategory=${subcat.id}`;
+                    return (
+                      <Link
+                        key={subcat.id}
+                        href={href}
+                        scroll={false}
+                        onClick={(e) => shallowNavigate(e, href)}
+                        className={`px-4 py-2.5 text-xs font-semibold tracking-widest uppercase border transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] whitespace-nowrap focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white/60 ${
+                          subcategory === subcat.id
+                            ? "text-black bg-white border-white"
+                            : "text-white/70 bg-transparent border-white/25 hover:text-white hover:border-white/50"
+                        }`}
+                      >
+                        {subcat.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+                </div>
+              )}
+
+              {/* Sprinter Filter Bar */}
+              {category === "sprinter" && (
+                <div className="hidden lg:block">
+                <div className="mb-10 flex flex-wrap items-center justify-center gap-2">
+                  {sprinterSubcategories.map((subcat) => {
+                    const href = `/vehicles?category=sprinter&subcategory=${subcat.id}`;
+                    return (
+                      <Link
+                        key={subcat.id}
+                        href={href}
+                        scroll={false}
+                        onClick={(e) => shallowNavigate(e, href)}
+                        className={`px-4 py-2.5 text-xs font-semibold tracking-widest uppercase border transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] whitespace-nowrap focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white/60 ${
+                          subcategory === subcat.id
+                            ? "text-black bg-white border-white"
+                            : "text-white/70 bg-transparent border-white/25 hover:text-white hover:border-white/50"
+                        }`}
+                      >
+                        {subcat.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+                </div>
+              )}
+
+              {/* Vans Filter Bar */}
+              {category === "vans" && (
+                <div className="hidden lg:block">
+                <div className="mb-10 flex flex-wrap items-center justify-center gap-2">
+                  {vansSubcategories.map((subcat) => {
+                    const href = `/vehicles?category=vans&subcategory=${subcat.id}`;
+                    return (
+                      <Link
+                        key={subcat.id}
+                        href={href}
+                        scroll={false}
+                        onClick={(e) => shallowNavigate(e, href)}
+                        className={`px-4 py-2.5 text-xs font-semibold tracking-widest uppercase border transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] whitespace-nowrap focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white/60 ${
+                          subcategory === subcat.id
+                            ? "text-black bg-white border-white"
+                            : "text-white/70 bg-transparent border-white/25 hover:text-white hover:border-white/50"
+                        }`}
+                      >
+                        {subcat.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+                </div>
+              )}
+
+              {/* Auto & SUV Filter Bar — marca grande arriba + sub-filtros abajo */}
+              {(category === "auto" || category === "suv") && (
+                <div className="hidden lg:block">
+                <div className="mb-10 flex flex-col items-center gap-6">
+                  {/* Brand Toggle — grande, centrado */}
+                  <div className="flex justify-center gap-4">
+                    <Link
+                      href={`/vehicles?category=${category}&brand=mercedes-benz`}
+                      scroll={false}
+                      onClick={(e) =>
+                        shallowNavigate(
+                          e,
+                          `/vehicles?category=${category}&brand=mercedes-benz`,
+                        )
+                      }
+                      className={`flex h-16 w-40 items-center justify-center border transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white/60 sm:h-20 sm:w-72 ${
+                        brand === "mercedes-benz"
+                          ? "border-white bg-white/[0.06]"
+                          : "border-white/20 hover:border-white/40"
+                      }`}
+                    >
+                      <Image
+                        src="/logosParaSlidebar/mercedesBenzLogoLetras.png"
+                        alt="Mercedes-Benz"
+                        width={110}
+                        height={26}
+                        className="h-6 w-auto object-contain sm:h-8"
+                        style={{ filter: "brightness(0) invert(1)" }}
+                      />
+                    </Link>
+                    <Link
+                      href={`/vehicles?category=${category}&brand=amg`}
+                      scroll={false}
+                      onClick={(e) =>
+                        shallowNavigate(e, `/vehicles?category=${category}&brand=amg`)
+                      }
+                      aria-label="AMG"
+                      className={`h-16 w-40 border bg-mb-black bg-cover bg-center bg-no-repeat transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white/60 sm:h-20 sm:w-72 ${
+                        brand === "amg"
+                          ? "border-white"
+                          : "border-white/20 hover:border-white/40"
+                      }`}
+                      style={{ backgroundImage: "url('/logo-amg.jpg')" }}
+                    />
+                  </div>
+
+                  {/* Sub-filtros — carrocería + combustible, destacados */}
+                  <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-3">
+                    <span className="mr-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
+                      Carrocería
+                    </span>
+                    {getBodyTypes().map((bodyType) => {
+                      const href = `/vehicles?category=${category}&brand=${brand}&subcategory=${bodyType.id}&fuelType=${fuelType}`;
+                      return (
+                        <Link
+                          key={bodyType.id}
+                          href={href}
+                          scroll={false}
+                          onClick={(e) => shallowNavigate(e, href)}
+                          className={`border px-4 py-2.5 text-xs font-semibold uppercase tracking-widest whitespace-nowrap transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white/60 ${
+                            subcategory === bodyType.id
+                              ? "text-black bg-white border-white"
+                              : "text-white/70 bg-transparent border-white/25 hover:text-white hover:border-white/50"
+                          }`}
+                        >
+                          {bodyType.name}
+                        </Link>
+                      );
+                    })}
+
+                    <span className="mx-2 hidden h-6 w-px bg-white/15 md:block" />
+
+                    <span className="mr-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
+                      Combustible
+                    </span>
+                    {fuelTypes.map((fuel) => {
+                      const href = `/vehicles?category=${category}&brand=${brand}&subcategory=${subcategory}&fuelType=${fuel.id}`;
+                      return (
+                        <Link
+                          key={fuel.id}
+                          href={href}
+                          scroll={false}
+                          onClick={(e) => shallowNavigate(e, href)}
+                          className={`border px-4 py-2.5 text-xs font-semibold uppercase tracking-widest whitespace-nowrap transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white/60 ${
+                            fuelType === fuel.id
+                              ? "text-black bg-white border-white"
+                              : "text-white/70 bg-transparent border-white/25 hover:text-white hover:border-white/50"
+                          }`}
+                        >
+                          {fuel.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Vehicle Grid */}
+          <div
+            ref={gridRef}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12"
+          >
+            {vehicles.map((vehicle) => (
+              <div
+                key={vehicle.id}
+                className={`vcard-reveal [content-visibility:auto] [contain-intrinsic-size:auto_233px] ${matchesFilters(vehicle) ? "" : "hidden"}`}
+              >
+                <VehicleCard
+                  title={vehicle.name}
+                  category={vehicle.category}
+                  href={`/vehicles/${vehicle.id}`}
+                  image={`/vehicles/${vehicle.id}/foto-card/card`}
+                  fuelType={vehicle.fuel_type}
+                  isAMG={brand === "amg"}
+                />
+              </div>
+            ))}
           </div>
+
+          {matchCount === 0 &&
+            ((category === "auto" || category === "suv") &&
+            brand === "amg" ? (
+              <div className="text-center py-24">
+                <p className="text-[10px] font-bold tracking-[0.4em] text-[#5AC3B6]/70 uppercase mb-4">
+                  Performance
+                </p>
+                <p className="text-lg md:text-xl font-light tracking-wide text-white/70">
+                  No se encontraron vehículos en esta categoría.
+                </p>
+              </div>
+            ) : (
+              <div className="text-center py-20 text-gray-500">
+                No se encontraron vehículos en esta categoría.
+              </div>
+            ))}
         </div>
       </div>
 
@@ -620,12 +909,12 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full hover:bg-white/20 transition-all group"
+            className="fixed bottom-6 right-6 z-40 h-12 w-12 flex items-center justify-center border border-white/20 bg-mb-black text-white transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] hover:bg-white hover:text-black hover:border-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-white/60 group"
             aria-label="Volver arriba"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-white group-hover:scale-110 transition-transform"
+              className="h-5 w-5 group-hover:scale-110 transition-transform"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -652,8 +941,15 @@ export default function VehiclesClient({
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-black flex items-center justify-center">
-          <div className="text-white text-xl">Cargando...</div>
+        <div className="min-h-screen bg-black">
+          <div className="h-[100svh] bg-mb-black" aria-hidden />
+          <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-12 pb-24">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <VehicleCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
         </div>
       }
     >

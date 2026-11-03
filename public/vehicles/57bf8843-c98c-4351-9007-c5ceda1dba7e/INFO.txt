@@ -1,0 +1,10 @@
+Vehiculo: CLA 200 Progressive
+ID: 57bf8843-c98c-4351-9007-c5ceda1dba7e
+
+Carpetas:
+  hero/ -> 1 archivo: hero.mp4 (video) o hero.jpg / hero.avif (imagen)
+  exterior/ -> Hasta 6 fotos exterior
+  colors/ -> Hasta 7 fotos de colores disponibles
+  interior/ -> Hasta 6 fotos interior
+  equipment/ -> Hasta 8 fotos de equipamiento y multimedia
+  foto-card/ -> 1 foto para la tarjeta del catalogo

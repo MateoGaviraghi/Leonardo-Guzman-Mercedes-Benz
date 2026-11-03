@@ -1,38 +1,30 @@
 "use client";
 
-import { motion } from "framer-motion";
-import Image from "next/image";
+import { motion, MotionConfig } from "framer-motion";
+import { EASE, PAGE_TRANSITION } from "@/lib/motion-tokens";
 
+/**
+ * Page transition (chrome-global §2.6): Next App Router re-monta este
+ * template en cada navegación. Entrada 300ms, opacity-only — nunca aplica
+ * `transform`, así que no crea containing block para `position:fixed`.
+ *
+ * Contrato con las páginas: los heros arrancan a HERO_DELAY (0.12s), en
+ * PARALELO a esta entrada (no en serie) — no esperan a que termine.
+ *
+ * `MotionConfig reducedMotion="user"` desactiva los transforms para
+ * usuarios con prefers-reduced-motion (Framer ignora el override CSS
+ * global porque anima con estilos inline).
+ */
 export default function Template({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      {/* Black Background Layer */}
+    <MotionConfig reducedMotion="user">
       <motion.div
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 0 }}
-        transition={{ delay: 0.8, duration: 0.8, ease: "easeInOut" }}
-        className="fixed inset-0 z-[100] bg-black pointer-events-none"
-      />
-
-      {/* Logo Layer */}
-      <motion.div
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: PAGE_TRANSITION.in, ease: EASE.primary }}
       >
-        <div className="relative w-32 h-32">
-          <Image
-            src="/logo-mercedes-benz.png"
-            alt="Mercedes-Benz Logo"
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
+        {children}
       </motion.div>
-
-      {children}
-    </>
+    </MotionConfig>
   );
 }
