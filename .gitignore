@@ -43,3 +43,11 @@ next-env.d.ts
 fichas-tecnicas
 # Fable orchestrator artifacts
 .fable/
+
+# Registro de sesión y material interno (el repo es público)
+/WORKLOG.md
+/MEMORY.md
+/carga/
+/PROJECT-BRAIN.md
+/CLAUDE.md
+/mensajes-pendientes.md

@@ -13,7 +13,7 @@ const SAFE_ID = /^[a-zA-Z0-9_-]+$/;
 /**
  * GET /api/admin/import-suggestions/[id]
  *
- * Lee el archivo local `{cwd}/.orq/carga/import-json/{id}.json` (formato
+ * Lee el archivo local `{cwd}/carga/import-json/{id}.json` (formato
  * vehicle-shaped, el mismo que acepta `normalizeVehicleJson`) y lo devuelve
  * crudo para que el panel "Sugerencias oficiales" lo consuma.
  *
@@ -40,7 +40,6 @@ export async function GET(_request: NextRequest, ctx: RouteContext) {
 
   const filePath = path.join(
     process.cwd(),
-    ".orq",
     "carga",
     "import-json",
     `${id}.json`
