@@ -180,6 +180,14 @@ export default function AdminPage() {
                         📁 Guía
                       </Link>
                       <Link
+                        href={`/vehicles/vista-previa/${vehicle.id}`}
+                        target="_blank"
+                        className="text-purple-600 hover:text-purple-900"
+                        title="Ver el vehículo como en la web (también si está oculto)"
+                      >
+                        👁 Vista previa
+                      </Link>
+                      <Link
                         href={
                           ["accelo", "atego", "actros", "arocs", "axor"].includes(
                             vehicle.category.toLowerCase(),

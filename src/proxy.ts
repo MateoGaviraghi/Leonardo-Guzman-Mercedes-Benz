@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * Proxy de Next.js 16 (ex-middleware).
  * Se encarga de:
  *   - Redirigir rutas de /admin y /crm al login si no hay sesión
+ *   - Exigir sesión en /vehicles/vista-previa (vista previa del admin; muestra ocultos)
  *   - Bloquear /api/vehicles (escritura) y /api/crm sin sesión
  *   - Dejar pasar /api/crm/cron/reschedule (se valida con CRON_SECRET en el endpoint)
  */
@@ -42,7 +43,9 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  const isAdminRoute = pathname.startsWith("/admin");
+  // La vista previa vive bajo /vehicles para verse igual que la web, pero es del admin.
+  const isAdminRoute =
+    pathname.startsWith("/admin") || pathname.startsWith("/vehicles/vista-previa");
   const isAdminLogin = pathname === "/admin/login";
 
   const isCrmRoute = pathname.startsWith("/crm");
@@ -106,6 +109,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*",
+    "/vehicles/vista-previa/:path*",
     "/crm/:path*",
     "/api/vehicles/:path*",
     "/api/crm/:path*",
