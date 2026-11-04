@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: false,
     formats: ["image/avif", "image/webp"],
+    // Next 16 solo acepta las calidades listadas acá (por defecto [75]); una
+    // calidad fuera de la lista da 400 en /_next/image. 20 = fondo desenfocado
+    // del carrusel (ShowroomCarousel), 100 = plan-ahorro.
+    qualities: [20, 75, 100],
   },
   turbopack: {
     root: __dirname,
