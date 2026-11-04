@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ShowroomCarousel, type ShowroomSlide } from "./ShowroomCarousel";
 
@@ -18,8 +18,46 @@ export function ColorCarousel({
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const [imageFormat, setImageFormat] = useState<Record<number, string>>({});
 
-  // Check for available color images (1-7)
-  const colorImages = [1, 2, 3, 4, 5, 6, 7].filter(
+  // Colores 1-7: se muestran y los que no tienen foto se descartan por onError.
+  // Colores 8-10 (autos con más de 7, como la CLE): se suman solo si la foto
+  // existe, porque fuera de pantalla el <Image> lazy nunca falla y quedarían
+  // slides vacíos en los autos que tienen 7.
+  const [extras, setExtras] = useState<number[]>([]);
+  useEffect(() => {
+    let vivo = true;
+    const formats = ["jpg", "png", "avif", "webp"];
+    const existe = (src: string) =>
+      new Promise<boolean>((ok) => {
+        const img = new window.Image();
+        img.onload = () => ok(true);
+        img.onerror = () => ok(false);
+        img.src = src;
+      });
+    (async () => {
+      const halladas: number[] = [];
+      const formatos: Record<number, string> = {};
+      for (const num of [8, 9, 10]) {
+        let hallada = false;
+        for (const f of formats) {
+          if (await existe(`/vehicles/${vehicleId}/colors/${num}.${f}`)) {
+            halladas.push(num);
+            formatos[num] = f;
+            hallada = true;
+            break;
+          }
+        }
+        if (!hallada) break; // numeración correlativa: si falta el 8, no hay 9
+      }
+      if (!vivo || !halladas.length) return;
+      setImageFormat((prev) => ({ ...prev, ...formatos }));
+      setExtras(halladas);
+    })();
+    return () => {
+      vivo = false;
+    };
+  }, [vehicleId]);
+
+  const colorImages = [1, 2, 3, 4, 5, 6, 7, ...extras].filter(
     (num) => !imageErrors.has(num)
   );
 

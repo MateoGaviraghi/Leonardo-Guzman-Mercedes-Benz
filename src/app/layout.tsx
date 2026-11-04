@@ -41,7 +41,7 @@ const siteUrl =
     : "http://localhost:3000");
 
 const siteTitle =
-  "Leonardo Guzman | Mercedes-Benz, en persona — Automotores Mega, Paraná";
+  "Leonardo Guzman | Asesor Mercedes-Benz — Automotores Mega, Paraná";
 const siteDescription =
   "Leonardo Guzman, promotor de ventas en Automotores Mega, concesionario oficial Mercedes-Benz en Paraná, Entre Ríos. Conocé la gama y consultá por WhatsApp.";
 

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 // es Client component (framer-motion). "Guzmán" con tilde acá y en alt/caption.
 export const metadata: Metadata = {
   title:
-    "Leonardo Guzmán — Mercedes-Benz, en persona | Automotores Mega, Paraná",
+    "Sobre mí — Leonardo Guzmán, asesor Mercedes-Benz | Automotores Mega, Paraná",
   description:
     "Promotor oficial Mercedes-Benz en Automotores Mega S.A., Paraná. 25 años de experiencia en el rubro automotriz. Atención personal en todas las etapas.",
 };
