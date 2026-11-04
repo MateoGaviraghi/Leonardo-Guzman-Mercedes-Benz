@@ -6,7 +6,9 @@
 // el 2026-11-03 para publicar el rediseño sin esperar la carga de estos dos,
 // que quedaron vacíos (sin datos ni fotos) desde el wipe del 2026-07-21.
 // Para volver a mostrar uno: sacar su id de la lista y publicar.
-export const HIDDEN_VEHICLE_IDS: readonly string[] = [];
+export const HIDDEN_VEHICLE_IDS: readonly string[] = [
+  "d5a517b8-0203-46a4-9dd9-602ce58e8e85", // Mercedes-Maybach Clase S (en carga)
+];
 
 export function isPublicVehicle(id: string): boolean {
   return !HIDDEN_VEHICLE_IDS.includes(id);
