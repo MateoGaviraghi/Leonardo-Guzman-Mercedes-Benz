@@ -463,7 +463,7 @@ export function ShowroomCarousel({
               <h3
                 ref={titleRef}
                 data-slide-title
-                className={`truncate text-xl font-medium md:text-2xl ${isAMG ? "text-amg-teal" : ""}`}
+                className={`text-balance text-xl font-medium md:text-2xl ${isAMG ? "text-amg-teal" : ""}`}
               >
                 {activeTitle}
               </h3>
