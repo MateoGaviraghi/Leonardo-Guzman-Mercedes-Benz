@@ -34,6 +34,7 @@ export default function Navbar() {
   // Tema dual: "cine" (negro, default) ↔ "papel" cuando una sección
   // [data-nav-theme="papel"] alcanza la franja superior del viewport.
   const [paper, setPaper] = useState(false);
+  const [paperColor, setPaperColor] = useState<string | null>(null);
   // Trackea el pathname que produjo el último reset de "paper" — permite
   // resetear el tema al cambiar de ruta durante el render (en vez de un
   // setState síncrono dentro del efecto) antes de que el observer más abajo
@@ -52,14 +53,23 @@ export default function Navbar() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
+  // Mobile (ref. Polestar): se esconde al bajar y vuelve apenas se sube.
+  const [navHidden, setNavHidden] = useState(false);
+  const lastY = useRef(0);
+
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      const y = window.scrollY;
+      setScrolled(y > 20);
+      const dy = y - lastY.current;
+      if (y < 120) setNavHidden(false);
+      else if (dy > 6) setNavHidden(true);
+      else if (dy < -6) setNavHidden(false);
+      if (Math.abs(dy) > 6) lastY.current = y;
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
   useEffect(() => {
     if (hideOnRoutes) return;
 
@@ -68,7 +78,12 @@ export default function Navbar() {
 
     // Las secciones papel se montan con la página (post page-transition).
     const attach = () => {
-      const sections = document.querySelectorAll('[data-nav-theme="papel"]');
+      // En el celular también cuentan las secciones blancas del detalle de vehículo
+      // (data-nav-mobile); en escritorio el header de esas páginas sigue como estaba.
+      const mobile = window.innerWidth < 1024;
+      const sections = document.querySelectorAll(
+        mobile ? '[data-nav-theme="papel"], [data-nav-mobile="papel"]' : '[data-nav-theme="papel"]'
+      );
       if (sections.length === 0) return;
       observer = new IntersectionObserver(
         (entries) => {
@@ -77,6 +92,13 @@ export default function Navbar() {
             else intersecting.delete(entry.target);
           }
           setPaper(intersecting.size > 0);
+          // Color exacto de la sección clara de abajo (blanco puro o papel): el header
+          // mobile lo copia para no dejar una franja de otro tono.
+          const first = intersecting.values().next().value as Element | undefined;
+          if (first) {
+            const bg = getComputedStyle(first).backgroundColor;
+            if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") setPaperColor(bg);
+          }
         },
         // Franja superior del viewport (donde vive el navbar)
         { rootMargin: "0px 0px -92% 0px", threshold: 0 }
@@ -156,9 +178,11 @@ export default function Navbar() {
   const textStrong = paper ? "text-ink" : "text-white";
   const textMuted = paper ? "text-ink-60" : "text-gray-400";
   const underlineBg = paper ? "bg-ink" : "bg-white";
+  // Escritorio: vidrio esmerilado (sin cambios). Celular: color pleno de la sección
+  // de abajo, sin el gris translúcido que dejaba el blur sobre fondos claros.
   const scrolledBg = paper
-    ? "bg-paper-0/85 backdrop-blur-2xl backdrop-saturate-150 border-b border-stroke-ink"
-    : "bg-black/55 backdrop-blur-2xl backdrop-saturate-150 border-b border-white/[0.08]";
+    ? "bg-[var(--nav-paper)] lg:bg-paper-0/85 lg:backdrop-blur-2xl lg:backdrop-saturate-150 border-b border-stroke-ink"
+    : "bg-black lg:bg-black/55 lg:backdrop-blur-2xl lg:backdrop-saturate-150 border-b border-white/[0.08]";
 
   const underline = (active: boolean) =>
     `absolute -bottom-2 left-0 right-0 h-[1.5px] ${amg ? "bg-[#5AC3B6]" : underlineBg} transition-[clip-path,background-color] duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
@@ -189,9 +213,10 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 h-[var(--nav-h)] flex items-center transition-all duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
+        className={`fixed top-0 left-0 right-0 z-50 h-[var(--nav-h)] flex items-center transition-[background-color,border-color,transform] duration-[550ms] ease-[var(--ease-secondary)] motion-reduce:transition-none ${
           scrolled ? scrolledBg : "bg-transparent"
-        }`}
+        } ${navHidden && !isOpen ? "max-lg:-translate-y-full" : "translate-y-0"}`}
+        style={{ "--nav-paper": paperColor ?? "var(--color-paper-0)" } as React.CSSProperties}
       >
         <div className="w-full px-6 md:px-12">
           <div className="hidden lg:grid lg:grid-cols-[auto_1fr_auto] items-center gap-8">
@@ -313,64 +338,43 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile Layout */}
-          <div className="lg:hidden flex items-center justify-between">
-            {/* Logo Mobile — quieto (hover no aplica en touch) */}
-            <Link href="/" className="flex items-center gap-4 group">
-              <div className="relative w-10 h-10 transition-transform duration-300 ease-[var(--ease-secondary)] group-hover:rotate-[30deg]">
+          {/* Mobile (2026-11-06, Mateo): solo la estrella a la izquierda, "Consultar"
+              metálico centrado y el menú solo con las barras a la derecha. */}
+          <div className="lg:hidden grid grid-cols-[1fr_auto_1fr] items-center">
+            <Link href="/" aria-label={`Inicio — ${SITE.name}`} className="justify-self-start">
+              <div className="relative w-9 h-9">
                 <Image
                   src="/logo-mercedes-benz.png"
                   alt="Mercedes-Benz Logo"
                   fill
-                  sizes="40px"
+                  sizes="36px"
                   className="object-contain"
                   priority
                 />
               </div>
-
-              <div className="flex flex-col">
-                <span className="flex items-baseline gap-2">
-                  <span
-                    className={`text-lg font-medium tracking-tight leading-none uppercase ${textStrong}`}
-                  >
-                    {SITE.name}
-                  </span>
-                  <AnimatePresence>
-                    {amg && (
-                      <motion.span
-                        key="amg-suffix-mobile"
-                        aria-hidden="true"
-                        className="font-sans text-[11px] font-medium tracking-[0.3em] leading-none uppercase text-[#5AC3B6]"
-                        initial={{ clipPath: reduced ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)" }}
-                        animate={{ clipPath: "inset(0 0% 0 0)" }}
-                        exit={{
-                          clipPath: "inset(0 100% 0 0)",
-                          transition: { duration: reduced ? 0 : 0.2, ease: EASE.secondary },
-                        }}
-                        transition={{
-                          duration: reduced ? 0 : 0.4,
-                          delay: reduced ? 0 : 0.2,
-                          ease: EASE.secondary,
-                        }}
-                      >
-                        / AMG
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </span>
-              </div>
             </Link>
 
-            {/* Mobile Menu Button — nunca muta a X; la única X vive en el overlay */}
+            {/* Siempre "Consultar" (Mateo: "Volver" no decía a dónde). Acero
+                metálico, estilos en globals.css (.cm-btn). */}
+            <a
+              href={waLink(WA_GENERIC_MESSAGE)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cm-btn"
+            >
+              <span className="cm-label">Consultar</span>
+            </a>
+
+            {/* Menú: solo las barras; la X vive en el overlay, en este mismo lugar */}
             <button
               ref={triggerRef}
               onClick={() => setIsOpen(true)}
               aria-label="Abrir menú"
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
-              className={`${textStrong} transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center`}
+              className={`justify-self-end -mr-2.5 flex items-center justify-center min-w-[44px] min-h-[44px] transition-colors duration-[550ms] ${textStrong}`}
             >
-              <Menu size={24} />
+              <Menu size={24} strokeWidth={1.25} aria-hidden />
             </button>
           </div>
         </div>
@@ -409,13 +413,13 @@ export default function Navbar() {
             transition={{ duration: DUR.micro, ease: EASE.secondary }} // exit rápido ~0.18s
             className="fixed inset-0 z-[60] bg-black lg:hidden flex flex-col px-6 pt-24 pb-8 overflow-y-auto"
           >
-            {/* Único botón de cierre */}
+            {/* Único botón de cierre — en el mismo lugar que las barras */}
             <button
               onClick={() => setIsOpen(false)}
               aria-label="Cerrar menú"
-              className="absolute top-5 right-6 text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="absolute top-0 right-[14px] h-[var(--nav-h)] min-w-[44px] flex items-center justify-center text-white"
             >
-              <X size={24} />
+              <X size={24} strokeWidth={1.25} aria-hidden />
             </button>
 
             {/* Links: numeración mono + display grande, coreografía por item */}

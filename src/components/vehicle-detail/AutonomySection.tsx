@@ -173,6 +173,8 @@ export function AutonomySection({
 
   return (
     <section
+      /* Sección blanca: en el celular el header se vuelve blanco al pasar (Navbar). */
+      data-nav-mobile={isAMG ? undefined : "papel"}
       className={`py-24 md:py-32 relative ${
         isAMG
           ? "bg-gradient-to-b from-neutral-900 via-black to-neutral-950 text-white"

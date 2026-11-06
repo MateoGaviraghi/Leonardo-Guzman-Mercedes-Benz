@@ -67,7 +67,8 @@
   --radius-lg: 12px; /* media sobre papel */
   --radius-pill: 999px;
 
-  /* Altura del navbar fixed (consumida por costuras de página) */
+  /* Altura del navbar fixed (consumida por costuras de página). En el celular
+     64px: ver el override al final del archivo. */
   --nav-h: 80px;
 
   /* Elevación SOLO sobre papel (sobre negro: salto de surface + stroke) */
@@ -356,4 +357,63 @@ html[data-pin-active] .wa-chip {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Header mobile (2026-11-05, ref. Rolls-Royce + Polestar): más bajo en el celular. */
+@media (max-width: 1023.98px) {
+  :root {
+    --nav-h: 64px;
+  }
+}
+
+/* Botón "Consultar" del header mobile (2026-11-06, Mateo eligió "Acero" entre
+   Acero / Anillo cromado / Luz que recorre): pastilla plateada con relieve y un
+   brillo que la cruza cada 5 s. Sin borde: relieve con sombras de ≤8px. */
+.cm-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  color: #0d0e10;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 48%, rgba(0,0,0,0.10) 52%, rgba(255,255,255,0.18) 100%),
+    linear-gradient(90deg, #a9aeb4 0%, #e6e8eb 22%, #c3c7cc 48%, #f1f2f4 70%, #a4a9af 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.95),
+    inset 0 -1px 0 rgba(0,0,0,0.28),
+    0 1px 1px rgba(0,0,0,0.35),
+    0 4px 8px rgba(0,0,0,0.28);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.cm-btn:active { transform: scale(0.97); }
+.cm-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.85) 50%, transparent 70%);
+  transform: translateX(-130%);
+  animation: cm-sheen 5s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  pointer-events: none;
+}
+.cm-label { position: relative; z-index: 2; }
+@keyframes cm-sheen {
+  0%, 62% { transform: translateX(-130%); }
+  100% { transform: translateX(130%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cm-btn::after { display: none; }
 }

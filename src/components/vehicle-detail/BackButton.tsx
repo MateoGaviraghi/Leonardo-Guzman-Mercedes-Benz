@@ -48,7 +48,8 @@ export function BackButton({ fadeOnScroll = false }: { fadeOnScroll?: boolean })
       onClick={handleClick}
       data-chrome
       aria-label="Volver"
-      className={`fixed left-4 md:left-6 top-[calc(var(--nav-h)+16px)] z-40 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.14em] text-silver-100 [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_10px_rgba(0,0,0,0.55)] hover:text-white ${
+      /* Solo escritorio: en el celular pisaba el contenido (TD-010) y el header lleva "Consultar". */
+      className={`fixed left-4 md:left-6 top-[calc(var(--nav-h)+16px)] z-40 hidden lg:flex items-center gap-2 font-mono text-xs uppercase tracking-[0.14em] text-silver-100 [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_2px_10px_rgba(0,0,0,0.55)] hover:text-white ${
         fadeOnScroll
           ? `transition-[opacity,transform] duration-[var(--dur-micro)] ease-[var(--ease-micro)] motion-reduce:transition-none ${
               hidden

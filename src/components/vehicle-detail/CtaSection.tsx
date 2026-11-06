@@ -63,6 +63,8 @@ export function CtaSection({ isAMG }: { isAMG: boolean }) {
 
   return (
     <section
+      /* Sección blanca: en el celular el header se vuelve blanco al pasar (Navbar). */
+      data-nav-mobile={isAMG ? undefined : "papel"}
       className={`py-32 md:py-40 relative ${
         isAMG
           ? "bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 text-white"
