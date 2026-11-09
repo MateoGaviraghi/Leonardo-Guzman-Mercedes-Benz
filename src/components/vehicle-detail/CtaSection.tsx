@@ -5,6 +5,7 @@ import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DUR, GSAP_EASE } from "@/lib/motion-tokens";
+import { pegar } from "@/lib/texto";
 import { registerGsap, prefersReduced, useMaskedLinesReveal } from "./useSectionReveal";
 
 export function CtaSection({ isAMG }: { isAMG: boolean }) {
@@ -84,12 +85,11 @@ export function CtaSection({ isAMG }: { isAMG: boolean }) {
           ¿Te interesa este vehículo?
         </h2>
         <p
-          className={`text-lg md:text-xl font-light mb-12 max-w-2xl mx-auto ${
+          className={`text-lg md:text-xl font-light mb-12 mx-auto ${
             isAMG ? "text-gray-300" : "text-gray-600"
           }`}
         >
-          Contactame para conocer más detalles, disponibilidad y coordinar
-          una visita personalizada
+          {pegar("Contactame para conocer más detalles, disponibilidad y coordinar una visita personalizada")}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

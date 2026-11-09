@@ -23,7 +23,7 @@ type Family = {
   items: SuggestionItem[];
 };
 
-const MAX_SLOTS = 10;
+const MAX_SLOTS = 12;
 
 const norm = (v: unknown) =>
   typeof v === "string" ? v.trim().toLowerCase() : "";

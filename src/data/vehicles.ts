@@ -42,7 +42,7 @@ export interface Vehicle {
   aspecto4Valor?: string; // Ej: "229 km/h"
   aspecto4Label?: string; // Ej: "Velocidad máxima"
 
-  // ========== EXTERIOR (hasta 10 imágenes) ==========
+  // ========== EXTERIOR (hasta 12 imágenes) ==========
   // Cada imagen tiene título + descripción (igual que equipamiento)
   exterior1Title?: string; // Ej: "Diseño frontal"
   exterior1Description?: string; // Descripción de la imagen 1
@@ -64,13 +64,17 @@ export interface Vehicle {
   exterior9Description?: string;
   exterior10Title?: string;
   exterior10Description?: string;
+  exterior11Title?: string;
+  exterior11Description?: string;
+  exterior12Title?: string;
+  exterior12Description?: string;
 
   // ========== COLORES (5 opciones) ==========
   // Solo imágenes - el frontend las muestra en un slider
   // No hay título ni descripción - solo cambio visual del color
   // Frontend busca: /vehicles/{id}/colors/1.avif, 2.avif, 3.avif, etc.
 
-  // ========== INTERIOR (hasta 10 imágenes) ==========
+  // ========== INTERIOR (hasta 12 imágenes) ==========
   // Cada imagen tiene título + descripción
   interior1Title?: string; // Ej: "Habitáculo premium"
   interior1Description?: string; // Descripción de la imagen 1
@@ -92,6 +96,10 @@ export interface Vehicle {
   interior9Description?: string;
   interior10Title?: string;
   interior10Description?: string;
+  interior11Title?: string;
+  interior11Description?: string;
+  interior12Title?: string;
+  interior12Description?: string;
 
   // ========== ESPECIFICACIONES TÉCNICAS ==========
   // 9 categorías, cada una con array de items { valor, label }

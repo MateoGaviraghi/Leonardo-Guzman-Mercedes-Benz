@@ -106,10 +106,10 @@ export function mapVehicleBodyToRow(body: VehicleBody): VehicleUpdate {
     truck_pdfs: serializeJson(body.truckPdfs),
   };
 
-  // Exterior + interior 1-10 (4 campos por índice)
+  // Exterior + interior 1-12 (4 campos por índice; 11 y 12 desde sql-updates/012)
   // Cast al final porque los keys dinámicos no se infieren con keyof.
   const dynamic = row as unknown as Record<string, string | null | undefined>;
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 12; i++) {
     dynamic[`exterior_${i}_title`] = asString(body[`exterior${i}Title`]);
     dynamic[`exterior_${i}_description`] = asString(
       body[`exterior${i}Description`]

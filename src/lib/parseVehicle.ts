@@ -71,8 +71,8 @@ export function parseVehicleFromDB(vehicle: any) {
     vehicle[camelKey] = vehicle[snakeKey];
   }
 
-  // exterior/interior 1-10
-  for (let i = 1; i <= 10; i++) {
+  // exterior/interior 1-12 (11 y 12 desde sql-updates/012)
+  for (let i = 1; i <= 12; i++) {
     vehicle[`exterior${i}Title`] = vehicle[`exterior_${i}_title`];
     vehicle[`exterior${i}Description`] = vehicle[`exterior_${i}_description`];
     vehicle[`interior${i}Title`] = vehicle[`interior_${i}_title`];

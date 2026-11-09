@@ -315,6 +315,10 @@ export type Database = {
           exterior_1_title: string | null;
           exterior_10_description: string | null;
           exterior_10_title: string | null;
+          exterior_11_description: string | null;
+          exterior_11_title: string | null;
+          exterior_12_description: string | null;
+          exterior_12_title: string | null;
           exterior_2_description: string | null;
           exterior_2_title: string | null;
           exterior_3_description: string | null;
@@ -337,6 +341,10 @@ export type Database = {
           interior_1_title: string | null;
           interior_10_description: string | null;
           interior_10_title: string | null;
+          interior_11_description: string | null;
+          interior_11_title: string | null;
+          interior_12_description: string | null;
+          interior_12_title: string | null;
           interior_2_description: string | null;
           interior_2_title: string | null;
           interior_3_description: string | null;
@@ -410,6 +418,10 @@ export type Database = {
           exterior_1_title?: string | null;
           exterior_10_description?: string | null;
           exterior_10_title?: string | null;
+          exterior_11_description?: string | null;
+          exterior_11_title?: string | null;
+          exterior_12_description?: string | null;
+          exterior_12_title?: string | null;
           exterior_2_description?: string | null;
           exterior_2_title?: string | null;
           exterior_3_description?: string | null;
@@ -432,6 +444,10 @@ export type Database = {
           interior_1_title?: string | null;
           interior_10_description?: string | null;
           interior_10_title?: string | null;
+          interior_11_description?: string | null;
+          interior_11_title?: string | null;
+          interior_12_description?: string | null;
+          interior_12_title?: string | null;
           interior_2_description?: string | null;
           interior_2_title?: string | null;
           interior_3_description?: string | null;
@@ -505,6 +521,10 @@ export type Database = {
           exterior_1_title?: string | null;
           exterior_10_description?: string | null;
           exterior_10_title?: string | null;
+          exterior_11_description?: string | null;
+          exterior_11_title?: string | null;
+          exterior_12_description?: string | null;
+          exterior_12_title?: string | null;
           exterior_2_description?: string | null;
           exterior_2_title?: string | null;
           exterior_3_description?: string | null;
@@ -527,6 +547,10 @@ export type Database = {
           interior_1_title?: string | null;
           interior_10_description?: string | null;
           interior_10_title?: string | null;
+          interior_11_description?: string | null;
+          interior_11_title?: string | null;
+          interior_12_description?: string | null;
+          interior_12_title?: string | null;
           interior_2_description?: string | null;
           interior_2_title?: string | null;
           interior_3_description?: string | null;

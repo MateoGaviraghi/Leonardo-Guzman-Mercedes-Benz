@@ -3,14 +3,25 @@
 import { useRef } from "react";
 import { ColorCarousel } from "./ColorCarousel";
 import { useMaskedLinesReveal } from "./useSectionReveal";
+import { waLink } from "@/lib/site";
 
 export function ColorsSection({
   vehicleId,
+  vehicleName,
+  colorImages,
   isAMG,
 }: {
   vehicleId: string;
+  vehicleName?: string;
+  colorImages?: { num: number; format: string }[];
   isAMG: boolean;
 }) {
+  // El carrusel muestra los colores que tenemos en foto; puede haber más en el mercado
+  // (2026-11-06, Mateo: "pone en algún lado consultanos para más colores").
+  const consulta = waLink(
+    // "del GLA" / "del Clase G" no suena bien: el nombre va entre paréntesis
+    `Hola Leonardo, quería consultar por otros colores${vehicleName ? ` (${vehicleName.trim()})` : ""}.`
+  );
   const h2Ref = useRef<HTMLHeadingElement>(null);
   useMaskedLinesReveal(h2Ref);
 
@@ -37,7 +48,27 @@ export function ColorsSection({
           Colores Disponibles
         </h2>
 
-        <ColorCarousel vehicleId={vehicleId} isAMG={isAMG} />
+        <ColorCarousel vehicleId={vehicleId} images={colorImages} isAMG={isAMG} />
+
+        {/* En el celular, una oración por línea (regla de saltos de línea) y con aire
+            para que el botón flotante de "volver arriba" no tape el link. */}
+        <p
+          className={`mt-12 text-center text-sm max-sm:px-12 ${
+            isAMG ? "text-white/60" : "text-ink-60"
+          }`}
+        >
+          <span className="whitespace-nowrap max-sm:block">¿Buscás otro color?</span>{" "}
+          <a
+            href={consulta}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`whitespace-nowrap max-sm:inline-block max-sm:mt-1 underline underline-offset-4 decoration-1 transition-colors duration-[var(--dur-micro)] ${
+              isAMG ? "text-white hover:text-amg-teal" : "text-ink hover:text-ink-60"
+            }`}
+          >
+            Consultanos por más colores
+          </a>
+        </p>
       </div>
     </section>
   );

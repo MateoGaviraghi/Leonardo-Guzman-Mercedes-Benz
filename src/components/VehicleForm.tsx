@@ -227,6 +227,10 @@ export default function VehicleForm({
       vehicle.exterior9Description = vehicle.exterior_9_description;
       vehicle.exterior10Title = vehicle.exterior_10_title;
       vehicle.exterior10Description = vehicle.exterior_10_description;
+      vehicle.exterior11Title = vehicle.exterior_11_title;
+      vehicle.exterior11Description = vehicle.exterior_11_description;
+      vehicle.exterior12Title = vehicle.exterior_12_title;
+      vehicle.exterior12Description = vehicle.exterior_12_description;
 
       vehicle.interior1Title = vehicle.interior_1_title;
       vehicle.interior1Description = vehicle.interior_1_description;
@@ -248,6 +252,10 @@ export default function VehicleForm({
       vehicle.interior9Description = vehicle.interior_9_description;
       vehicle.interior10Title = vehicle.interior_10_title;
       vehicle.interior10Description = vehicle.interior_10_description;
+      vehicle.interior11Title = vehicle.interior_11_title;
+      vehicle.interior11Description = vehicle.interior_11_description;
+      vehicle.interior12Title = vehicle.interior_12_title;
+      vehicle.interior12Description = vehicle.interior_12_description;
 
       vehicle.equipmentGeneralTitle = vehicle.equipment_general_title;
       vehicle.equipmentGeneralDescription =
@@ -368,7 +376,7 @@ export default function VehicleForm({
   const isFilled = (v: unknown) => typeof v === "string" && v.trim() !== "";
   const arrLen = (k: keyof Vehicle) =>
     (formData[k] as unknown[] | undefined)?.length || 0;
-  const slots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const slots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const aspectosCount = [1, 2, 3, 4].filter(
     (n) => isFilled(fdRec[`aspecto${n}Valor`]) || isFilled(fdRec[`aspecto${n}Label`]),
   ).length;
@@ -683,7 +691,7 @@ export default function VehicleForm({
           </div>
 
           <div className="grid grid-cols-1 gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
               <div
                 key={num}
                 className="border-l-4 border-gray-400 pl-4 space-y-3"
@@ -860,7 +868,7 @@ export default function VehicleForm({
           </div>
 
           <div className="grid grid-cols-1 gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
               <div
                 key={num}
                 className="border-l-4 border-gray-400 pl-4 space-y-3"

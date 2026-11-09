@@ -11,7 +11,7 @@ import { useMaskedLinesReveal } from "./useSectionReveal";
 /* ═════════════════════════════════════════════════════════════
     EXTERIOR — sección con tabs internos (patrón MB Argentina).
     Tabs disponibles según los datos del vehículo:
-      • Aspectos destacados   ← exterior_1..10
+      • Aspectos destacados   ← exterior_1..12
       • Variantes carrocería  ← equip_variantes_carroceria   (Sprinter)
       • Acceso y carga        ← equip_carga                  (Sprinter)
     Si solo hay 1 tab no mostramos la barra de navegación (UX más limpia).
@@ -28,7 +28,7 @@ export function ExteriorSection({
   // Inicializamos con el primer tab disponible para no arrancar apuntando
   // a un tab que el vehículo no tiene.
   const [activeExteriorTab, setActiveExteriorTab] = useState<string>(() => {
-    const hasAspectos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some(
+    const hasAspectos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].some(
       (n) =>
         vehicle[`exterior${n}Title` as keyof Vehicle] ||
         vehicle[`exterior${n}Description` as keyof Vehicle]
@@ -46,7 +46,7 @@ export function ExteriorSection({
   const h2Ref = useRef<HTMLHeadingElement>(null);
   useMaskedLinesReveal(h2Ref);
 
-  const aspectosItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  const aspectosItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     .map((num) => ({
       num,
       title: vehicle[`exterior${num}Title` as keyof Vehicle] as

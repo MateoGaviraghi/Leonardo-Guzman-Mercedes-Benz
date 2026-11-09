@@ -17,12 +17,15 @@ import { BackToTop } from "@/components/vehicle-detail/BackToTop";
 export default function VehicleDetailClient({
   vehicle: initialVehicle,
   hasColorImages = false,
+  colorImages,
 }: {
   vehicle: Vehicle;
   /** Server detectó si hay archivos `1.<formato>` en /public/vehicles/<id>/colors/.
    *  Si es false, ocultamos la sección "Colores Disponibles" en lugar de mostrar
    *  un carrusel vacío. */
   hasColorImages?: boolean;
+  /** Colores que existen (número y formato), contados en el servidor. */
+  colorImages?: { num: number; format: string }[];
 }) {
   const vehicleId = initialVehicle.id;
   const vehicle = initialVehicle;
@@ -56,7 +59,12 @@ export default function VehicleDetailClient({
       <ExteriorSection vehicle={vehicle} isAMG={isAMG} basePath={basePath} />
       <InteriorSection vehicle={vehicle} isAMG={isAMG} basePath={basePath} />
       {hasColorImages && (
-        <ColorsSection vehicleId={vehicleId} isAMG={isAMG} />
+        <ColorsSection
+          vehicleId={vehicleId}
+          vehicleName={vehicle.name}
+          colorImages={colorImages}
+          isAMG={isAMG}
+        />
       )}
       <EquipmentSection vehicle={vehicle} isAMG={isAMG} basePath={basePath} />
       <SpecsSection vehicle={vehicle} isAMG={isAMG} />

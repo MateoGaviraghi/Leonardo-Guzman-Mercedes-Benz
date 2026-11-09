@@ -11,7 +11,7 @@ import { useMaskedLinesReveal } from "./useSectionReveal";
 /* ═════════════════════════════════════════════════════════════
     INTERIOR — sección con tabs internos (patrón MB Argentina).
     Tabs disponibles según los datos del vehículo:
-      • Aspectos destacados        ← interior_1..10
+      • Aspectos destacados        ← interior_1..12
       • Variantes del compartimento ← equip_variantes_compartimento
       • Equipamiento compartimento  ← equip_equipamiento_compartimento
       • Puesto de conducción        ← equip_puesto_conduccion
@@ -26,7 +26,7 @@ export function InteriorSection({
   basePath: string;
 }) {
   const [activeInteriorTab, setActiveInteriorTab] = useState<string>(() => {
-    const hasAspectos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].some(
+    const hasAspectos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].some(
       (n) =>
         vehicle[`interior${n}Title` as keyof Vehicle] ||
         vehicle[`interior${n}Description` as keyof Vehicle]
@@ -51,7 +51,7 @@ export function InteriorSection({
   const h2Ref = useRef<HTMLHeadingElement>(null);
   useMaskedLinesReveal(h2Ref);
 
-  const aspectosItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  const aspectosItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     .map((num) => ({
       num,
       title: vehicle[`interior${num}Title` as keyof Vehicle] as

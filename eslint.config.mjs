@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Herramientas locales de carga de datos (gitignored, no se publican).
+    "carga/**",
   ]),
 ]);
 

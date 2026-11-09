@@ -86,6 +86,18 @@
   --dur-hero: 1100ms;
 }
 
+/* Saltos de línea (regla de Mateo, 2026-10-26): nunca una palabra sola en el último
+   renglón; los títulos, parejos. En la capa base para que una utilidad
+   (`text-balance`, `whitespace-nowrap`) lo pueda pisar en un componente. */
+@layer base {
+  p, li, dd, dt, figcaption, blockquote {
+    text-wrap: pretty;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+}
+
 :root {
   --background: #050505;
   --foreground: #ffffff;
