@@ -4,12 +4,34 @@ import { NextResponse, type NextRequest } from "next/server";
 /**
  * Proxy de Next.js 16 (ex-middleware).
  * Se encarga de:
- *   - Redirigir rutas de /admin y /crm al login si no hay sesión
- *   - Exigir sesión en /vehicles/vista-previa (vista previa del admin; muestra ocultos)
- *   - Bloquear /api/vehicles (escritura) y /api/crm sin sesión
+ *   - Admin de vehículos APAGADO (D-047, 2026-11-09): /admin y /vehicles/vista-previa
+ *     mandan al inicio; /api/vehicles no acepta escrituras y /api/admin no responde.
+ *     Los autos se cargan desde carga/ (cargar.js con la clave de servicio).
+ *     Las páginas siguen en el código: para volver a prenderlo, sacar este bloque.
+ *   - Redirigir /crm al login si no hay sesión
+ *   - Bloquear /api/crm sin sesión
  *   - Dejar pasar /api/crm/cron/reschedule (se valida con CRON_SECRET en el endpoint)
  */
 export async function proxy(request: NextRequest) {
+  const ruta = request.nextUrl.pathname;
+
+  // ---- ADMIN DE VEHÍCULOS APAGADO (D-047) ----
+  if (ruta.startsWith("/admin") || ruta.startsWith("/vehicles/vista-previa")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+  if (ruta.startsWith("/api/admin")) {
+    return NextResponse.json({ success: false, error: "No disponible" }, { status: 404 });
+  }
+  if (ruta.startsWith("/api/vehicles") && !["GET", "HEAD", "OPTIONS"].includes(request.method)) {
+    return NextResponse.json(
+      { success: false, error: "La carga de vehículos desde la web está apagada" },
+      { status: 405 }
+    );
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -43,25 +65,8 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // La vista previa vive bajo /vehicles para verse igual que la web, pero es del admin.
-  const isAdminRoute =
-    pathname.startsWith("/admin") || pathname.startsWith("/vehicles/vista-previa");
-  const isAdminLogin = pathname === "/admin/login";
-
   const isCrmRoute = pathname.startsWith("/crm");
   const isCrmLogin = pathname === "/crm/login";
-
-  // ---- ADMIN (panel de vehículos) ----
-  if (isAdminRoute && !isAdminLogin && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin/login";
-    return NextResponse.redirect(url);
-  }
-  if (isAdminLogin && user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin";
-    return NextResponse.redirect(url);
-  }
 
   // ---- CRM (sección separada de /admin) ----
   if (isCrmRoute && !isCrmLogin && !user) {
@@ -74,17 +79,6 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/crm";
     return NextResponse.redirect(url);
-  }
-
-  // ---- API: /api/vehicles (escritura autenticada) ----
-  if (pathname.startsWith("/api/vehicles")) {
-    const method = request.method;
-    if (["POST", "PUT", "DELETE"].includes(method) && !user) {
-      return NextResponse.json(
-        { success: false, error: "No autorizado" },
-        { status: 401 }
-      );
-    }
   }
 
   // ---- API: /api/crm (todo protegido) ----
@@ -112,6 +106,7 @@ export const config = {
     "/vehicles/vista-previa/:path*",
     "/crm/:path*",
     "/api/vehicles/:path*",
+    "/api/admin/:path*",
     "/api/crm/:path*",
   ],
 };

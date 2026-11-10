@@ -117,15 +117,6 @@ export default function CrmLoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-slate-500 mt-6">
-          ¿Sos administrador de vehículos?{" "}
-          <a
-            href="/admin/login"
-            className="text-slate-800 underline hover:text-slate-950"
-          >
-            Ingresar al panel de admin
-          </a>
-        </p>
       </div>
     </div>
   );
