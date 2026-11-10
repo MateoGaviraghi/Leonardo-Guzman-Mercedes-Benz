@@ -204,6 +204,7 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
       "convertible",
       "convertibles",
       "cabriolet",
+      "cabrios-roadsters",
       "amg", // AMG cars that are not SUVs go to auto
     ];
 
