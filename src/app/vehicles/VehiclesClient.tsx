@@ -9,7 +9,7 @@ import { Suspense, useState, useEffect, useRef, type MouseEvent } from "react";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { pegar } from "@/lib/texto";
-import type { Vehicle } from "@/data/vehicles";
+import type { VehiculoCatalogo as Vehicle } from "@/lib/vehicles/amg-tarjetas";
 import { gsap } from "gsap";
 import { EASE, DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
 
@@ -148,12 +148,6 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     { id: "cabrios-roadsters", name: "Cabrios/Roadsters" },
   ];
 
-  // Carrocerías - SUV subcategories
-  const suvBodyTypes = [
-    { id: "all", name: "Todos" },
-    { id: "suv-todoterreno", name: "SUV & Todoterreno" },
-  ];
-
   // Tipo de combustible (opcional para todos)
   const fuelTypes = [
     { id: "all", name: "Todos" },
@@ -166,7 +160,8 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
   const getBodyTypes = () => {
     if (category === "trucks") return truckSubcategories;
     if (category === "auto") return autoBodyTypes;
-    if (category === "suv") return suvBodyTypes;
+    // SUVs: una sola carrocería, la fila no filtraba nada (y "SUV & Todoterreno"
+    // daba siempre 0). Se saca (2026-11-10, Mateo: «Sí, todo»).
     if (category === "sprinter") return sprinterSubcategories;
     if (category === "vans") return vansSubcategories;
     return [];
@@ -248,6 +243,18 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     return cat;
   };
 
+  // Combustibles que tienen al menos un vehículo en la categoría actual: un
+  // botón que siempre da 0 (hoy «Eléctrico» e «Híbrido») no se muestra.
+  const fuelTypesVisibles = fuelTypes.filter(
+    (f) =>
+      f.id === "all" ||
+      vehicles.some(
+        (v) =>
+          getMainCategory(v.category) === category &&
+          (v.fuel_type || "").toLowerCase().trim() === f.id,
+      ),
+  );
+
   // Predicado de filtrado (misma lógica de siempre, 100% intacta) como función
   // pura: se evalúa por card sobre la lista COMPLETA de vehículos montada, así
   // filtrar solo togglea `hidden` (display:none) sin remount ni re-animación.
@@ -264,7 +271,7 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     }
 
     // Filter by subcategory (body type)
-    if (subcategory !== "all") {
+    if (subcategory !== "all" && getBodyTypes().some((b) => b.id === subcategory)) {
       // Sprinter y Vans usan el `id` (slug) del vehículo porque todos
       // comparten la misma `category` ("sprinter" o "vans") y los
       // distinguimos por id (sprinter-furgon, vito-tourer, etc.).
@@ -640,13 +647,14 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
                         )}
 
                         {/* SECCIÓN COMBUSTIBLE (solo auto/suv) */}
-                        {(category === "auto" || category === "suv") && (
+                        {(category === "auto" || category === "suv") &&
+                          fuelTypesVisibles.length > 1 && (
                           <section>
                             <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
                               Combustible
                             </h3>
                             <div className="grid grid-cols-2 gap-2">
-                              {fuelTypes.map((fuel) => {
+                              {fuelTypesVisibles.map((fuel) => {
                                 const href = `/vehicles?category=${category}&brand=${brand}&subcategory=${subcategory}&fuelType=${fuel.id}`;
                                 return (
                                   <Link
@@ -811,6 +819,8 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
 
                   {/* Sub-filtros — carrocería + combustible, destacados */}
                   <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-3">
+                    {getBodyTypes().length > 0 && (
+                    <>
                     <span className="mr-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
                       Carrocería
                     </span>
@@ -833,12 +843,19 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
                       );
                     })}
 
-                    <span className="mx-2 hidden h-6 w-px bg-white/15 md:block" />
+                    </>
+                    )}
 
+                    {getBodyTypes().length > 0 && fuelTypesVisibles.length > 1 && (
+                      <span className="mx-2 hidden h-6 w-px bg-white/15 md:block" />
+                    )}
+
+                    {fuelTypesVisibles.length > 1 && (
+                    <>
                     <span className="mr-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/60">
                       Combustible
                     </span>
-                    {fuelTypes.map((fuel) => {
+                    {fuelTypesVisibles.map((fuel) => {
                       const href = `/vehicles?category=${category}&brand=${brand}&subcategory=${subcategory}&fuelType=${fuel.id}`;
                       return (
                         <Link
@@ -856,6 +873,8 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
                         </Link>
                       );
                     })}
+                    </>
+                    )}
                   </div>
                 </div>
                 </div>
@@ -870,14 +889,18 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
           >
             {vehicles.map((vehicle) => (
               <div
-                key={vehicle.id}
+                key={vehicle.tarjetaAmg ? `amg-${vehicle.tarjetaAmg}` : vehicle.id}
                 className={`vcard-reveal [content-visibility:auto] [contain-intrinsic-size:auto_233px] ${matchesFilters(vehicle) ? "" : "hidden"}`}
               >
                 <VehicleCard
                   title={vehicle.name}
                   category={vehicle.category}
                   href={`/vehicles/${vehicle.id}`}
-                  image={`/vehicles/${vehicle.id}/foto-card/card`}
+                  image={
+                    vehicle.tarjetaAmg
+                      ? `/vehicles/amg/${vehicle.tarjetaAmg}/card`
+                      : `/vehicles/${vehicle.id}/foto-card/card`
+                  }
                   fuelType={vehicle.fuel_type}
                   isAMG={brand === "amg"}
                 />

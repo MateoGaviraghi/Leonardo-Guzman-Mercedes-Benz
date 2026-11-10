@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase";
 import type { Vehicle } from "@/data/vehicles";
 import { isPublicVehicle } from "@/lib/vehicles/hidden";
+import { sumarTarjetasAmg } from "@/lib/vehicles/amg-tarjetas";
 import VehiclesClient from "./VehiclesClient";
 
 export const revalidate = 60;
@@ -22,5 +23,5 @@ export default async function VehiclesPage() {
     isPublicVehicle(v.id)
   );
 
-  return <VehiclesClient vehicles={visible} />;
+  return <VehiclesClient vehicles={sumarTarjetasAmg(visible)} />;
 }
