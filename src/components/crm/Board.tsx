@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UserPlus } from "lucide-react";
 import {
@@ -41,9 +41,13 @@ export function Board({ cards: serverCards, zona }: Props) {
   // Copia local para drag optimista — se sincroniza con serverCards cuando
   // este cambia (después de router.refresh o al montar).
   const [cards, setCards] = useState<CrmCard[]>(serverCards);
-  useEffect(() => {
+  const [prevServerCards, setPrevServerCards] = useState(serverCards);
+  // Se ajusta al dibujar comparando con el valor anterior (patrón de react.dev
+  // «Ajustar estado cuando cambia una prop»), no en un efecto: evita un render de más.
+  if (serverCards !== prevServerCards) {
+    setPrevServerCards(serverCards);
     setCards(serverCards);
-  }, [serverCards]);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),

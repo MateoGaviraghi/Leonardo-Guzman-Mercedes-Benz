@@ -177,16 +177,16 @@ export default function Home() {
     [photoRotateXRaw, photoRotateYRaw],
   );
 
+  // will-change-transform transiente: solo mientras hay interacción
+  // (patrón AutonomySection.tsx) — evita promover una capa de compositor
+  // permanente para un retrato que no se mueve fuera de hover/focus.
+  const [isPhotoActive, setIsPhotoActive] = useState(false);
+
   const handlePhotoPointerLeave = useCallback(() => {
     photoRotateXRaw.set(0);
     photoRotateYRaw.set(0);
     setIsPhotoActive(false);
   }, [photoRotateXRaw, photoRotateYRaw]);
-
-  // will-change-transform transiente: solo mientras hay interacción
-  // (patrón AutonomySection.tsx) — evita promover una capa de compositor
-  // permanente para un retrato que no se mueve fuera de hover/focus.
-  const [isPhotoActive, setIsPhotoActive] = useState(false);
 
   // Fetch vehicles from API — NO TOCAR el fetching (mandato de spec).
   // Único agregado: capturar el error en estado local (estado error-de-fetch,
@@ -214,6 +214,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // Falso positivo: fetchVehicles solo llama a setState después del await.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchVehicles();
   }, [fetchVehicles]);
 

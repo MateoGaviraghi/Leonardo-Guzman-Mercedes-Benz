@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Save,
@@ -65,9 +65,13 @@ export function CardForm({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [prevInputs, setPrevInputs] = useState({ card, initialColumn });
+  // Se ajusta al dibujar comparando con el valor anterior (patrón de react.dev
+  // «Ajustar estado cuando cambia una prop»), no en un efecto: evita un render de más.
+  if (prevInputs.card !== card || prevInputs.initialColumn !== initialColumn) {
+    setPrevInputs({ card, initialColumn });
     setForm(buildInitialValues(card, initialColumn));
-  }, [card, initialColumn]);
+  }
 
   // Productos ordenados: autos → vans → trucks → otros (alfabético dentro de cada)
   const sortedProducts = useMemo(() => {

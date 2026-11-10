@@ -53,12 +53,16 @@ export function NextContactPrompt({ card, targetColumn, onClose }: Props) {
   const [date, setDate] = useState(suggested);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState({ isOpen, suggested });
+  // Se ajusta al dibujar comparando con el valor anterior (patrón de react.dev
+  // «Ajustar estado cuando cambia una prop»), no en un efecto: evita un render de más.
+  if (prevOpen.isOpen !== isOpen || prevOpen.suggested !== suggested) {
+    setPrevOpen({ isOpen, suggested });
     if (isOpen) {
       setDate(suggested);
       setSaving(false);
     }
-  }, [isOpen, suggested]);
+  }
 
   // Escape para saltar
   useEffect(() => {

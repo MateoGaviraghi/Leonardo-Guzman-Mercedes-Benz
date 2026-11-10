@@ -27,10 +27,6 @@ export default function AdminPage() {
     router.refresh();
   };
 
-  useEffect(() => {
-    fetchVehicles();
-  }, []);
-
   const fetchVehicles = async () => {
     try {
       const res = await fetch("/api/vehicles");
@@ -47,6 +43,12 @@ export default function AdminPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Falso positivo: fetchVehicles solo llama a setState después del await.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchVehicles();
+  }, []);
 
   const deleteVehicle = async (id: string) => {
     if (!confirm("¿Estás seguro de eliminar este vehículo?")) return;

@@ -50,13 +50,17 @@ export function ReturnToBoardModal({ card, originZone, onClose }: Props) {
   const [saving, setSaving] = useState(false);
 
   // Reset al abrir con una nueva card
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState({ card, defaultColumn });
+  // Se ajusta al dibujar comparando con el valor anterior (patrón de react.dev
+  // «Ajustar estado cuando cambia una prop»), no en un efecto: evita un render de más.
+  if (prevOpen.card !== card || prevOpen.defaultColumn !== defaultColumn) {
+    setPrevOpen({ card, defaultColumn });
     if (card) {
       setSelected(defaultColumn);
       setReason("");
       setSaving(false);
     }
-  }, [card, defaultColumn]);
+  }
 
   // Cerrar con Escape + bloquear scroll del body
   useEffect(() => {

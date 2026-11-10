@@ -20,12 +20,16 @@ export function useMaskedLinesReveal(
   ref: React.RefObject<HTMLElement | null>,
   opts?: { eyebrowRef?: React.RefObject<HTMLElement | null>; start?: string }
 ) {
+  // Sacados de `opts` para listarlos como dependencias: los que llaman pasan
+  // refs (estables) y textos fijos, así que el efecto sigue corriendo una vez.
+  const eyebrowRef = opts?.eyebrowRef;
+  const start = opts?.start;
   useEffect(() => {
     const el = ref.current; if (!el) return;
     registerGsap();
     if (prefersReduced()) {
       gsap.set(el, { autoAlpha: 1 });
-      if (opts?.eyebrowRef?.current) gsap.set(opts.eyebrowRef.current, { autoAlpha: 1 });
+      if (eyebrowRef?.current) gsap.set(eyebrowRef.current, { autoAlpha: 1 });
       return;
     }
     gsap.set(el, { autoAlpha: 0 });
@@ -37,14 +41,14 @@ export function useMaskedLinesReveal(
         onSplit(self) {
           const tl = gsap.timeline({ paused: true });
           gsap.set(el, { autoAlpha: 1 });
-          if (opts?.eyebrowRef?.current)
-            tl.from(opts.eyebrowRef.current, { autoAlpha: 0, clipPath: "inset(0 100% 0 0)", duration: DUR.element, ease: GSAP_EASE.secondary }, 0);
-          tl.from(self.lines, { yPercent: 100, duration: DUR.element, ease: GSAP_EASE.secondary, stagger: 0.25 }, opts?.eyebrowRef?.current ? 0.1 : 0);
-          st = ScrollTrigger.create({ trigger: el, start: opts?.start ?? "top 85%", once: true, onEnter: () => tl.play() });
+          if (eyebrowRef?.current)
+            tl.from(eyebrowRef.current, { autoAlpha: 0, clipPath: "inset(0 100% 0 0)", duration: DUR.element, ease: GSAP_EASE.secondary }, 0);
+          tl.from(self.lines, { yPercent: 100, duration: DUR.element, ease: GSAP_EASE.secondary, stagger: 0.25 }, eyebrowRef?.current ? 0.1 : 0);
+          st = ScrollTrigger.create({ trigger: el, start: start ?? "top 85%", once: true, onEnter: () => tl.play() });
           return tl as unknown as gsap.core.Timeline;
         },
       });
     });
     return () => { st?.kill(); split?.revert(); };
-  }, []);
+  }, [ref, eyebrowRef, start]);
 }

@@ -28,7 +28,8 @@ export default function TruckForm({
   isEdit = false,
 }: TruckFormProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  // Editando, arranca cargando (la carga del efecto ya no lo prende antes del await).
+  const [loading, setLoading] = useState(Boolean(isEdit && editVehicleId));
   const [error, setError] = useState<string | null>(null);
   const [vehicleId, setVehicleId] = useState<string>(editVehicleId || "");
 
@@ -59,73 +60,73 @@ export default function TruckForm({
   const storageFolderRef = useRef<string>(editVehicleId || crypto.randomUUID());
 
   useEffect(() => {
+    // La carga vive adentro del efecto (patrón de react.dev): todos los
+    // setState van después del primer await.
+    const loadVehicle = async () => {
+      try {
+        const response = await fetch(`/api/vehicles/${editVehicleId}`);
+        if (!response.ok) throw new Error("Error al cargar vehículo");
+        const data = await response.json();
+        const vehicle = data.vehicle;
+
+        // Parse JSON fields
+        const parseJson = (val: unknown) => {
+          if (!val) return [];
+          if (typeof val === "string") return JSON.parse(val);
+          return val;
+        };
+
+        vehicle.specsMotorizacion = parseJson(vehicle.specs_motorizacion);
+        vehicle.specsPotencia = parseJson(vehicle.specs_potencia);
+        vehicle.specsDimensiones = parseJson(vehicle.specs_dimensiones);
+        vehicle.specsCantidades = parseJson(vehicle.specs_cantidades);
+        vehicle.specsPerformance = parseJson(vehicle.specs_performance);
+        vehicle.specsCarroceria = parseJson(vehicle.specs_carroceria);
+        vehicle.specsChasis = parseJson(vehicle.specs_chasis);
+        vehicle.specsConsumo = parseJson(vehicle.specs_consumo);
+        vehicle.equipmentGeneralTitle = vehicle.equipment_general_title || "";
+        vehicle.equipmentGeneralDescription = vehicle.equipment_general_description || "";
+
+        vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
+        vehicle.aspecto1Label = vehicle.aspecto_1_label;
+        vehicle.aspecto2Valor = vehicle.aspecto_2_valor;
+        vehicle.aspecto2Label = vehicle.aspecto_2_label;
+        vehicle.aspecto3Valor = vehicle.aspecto_3_valor;
+        vehicle.aspecto3Label = vehicle.aspecto_3_label;
+        vehicle.aspecto4Valor = vehicle.aspecto_4_valor;
+        vehicle.aspecto4Label = vehicle.aspecto_4_label;
+
+        const rawSections = parseJson(vehicle.truck_sections);
+        setSections(
+          rawSections.map((s: Partial<TruckSection>) => ({
+            title: s.title || "",
+            type: s.type || "list",
+            items: s.items || [],
+            content: s.content || "",
+          })),
+        );
+
+        const rawPdfs = parseJson(vehicle.truck_pdfs);
+        setPdfs(
+          rawPdfs.map((p: Partial<TruckPdf>) => ({
+            name: p.name || "",
+            url: p.url || "",
+          })),
+        );
+
+        setVehicleId(vehicle.id);
+        setFormData(vehicle);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error desconocido");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (isEdit && editVehicleId) {
       loadVehicle();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editVehicleId, isEdit]);
-
-  const loadVehicle = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/vehicles/${editVehicleId}`);
-      if (!response.ok) throw new Error("Error al cargar vehículo");
-      const data = await response.json();
-      const vehicle = data.vehicle;
-
-      // Parse JSON fields
-      const parseJson = (val: unknown) => {
-        if (!val) return [];
-        if (typeof val === "string") return JSON.parse(val);
-        return val;
-      };
-
-      vehicle.specsMotorizacion = parseJson(vehicle.specs_motorizacion);
-      vehicle.specsPotencia = parseJson(vehicle.specs_potencia);
-      vehicle.specsDimensiones = parseJson(vehicle.specs_dimensiones);
-      vehicle.specsCantidades = parseJson(vehicle.specs_cantidades);
-      vehicle.specsPerformance = parseJson(vehicle.specs_performance);
-      vehicle.specsCarroceria = parseJson(vehicle.specs_carroceria);
-      vehicle.specsChasis = parseJson(vehicle.specs_chasis);
-      vehicle.specsConsumo = parseJson(vehicle.specs_consumo);
-      vehicle.equipmentGeneralTitle = vehicle.equipment_general_title || "";
-      vehicle.equipmentGeneralDescription = vehicle.equipment_general_description || "";
-
-      vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
-      vehicle.aspecto1Label = vehicle.aspecto_1_label;
-      vehicle.aspecto2Valor = vehicle.aspecto_2_valor;
-      vehicle.aspecto2Label = vehicle.aspecto_2_label;
-      vehicle.aspecto3Valor = vehicle.aspecto_3_valor;
-      vehicle.aspecto3Label = vehicle.aspecto_3_label;
-      vehicle.aspecto4Valor = vehicle.aspecto_4_valor;
-      vehicle.aspecto4Label = vehicle.aspecto_4_label;
-
-      const rawSections = parseJson(vehicle.truck_sections);
-      setSections(
-        rawSections.map((s: Partial<TruckSection>) => ({
-          title: s.title || "",
-          type: s.type || "list",
-          items: s.items || [],
-          content: s.content || "",
-        })),
-      );
-
-      const rawPdfs = parseJson(vehicle.truck_pdfs);
-      setPdfs(
-        rawPdfs.map((p: Partial<TruckPdf>) => ({
-          name: p.name || "",
-          url: p.url || "",
-        })),
-      );
-
-      setVehicleId(vehicle.id);
-      setFormData(vehicle);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

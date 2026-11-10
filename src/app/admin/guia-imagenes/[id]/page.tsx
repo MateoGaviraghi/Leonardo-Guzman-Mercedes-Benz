@@ -12,132 +12,133 @@ export default function GuiaImagenesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadVehicle();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicleId]);
+    // La carga vive adentro del efecto (patrón de react.dev): todos los
+    // setState van después del primer await.
+    const loadVehicle = async () => {
+      try {
+        const response = await fetch(`/api/vehicles/${vehicleId}`);
+        if (!response.ok) throw new Error("Error al cargar vehículo");
+        const data = await response.json();
 
-  const loadVehicle = async () => {
-    try {
-      const response = await fetch(`/api/vehicles/${vehicleId}`);
-      if (!response.ok) throw new Error("Error al cargar vehículo");
-      const data = await response.json();
-
-      // Helper que acepta string JSON (datos legacy) u objeto/array ya
-      // parseado (lo que devuelve Supabase para columnas JSONB nativas).
-      const parseJson = (val: unknown) => {
-        if (val === null || val === undefined) return undefined;
-        if (typeof val === "string") {
-          try {
-            return JSON.parse(val);
-          } catch {
-            return undefined;
+        // Helper que acepta string JSON (datos legacy) u objeto/array ya
+        // parseado (lo que devuelve Supabase para columnas JSONB nativas).
+        const parseJson = (val: unknown) => {
+          if (val === null || val === undefined) return undefined;
+          if (typeof val === "string") {
+            try {
+              return JSON.parse(val);
+            } catch {
+              return undefined;
+            }
           }
-        }
-        return val;
-      };
+          return val;
+        };
 
-      const vehicle = data.vehicle;
-      if (vehicle) {
-        // Specs
-        vehicle.specsConsumo = parseJson(vehicle.specs_consumo);
-        vehicle.specsMotorizacion = parseJson(vehicle.specs_motorizacion);
-        vehicle.specsPotencia = parseJson(vehicle.specs_potencia);
+        const vehicle = data.vehicle;
+        if (vehicle) {
+          // Specs
+          vehicle.specsConsumo = parseJson(vehicle.specs_consumo);
+          vehicle.specsMotorizacion = parseJson(vehicle.specs_motorizacion);
+          vehicle.specsPotencia = parseJson(vehicle.specs_potencia);
 
-        // Equipamiento (categorías genéricas)
-        vehicle.equipExterior = parseJson(vehicle.equip_exterior);
-        vehicle.equipInterior = parseJson(vehicle.equip_interior);
-        vehicle.equipMultimedia = parseJson(vehicle.equip_multimedia);
-        vehicle.equipAsistencia = parseJson(vehicle.equip_asistencia);
-        vehicle.equipConfort = parseJson(vehicle.equip_confort);
-        vehicle.equipTrenRodaje = parseJson(vehicle.equip_tren_rodaje);
-        vehicle.equipSeguridad = parseJson(vehicle.equip_seguridad);
+          // Equipamiento (categorías genéricas)
+          vehicle.equipExterior = parseJson(vehicle.equip_exterior);
+          vehicle.equipInterior = parseJson(vehicle.equip_interior);
+          vehicle.equipMultimedia = parseJson(vehicle.equip_multimedia);
+          vehicle.equipAsistencia = parseJson(vehicle.equip_asistencia);
+          vehicle.equipConfort = parseJson(vehicle.equip_confort);
+          vehicle.equipTrenRodaje = parseJson(vehicle.equip_tren_rodaje);
+          vehicle.equipSeguridad = parseJson(vehicle.equip_seguridad);
 
-        // Equipamiento Sprinter/Vito (categorías específicas de vans)
-        vehicle.equipVariantesCarroceria = parseJson(
-          vehicle.equip_variantes_carroceria
-        );
-        vehicle.equipCarga = parseJson(vehicle.equip_carga);
-        vehicle.equipVariantesCompartimento = parseJson(
-          vehicle.equip_variantes_compartimento
-        );
-        vehicle.equipEquipamientoCompartimento = parseJson(
-          vehicle.equip_equipamiento_compartimento
-        );
-        vehicle.equipPuestoConduccion = parseJson(
-          vehicle.equip_puesto_conduccion
-        );
+          // Equipamiento Sprinter/Vito (categorías específicas de vans)
+          vehicle.equipVariantesCarroceria = parseJson(
+            vehicle.equip_variantes_carroceria
+          );
+          vehicle.equipCarga = parseJson(vehicle.equip_carga);
+          vehicle.equipVariantesCompartimento = parseJson(
+            vehicle.equip_variantes_compartimento
+          );
+          vehicle.equipEquipamientoCompartimento = parseJson(
+            vehicle.equip_equipamiento_compartimento
+          );
+          vehicle.equipPuestoConduccion = parseJson(
+            vehicle.equip_puesto_conduccion
+          );
 
-        // Autonomía / carga (eléctricos)
-        vehicle.chargingTab1Content = parseJson(vehicle.charging_tab1_content);
-        vehicle.chargingTab2Content = parseJson(vehicle.charging_tab2_content);
+          // Autonomía / carga (eléctricos)
+          vehicle.chargingTab1Content = parseJson(vehicle.charging_tab1_content);
+          vehicle.chargingTab2Content = parseJson(vehicle.charging_tab2_content);
 
-        // Convertir snake_case a camelCase para campos simples
-        vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
-        vehicle.exterior1Title = vehicle.exterior_1_title;
-        vehicle.exterior1Description = vehicle.exterior_1_description;
-        vehicle.exterior2Title = vehicle.exterior_2_title;
-        vehicle.exterior2Description = vehicle.exterior_2_description;
-        vehicle.exterior3Title = vehicle.exterior_3_title;
-        vehicle.exterior3Description = vehicle.exterior_3_description;
-        vehicle.exterior4Title = vehicle.exterior_4_title;
-        vehicle.exterior4Description = vehicle.exterior_4_description;
-        vehicle.exterior5Title = vehicle.exterior_5_title;
-        vehicle.exterior5Description = vehicle.exterior_5_description;
-        vehicle.exterior6Title = vehicle.exterior_6_title;
-        vehicle.exterior6Description = vehicle.exterior_6_description;
-        vehicle.exterior7Title = vehicle.exterior_7_title;
-        vehicle.exterior7Description = vehicle.exterior_7_description;
-        vehicle.exterior8Title = vehicle.exterior_8_title;
-        vehicle.exterior8Description = vehicle.exterior_8_description;
-        vehicle.exterior9Title = vehicle.exterior_9_title;
-        vehicle.exterior9Description = vehicle.exterior_9_description;
-        vehicle.exterior10Title = vehicle.exterior_10_title;
-        vehicle.exterior10Description = vehicle.exterior_10_description;
+          // Convertir snake_case a camelCase para campos simples
+          vehicle.aspecto1Valor = vehicle.aspecto_1_valor;
+          vehicle.exterior1Title = vehicle.exterior_1_title;
+          vehicle.exterior1Description = vehicle.exterior_1_description;
+          vehicle.exterior2Title = vehicle.exterior_2_title;
+          vehicle.exterior2Description = vehicle.exterior_2_description;
+          vehicle.exterior3Title = vehicle.exterior_3_title;
+          vehicle.exterior3Description = vehicle.exterior_3_description;
+          vehicle.exterior4Title = vehicle.exterior_4_title;
+          vehicle.exterior4Description = vehicle.exterior_4_description;
+          vehicle.exterior5Title = vehicle.exterior_5_title;
+          vehicle.exterior5Description = vehicle.exterior_5_description;
+          vehicle.exterior6Title = vehicle.exterior_6_title;
+          vehicle.exterior6Description = vehicle.exterior_6_description;
+          vehicle.exterior7Title = vehicle.exterior_7_title;
+          vehicle.exterior7Description = vehicle.exterior_7_description;
+          vehicle.exterior8Title = vehicle.exterior_8_title;
+          vehicle.exterior8Description = vehicle.exterior_8_description;
+          vehicle.exterior9Title = vehicle.exterior_9_title;
+          vehicle.exterior9Description = vehicle.exterior_9_description;
+          vehicle.exterior10Title = vehicle.exterior_10_title;
+          vehicle.exterior10Description = vehicle.exterior_10_description;
+          vehicle.exterior11Title = vehicle.exterior_11_title;
+          vehicle.exterior11Description = vehicle.exterior_11_description;
+          vehicle.exterior12Title = vehicle.exterior_12_title;
+          vehicle.exterior12Description = vehicle.exterior_12_description;
         vehicle.exterior11Title = vehicle.exterior_11_title;
         vehicle.exterior11Description = vehicle.exterior_11_description;
         vehicle.exterior12Title = vehicle.exterior_12_title;
         vehicle.exterior12Description = vehicle.exterior_12_description;
-      vehicle.exterior11Title = vehicle.exterior_11_title;
-      vehicle.exterior11Description = vehicle.exterior_11_description;
-      vehicle.exterior12Title = vehicle.exterior_12_title;
-      vehicle.exterior12Description = vehicle.exterior_12_description;
-        vehicle.interior1Title = vehicle.interior_1_title;
-        vehicle.interior1Description = vehicle.interior_1_description;
-        vehicle.interior2Title = vehicle.interior_2_title;
-        vehicle.interior2Description = vehicle.interior_2_description;
-        vehicle.interior3Title = vehicle.interior_3_title;
-        vehicle.interior3Description = vehicle.interior_3_description;
-        vehicle.interior4Title = vehicle.interior_4_title;
-        vehicle.interior4Description = vehicle.interior_4_description;
-        vehicle.interior5Title = vehicle.interior_5_title;
-        vehicle.interior5Description = vehicle.interior_5_description;
-        vehicle.interior6Title = vehicle.interior_6_title;
-        vehicle.interior6Description = vehicle.interior_6_description;
-        vehicle.interior7Title = vehicle.interior_7_title;
-        vehicle.interior7Description = vehicle.interior_7_description;
-        vehicle.interior8Title = vehicle.interior_8_title;
-        vehicle.interior8Description = vehicle.interior_8_description;
-        vehicle.interior9Title = vehicle.interior_9_title;
-        vehicle.interior9Description = vehicle.interior_9_description;
-        vehicle.interior10Title = vehicle.interior_10_title;
-        vehicle.interior10Description = vehicle.interior_10_description;
+          vehicle.interior1Title = vehicle.interior_1_title;
+          vehicle.interior1Description = vehicle.interior_1_description;
+          vehicle.interior2Title = vehicle.interior_2_title;
+          vehicle.interior2Description = vehicle.interior_2_description;
+          vehicle.interior3Title = vehicle.interior_3_title;
+          vehicle.interior3Description = vehicle.interior_3_description;
+          vehicle.interior4Title = vehicle.interior_4_title;
+          vehicle.interior4Description = vehicle.interior_4_description;
+          vehicle.interior5Title = vehicle.interior_5_title;
+          vehicle.interior5Description = vehicle.interior_5_description;
+          vehicle.interior6Title = vehicle.interior_6_title;
+          vehicle.interior6Description = vehicle.interior_6_description;
+          vehicle.interior7Title = vehicle.interior_7_title;
+          vehicle.interior7Description = vehicle.interior_7_description;
+          vehicle.interior8Title = vehicle.interior_8_title;
+          vehicle.interior8Description = vehicle.interior_8_description;
+          vehicle.interior9Title = vehicle.interior_9_title;
+          vehicle.interior9Description = vehicle.interior_9_description;
+          vehicle.interior10Title = vehicle.interior_10_title;
+          vehicle.interior10Description = vehicle.interior_10_description;
+          vehicle.interior11Title = vehicle.interior_11_title;
+          vehicle.interior11Description = vehicle.interior_11_description;
+          vehicle.interior12Title = vehicle.interior_12_title;
+          vehicle.interior12Description = vehicle.interior_12_description;
         vehicle.interior11Title = vehicle.interior_11_title;
         vehicle.interior11Description = vehicle.interior_11_description;
         vehicle.interior12Title = vehicle.interior_12_title;
         vehicle.interior12Description = vehicle.interior_12_description;
-      vehicle.interior11Title = vehicle.interior_11_title;
-      vehicle.interior11Description = vehicle.interior_11_description;
-      vehicle.interior12Title = vehicle.interior_12_title;
-      vehicle.interior12Description = vehicle.interior_12_description;
-      }
+        }
 
-      setVehicle(vehicle);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setVehicle(vehicle);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVehicle();
+  }, [vehicleId]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);

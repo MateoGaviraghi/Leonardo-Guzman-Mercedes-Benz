@@ -1,8 +1,11 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+
+// La plataforma no cambia mientras la página está abierta: no hay a qué suscribirse.
+const noSubscribe = () => () => {};
 
 export function GlobalSearch() {
   const router = useRouter();
@@ -10,21 +13,23 @@ export function GlobalSearch() {
   const searchParams = useSearchParams();
   const initial = searchParams.get("q") ?? "";
   const [value, setValue] = useState(initial);
-  const [isMac, setIsMac] = useState(false);
+  // Mac o no: se lee del navegador con useSyncExternalStore (en el servidor da
+  // false), sin efecto y sin diferencia de hidratación.
+  const isMac = useSyncExternalStore(
+    noSubscribe,
+    () => /Mac|iPhone|iPad/i.test(navigator.platform),
+    () => false
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Detectar Mac para mostrar el símbolo correcto del atajo
-  useEffect(() => {
-    setIsMac(
-      typeof navigator !== "undefined" &&
-        /Mac|iPhone|iPad/i.test(navigator.platform)
-    );
-  }, []);
-
   // Sincronizar con cambios externos de la URL
-  useEffect(() => {
+  const [prevSearchParams, setPrevSearchParams] = useState(searchParams);
+  // Se ajusta al dibujar comparando con el valor anterior (patrón de react.dev
+  // «Ajustar estado cuando cambia una prop»), no en un efecto: evita un render de más.
+  if (searchParams !== prevSearchParams) {
+    setPrevSearchParams(searchParams);
     setValue(searchParams.get("q") ?? "");
-  }, [searchParams]);
+  }
 
   // Debounce 250ms — actualiza ?q= sin recargar la página
   useEffect(() => {
