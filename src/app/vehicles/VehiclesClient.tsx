@@ -243,14 +243,18 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
     return cat;
   };
 
-  // Combustibles que tienen al menos un vehículo en la categoría actual: un
-  // botón que siempre da 0 (hoy «Eléctrico» e «Híbrido») no se muestra.
+  // Combustibles que tienen al menos un vehículo en la categoría y la marca
+  // actuales: un botón que siempre da 0 no se muestra (p. ej. «Híbrido» en
+  // Autos › Mercedes-Benz, porque los dos híbridos son AMG).
   const fuelTypesVisibles = fuelTypes.filter(
     (f) =>
       f.id === "all" ||
       vehicles.some(
         (v) =>
           getMainCategory(v.category) === category &&
+          (brand === "all" ||
+            (brand === "amg") === Boolean(v.is_amg) ||
+            (category !== "auto" && category !== "suv")) &&
           (v.fuel_type || "").toLowerCase().trim() === f.id,
       ),
   );
