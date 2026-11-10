@@ -17,6 +17,7 @@ import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { DUR, EASE, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
 import { SITE, waLink } from "@/lib/site";
 
+import { pegar } from "@/lib/texto";
 // ══════════════════════════════════════════════════════════════════════════
 // LÓGICA INTOCABLE — contact.md §4.2 / redesign-about-contact.md §"Notas de
 // ejecución". Extraída tal cual del archivo original: validación por campo,
@@ -545,8 +546,7 @@ export default function ContactPage() {
                   ref={leadRef}
                   className="mt-4 max-w-[34ch] text-[1.0625rem] leading-[1.55] text-silver-100"
                 >
-                  Contame qué estás buscando y te respondo por WhatsApp — o
-                  elegí el canal que prefieras.
+                  {pegar("Contame qué estás buscando y te respondo por WhatsApp — o elegí el canal que prefieras.")}
                 </p>
               </div>
 

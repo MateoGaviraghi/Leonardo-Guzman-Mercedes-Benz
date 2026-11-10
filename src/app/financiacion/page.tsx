@@ -11,6 +11,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { SplitText } from "gsap/SplitText";
 import { DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
 
+import { pegar } from "@/lib/texto";
 // Registro de plugins a nivel de módulo: los componentes hijos (ProductVisual
 // / ProductCopy) crean su propio ScrollTrigger en su primer efecto, que en
 // React corre ANTES que el efecto del padre — si el registro viviera en un
@@ -431,7 +432,7 @@ function ProductCopy({
         data-copy-desc
         className={`mb-8 max-w-[60ch] text-base leading-relaxed ${descColor}`}
       >
-        {description}
+        {pegar(description)}
       </p>
 
       {benefits.length > 0 && (
@@ -445,7 +446,7 @@ function ProductCopy({
               <span className="mt-0.5 text-mb-blue">
                 <BenefitMark />
               </span>
-              <span className="text-sm md:text-base">{benefit}</span>
+              <span className="text-sm md:text-base">{pegar(benefit)}</span>
             </li>
           ))}
         </ul>
@@ -869,8 +870,8 @@ export default function FinanciacionPage() {
               Mercedes-Benz Financiera.
             </h1>
             <div ref={heroParaRef}>
-              <p className="text-lead mb-10 max-w-xl font-light text-silver-100">
-                Accedé a vehículos Mercedes-Benz de la manera más simple.
+              <p className="text-lead mb-10 font-light text-silver-100">
+                {pegar("Accedé a vehículos Mercedes-Benz de la manera más simple.")}
               </p>
             </div>
             <div ref={heroCtaRef}>
@@ -921,10 +922,7 @@ export default function FinanciacionPage() {
               ref={headerParaRef}
               className="text-lead mx-auto max-w-3xl text-silver-300"
             >
-              En Mercedes-Benz Financiera desarrollamos productos financieros
-              con una amplia gama de opciones que permiten acceder a
-              vehículos Mercedes-Benz de la manera más simple, transparente y
-              rápida.
+              {pegar("En Mercedes-Benz Financiera desarrollamos productos financieros con una amplia gama de opciones que permiten acceder a vehículos Mercedes-Benz de la manera más simple, transparente y rápida.")}
             </p>
           </div>
 
@@ -981,10 +979,8 @@ export default function FinanciacionPage() {
             Mercedes-Benz?
           </h2>
           <div ref={finalParaRef}>
-            <p className="text-lead mx-auto mb-10 max-w-2xl text-silver-300">
-              Estoy listo para ayudarte a encontrar la mejor opción de
-              financiación que se adapte a tus necesidades. Confía en mi
-              experiencia.
+            <p className="text-lead mx-auto mb-10 text-silver-300">
+              {pegar("Estoy listo para ayudarte a encontrar la mejor opción de financiación que se adapte a tus necesidades. Confía en mi experiencia.")}
             </p>
           </div>
           <div ref={finalCtaBtnRef}>

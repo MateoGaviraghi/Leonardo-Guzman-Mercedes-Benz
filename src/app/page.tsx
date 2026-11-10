@@ -21,6 +21,7 @@ import { waLink, WA_GENERIC_MESSAGE } from "@/lib/site";
 import { isPublicVehicle } from "@/lib/vehicles/hidden";
 import type { Vehicle } from "@/data/vehicles";
 
+import { pegar } from "@/lib/texto";
 /** Categorías del tab nav (home §Acto 2). IDs = claves del filtro cliente
  *  existente (NO tocar); labels = copy final de la spec. */
 const CATEGORY_TABS = [
@@ -937,20 +938,14 @@ export default function Home() {
                 Leonardo Guzman · Paraná, Entre Ríos
               </p>
               <h2 className="text-h1 mb-8 font-display font-medium text-ink">
-                La compra más importante empieza con una conversación.
+                {pegar("La compra más importante empieza con una conversación.")}
               </h2>
               <div className="max-w-[65ch] space-y-5">
                 <p className="text-base leading-relaxed text-ink">
-                  Soy Leonardo Guzman, promotor de ventas en Automotores Mega,
-                  concesionario oficial Mercedes-Benz en Paraná. Llevo 25 años
-                  en el rubro automotriz, y si algo aprendí es que un
-                  vehículo así no se elige apurado: se conversa, se compara,
-                  se prueba.
+                  {pegar("Soy Leonardo Guzman, promotor de ventas en Automotores Mega, concesionario oficial Mercedes-Benz en Paraná. Llevo 25 años en el rubro automotriz, y si algo aprendí es que un vehículo así no se elige apurado: se conversa, se compara, se prueba.")}
                 </p>
                 <p className="text-base leading-relaxed text-ink-60">
-                  Mi trabajo es que llegues a la decisión con toda la
-                  información — modelo, financiación, plan de ahorro — y que
-                  el proceso sea tan serio como el auto.
+                  {pegar("Mi trabajo es que llegues a la decisión con toda la información — modelo, financiación, plan de ahorro — y que el proceso sea tan serio como el auto.")}
                 </p>
               </div>
               <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">

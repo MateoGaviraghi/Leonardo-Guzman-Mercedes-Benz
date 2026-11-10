@@ -11,6 +11,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { SplitText } from "gsap/SplitText";
 import { DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
 
+import { pegar } from "@/lib/texto";
 // Tilt 3D (patrón Home / VehicleCard): rango contenido + spring de damping
 // alto, sin overshoot — movimiento premium, geometría recta (cero radio).
 const TILT_DEG = 6;
@@ -250,8 +251,8 @@ const PILLARS: Pillar[] = [
     caption: (
       <>
         Con el{" "}
-        <span className="font-medium text-white">respaldo y garantía</span> de
-        Mercedes-Benz Argentina y Mercedes-Benz Camiones y Buses Argentina.
+        <span className="font-medium text-white">respaldo y garantía</span>
+        {pegar(" de Mercedes-Benz Argentina y Mercedes-Benz Camiones y Buses Argentina.")}
       </>
     ),
   },
@@ -261,8 +262,8 @@ const PILLARS: Pillar[] = [
     icon: "star",
     caption: (
       <>
-        <span className="font-medium text-white">Todos los productos</span>{" "}
-        Mercedes-Benz, sin intermediarios, sin bancos.
+        <span className="font-medium text-white">Todos los productos</span>
+        {pegar(" Mercedes-Benz, sin intermediarios, sin bancos.")}
       </>
     ),
   },
@@ -272,8 +273,8 @@ const PILLARS: Pillar[] = [
     icon: "umbrella",
     caption: (
       <>
-        <span className="font-medium text-white">Protegés tus ahorros</span>{" "}
-        con nuestros planes.
+        <span className="font-medium text-white">Protegés tus ahorros</span>
+        {pegar(" con nuestros planes.")}
       </>
     ),
   },
@@ -813,8 +814,8 @@ export default function PlanAhorroPage() {
               Armá tu plan a la medida
             </h1>
             <div ref={heroParaRef}>
-              <p className="text-lead mb-10 max-w-xl font-light text-silver-100">
-                Accedé a tu Mercedes-Benz a través del plan de ahorro oficial.
+              <p className="text-lead mb-10 font-light text-silver-100">
+                {pegar("Accedé a tu Mercedes-Benz a través del plan de ahorro oficial.")}
               </p>
             </div>
             <div ref={heroCtaRef}>
@@ -859,10 +860,7 @@ export default function PlanAhorroPage() {
                 ref={nosotrosParaRef}
                 className="max-w-[62ch] text-lg font-light leading-relaxed text-ink md:text-xl"
               >
-                Por más de 45 años, con el respaldo y la garantía de
-                Mercedes-Benz Argentina y Mercedes-Benz Camiones y Buses
-                Argentina, te ofrecemos la posibilidad de acceder a la compra
-                del vehículo que vos y tu negocio necesitan.
+                {pegar("Por más de 45 años, con el respaldo y la garantía de Mercedes-Benz Argentina y Mercedes-Benz Camiones y Buses Argentina, te ofrecemos la posibilidad de acceder a la compra del vehículo que vos y tu negocio necesitan.")}
               </p>
             </div>
           </div>
@@ -953,7 +951,7 @@ export default function PlanAhorroPage() {
                     className="mt-0.5 h-11 w-11 shrink-0 text-ink/70 transition-colors duration-300 group-hover:text-ink"
                   />
                   <p className="pt-1 text-base leading-relaxed text-ink md:text-lg">
-                    {benefit.text}
+                    {pegar(benefit.text)}
                   </p>
                 </TiltCard>
               </div>
@@ -969,10 +967,12 @@ export default function PlanAhorroPage() {
             ref={ctaParaRef}
             className="mb-10 font-display text-[2rem] leading-tight text-silver-300 md:text-[3.25rem]"
           >
-            Subite a tu próximo Mercedes-Benz, con
-            <br />
+            {"Subite a tu próximo Mercedes‑Benz,"}{" "}
+            {/* En celular y tablet el texto corre seguido; el corte va solo en escritorio. */}
+            <br className="hidden lg:block" />
+            {"con "}
             <span className="font-normal text-white">
-              Mercedes-Benz Plan de Ahorro.
+              {pegar("Mercedes-Benz Plan de Ahorro.")}
             </span>
           </p>
 

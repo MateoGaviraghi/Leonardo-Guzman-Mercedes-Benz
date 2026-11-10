@@ -7,6 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
 
+import { pegar } from "@/lib/texto";
 type FieldName = "name" | "phone" | "email" | "vehicle" | "message";
 
 /** Beneficios (contenido verbatim — spec /usados). */
@@ -456,7 +457,8 @@ export default function UsadosPage() {
             ref={heroSubRef}
             className="max-w-xl text-lead font-light text-silver-100"
           >
-            Calidad certificada. Historia comprobada.
+            <span className="whitespace-nowrap">Calidad certificada.</span>{" "}
+            <span className="whitespace-nowrap">Historia comprobada.</span>
           </p>
         </div>
 
@@ -505,18 +507,10 @@ export default function UsadosPage() {
                 className="max-w-[60ch] space-y-5 text-pretty text-base font-light leading-relaxed text-silver-300"
               >
                 <p>
-                  En Automotores Mega, entendemos que comprar un usado es una
-                  decisión importante. Por eso, cada unidad es seleccionada
-                  con el compromiso de ofrecerte solo lo mejor. No se trata
-                  solo de vender autos, sino de construir relaciones
-                  duraderas basadas en la honestidad.
+                  {pegar("En Automotores Mega, entendemos que comprar un usado es una decisión importante. Por eso, cada unidad es seleccionada con el compromiso de ofrecerte solo lo mejor. No se trata solo de vender autos, sino de construir relaciones duraderas basadas en la honestidad.")}
                 </p>
                 <p>
-                  Con el respaldo de Leonardo Guzman y una trayectoria que
-                  nos avala, te brindamos la tranquilidad que necesitas.
-                  Conocemos lo que vendemos y te lo contamos con total
-                  transparencia, para que tu única preocupación sea
-                  disfrutar de tu próximo Mercedes-Benz.
+                  {pegar("Con el respaldo de Leonardo Guzman y una trayectoria que nos avala, te brindamos la tranquilidad que necesitas. Conocemos lo que vendemos y te lo contamos con total transparencia, para que tu única preocupación sea disfrutar de tu próximo Mercedes-Benz.")}
                 </p>
               </div>
 
@@ -540,7 +534,7 @@ export default function UsadosPage() {
                         </h3>
                       </div>
                       <p className="text-sm text-silver-500">
-                        {b.description}
+                        {pegar(b.description)}
                       </p>
                     </div>
                   </div>
@@ -568,7 +562,7 @@ export default function UsadosPage() {
 
                 <div ref={formTitleRef}>
                   <h2 className="mb-8 font-display text-2xl font-medium text-white">
-                    Encuentra tu próximo vehículo
+                    {pegar("Encuentra tu próximo vehículo")}
                   </h2>
                 </div>
 

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Suspense, useState, useEffect, useRef, type MouseEvent } from "react";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
+import { pegar } from "@/lib/texto";
 import type { Vehicle } from "@/data/vehicles";
 import { gsap } from "gsap";
 import { EASE, DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
@@ -432,7 +433,7 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
             }}
             className="text-5xl md:text-8xl font-bold font-serif tracking-[-0.02em] mb-6 [text-shadow:0_2px_24px_rgba(5,5,5,0.45)]"
           >
-            {category === "all" && "Toda Nuestra Gama"}
+            {category === "all" && pegar("Toda Nuestra Gama")}
             {category === "auto" && "Autos"}
             {category === "suv" && "SUVs"}
             {category === "vans" && "Vans"}
@@ -453,7 +454,8 @@ function VehiclesContent({ vehicles }: { vehicles: Vehicle[] }) {
             }}
             className="text-xl md:text-2xl text-gray-300 font-light tracking-wide"
           >
-            Ingeniería alemana. Excelencia garantizada.
+            <span className="whitespace-nowrap">Ingeniería alemana.</span>{" "}
+            <span className="whitespace-nowrap">Excelencia garantizada.</span>
           </motion.p>
         </div>
       </div>

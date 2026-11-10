@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import VehicleCard from "@/components/VehicleCard";
 
+import { pegar } from "@/lib/texto";
 const CATEGORIES = [
   {
     id: "auto",
@@ -98,8 +99,8 @@ export default function CategoriaGrid() {
           <p className="text-eyebrow mb-4 font-mono uppercase tracking-[0.14em] text-silver-500">
             Elegí tu categoría
           </p>
-          <h2 className="text-display-2 mx-auto max-w-3xl font-display font-medium text-white">
-            Una gama para cada propósito.
+          <h2 className="text-display-2 mx-auto font-display font-medium text-white">
+            {pegar("Una gama para cada propósito.")}
           </h2>
         </div>
 

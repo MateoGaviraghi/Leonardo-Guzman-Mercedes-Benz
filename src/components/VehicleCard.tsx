@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
+import { pegar } from "@/lib/texto";
 
 interface VehicleCardProps {
   title: string;
@@ -196,7 +197,7 @@ export default function VehicleCard({
                   : "text-white group-hover:text-white/90"
               }`}
             >
-              {title}
+              {pegar(title.trim())}
             </h3>
             <div
               className={`w-9 h-9 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0 ${

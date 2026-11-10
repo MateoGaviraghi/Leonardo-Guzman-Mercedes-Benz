@@ -11,6 +11,7 @@ import { SplitText } from "gsap/SplitText";
 import { DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
 import { waLink } from "@/lib/site";
 
+import { pegar } from "@/lib/texto";
 // redesign-about-contact.md §R2 — la ficha: la atribución vive EN el label,
 // siempre (prohibido "años en Mercedes"). Valores finales exactos del
 // checklist #6: 25 / +45 / +40.000, sin sufijo de palabra.
@@ -788,9 +789,7 @@ export default function AboutPage() {
                   ref={premiseLeadRef}
                   className="mt-3 text-[1.1875rem] leading-[1.6] text-ink"
                 >
-                  &ldquo;Veinticinco años en el rubro automotriz me enseñaron
-                  una cosa: un Mercedes-Benz se elige con calma, con
-                  información y con alguien que responda del otro lado.&rdquo;
+                  {pegar("“Veinticinco años en el rubro automotriz me enseñaron una cosa: un Mercedes-Benz se elige con calma, con información y con alguien que responda del otro lado.”")}
                 </p>
               </div>
             </div>
