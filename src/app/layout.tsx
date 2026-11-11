@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Cormorant_Garamond } from "next/font/google";
+import { Geist_Mono, Instrument_Serif, Noto_Sans, Noto_Sans_Display } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { MainWrapper } from "@/components/MainWrapper";
@@ -7,24 +7,37 @@ import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import WhatsAppChip from "@/components/WhatsAppChip";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Tipografías (2026-11-10, Mateo: «usar la más similares posible o idénticas» a las
+// de Mercedes-Benz). Las MB Corpo tienen licencia propia de la marca (OQ-016); estas
+// son las libres más parecidas, comparadas con texto real de mercedes-benz.com.ar:
+//   títulos    → Instrument Serif   (≙ MB Corpo A Title Condensed)
+//   subtítulos → Noto Sans Display  (≙ MB Corpo S Title)
+//   textos     → Noto Sans, 90 % de ancho (≙ MB Corpo S Text)
+// Los tokens viven en globals.css: si llega la licencia MB Corpo, el cambio es acá.
+const titulo = Instrument_Serif({
+  variable: "--nf-titulo",
   subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
+
+const subtitulo = Noto_Sans_Display({
+  variable: "--nf-subtitulo",
+  subsets: ["latin"],
+  axes: ["wdth"],
+  display: "swap",
+});
+
+const texto = Noto_Sans({
+  variable: "--nf-texto",
+  subsets: ["latin"],
+  axes: ["wdth"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
-
-// Display serif del sistema (≙ MB Corpo A Title). Mapeada por token
-// --font-display en globals.css: si algún día llega la licencia MB Corpo,
-// el swap es solo este bloque.
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  display: "swap",
 });
 
 // URL base del sitio — prioridad:
@@ -78,7 +91,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} antialiased flex flex-col min-h-screen`}
+        className={`${titulo.variable} ${subtitulo.variable} ${texto.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         {/* Skip-to-content link — invisible hasta que recibe focus por Tab */}
         <a

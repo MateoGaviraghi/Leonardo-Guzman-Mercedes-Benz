@@ -12,7 +12,6 @@ export default function Footer() {
   if (pathname.startsWith("/crm") || pathname.startsWith("/admin")) return null;
 
   const vehicleCats = [
-    { label: "Experiencia", href: "/experiencia" },
     { label: "Autos", href: "/vehicles?category=auto" },
     { label: "SUVs", href: "/vehicles?category=suv" },
     { label: "Vans", href: "/vehicles?category=vans" },

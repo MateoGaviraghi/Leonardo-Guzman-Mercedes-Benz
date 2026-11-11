@@ -844,8 +844,8 @@ export default function ContactPage() {
                     </motion.p>
                   ) : (
                     <p className="text-[13px] leading-snug text-silver-500">
-                      Se abre WhatsApp con el mensaje ya escrito — no se envía
-                      nada sin tu confirmación.
+                      Se abre WhatsApp con el mensaje ya escrito — no&nbsp;se&nbsp;envía
+                      nada sin tu&nbsp;confirmación.
                     </p>
                   )}
                 </div>

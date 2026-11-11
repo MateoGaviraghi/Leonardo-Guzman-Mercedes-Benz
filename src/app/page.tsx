@@ -32,6 +32,21 @@ const CATEGORY_TABS = [
   { id: "TRUCKS", label: "Trucks" },
 ] as const;
 
+const HERO_VIDEO = "/home/hero-clase-e.mp4";
+const HERO_INICIO = "/home/hero-clase-e-inicio.jpg";
+const HERO_FINAL = "/home/hero-clase-e-final.jpg";
+// Versión vertical (celular y tablet parados): mismo armado y mismos tiempos,
+// así HERO_LOOP_DESDE sirve para las dos. El navegador elige con <source media>.
+const HERO_VIDEO_VERTICAL = "/home/hero-clase-e-vertical.mp4";
+const HERO_FINAL_VERTICAL = "/home/hero-clase-e-vertical-final.jpg";
+const HERO_VERTICAL_MEDIA = "(orientation: portrait)";
+/** Segundo donde empieza el loop suave (después del encendido). Video de
+ *  Flow (Omni 1.2 Flash, 1080p): 0,6 s de negro → las ópticas se prenden → las
+ *  luces del techo revelan el auto (hasta 8,54 s) → la cámara se desliza ida y
+ *  vuelta, lenta, y termina en el mismo cuadro. Al terminar se vuelve acá, así
+ *  el encendido pasa una sola vez. */
+const HERO_LOOP_DESDE = 8.5417;
+
 // Tilt 3D de la foto de Leonardo (Acto 4) — mismo mecanismo que
 // VehicleCard: spring de damping alto, sin overshoot. Rango un poco más
 // contenido que el de las cards (es un retrato, no un producto).
@@ -123,12 +138,24 @@ export default function Home() {
 
   const reducedMotion = usePrefersReducedMotion();
 
+
   // Hero: poster-first, video fade-ea al canplay; en reduced-motion, sin
   // autoplay — poster + botón Play manual.
   const [videoReady, setVideoReady] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Si el video ya estaba listo antes de que React enganchara onCanPlay
+  // (pasa en escritorio con preload="auto"), el evento no vuelve a llegar y
+  // el video quedaba invisible detrás del poster oscuro.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      const v = videoRef.current;
+      if (v && v.readyState >= 3) setVideoReady(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   // Refs de hero (GSAP timeline cinematográfica — SplitText en el H1)
   const heroRef = useRef<HTMLElement>(null);
@@ -362,6 +389,9 @@ export default function Home() {
         mask: "chars",
         autoSplit: true,
         onSplit(self) {
+          // La máscara recorta en la caja de línea; con leading < 1 se
+          // comía la cola de la «g». Se agranda hacia abajo sin mover el texto.
+          gsap.set(self.masks, { paddingBottom: "0.2em", marginBottom: "-0.2em" });
           return gsap
             .timeline({ delay: HERO_DELAY + 0.05 })
             .set(heroH1Ref.current, { autoAlpha: 1 })
@@ -564,23 +594,48 @@ export default function Home() {
         ref={heroRef}
         className="relative h-[100svh] w-full overflow-hidden bg-black"
       >
-        {/* Poster — LCP del hero. Se desvanece del todo apenas el video
-            arranca (fix: antes quedaba clavado a 0.9 de opacidad y se veía
-            como una imagen fantasma superpuesta al video en movimiento). */}
+        {/* Video del hero (Mateo 2026-11-11): Clase E generada en Flow.
+            Arranca en negro, se encienden las ópticas y las luces (una sola
+            vez) y después repite solo el tramo suave desde HERO_LOOP_DESDE
+            (Mateo: el corte en seco «parece que se tilda»). Poster = primer
+            cuadro (negro), así no hay un auto iluminado que después se apaga. Con movimiento
+            reducido se ve el último cuadro y el botón Play. Sin marca de agua:
+            ya no hace falta el zoom del 6 % del video anterior. */}
         <div
           aria-hidden
           className={`absolute inset-0 z-0 transition-opacity duration-700 ease-out ${
             heroVideoActive ? "opacity-0" : "opacity-100"
           }`}
         >
-          <Image
-            src="/home/hero-poster.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
+          {reducedMotion ? (
+            <>
+              <Image
+                src={HERO_FINAL}
+                alt=""
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center portrait:hidden"
+              />
+              <Image
+                src={HERO_FINAL_VERTICAL}
+                alt=""
+                fill
+                priority
+                sizes="100vw"
+                className="hidden object-cover object-[30%_50%] portrait:block"
+              />
+            </>
+          ) : (
+            <Image
+              src={HERO_INICIO}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          )}
         </div>
 
         {/* Video sobre el poster */}
@@ -589,38 +644,47 @@ export default function Home() {
             ref={videoRef}
             autoPlay
             muted
-            loop
             playsInline
-            preload="metadata"
-            poster="/home/hero-poster.jpg"
+            preload="auto"
+            poster={HERO_INICIO}
             onCanPlay={() => setVideoReady(true)}
+            onPlaying={() => setVideoReady(true)}
+            onEnded={(e) => {
+              const v = e.currentTarget;
+              v.currentTime = HERO_LOOP_DESDE;
+              void v.play();
+            }}
             initial={{ opacity: 0 }}
             animate={{ opacity: videoReady ? 1 : 0 }}
             transition={{ duration: 0.8, ease: "linear" }}
-            className="absolute inset-0 z-0 h-full w-full object-cover object-center"
+            className="absolute inset-0 z-0 h-full w-full object-cover object-center portrait:object-[30%_50%]"
           >
             <source
-              src="/Mercedes_Benz_Reveal_Video_Generated.mp4"
+              src={HERO_VIDEO_VERTICAL}
+              media={HERO_VERTICAL_MEDIA}
               type="video/mp4"
             />
+            <source src={HERO_VIDEO} type="video/mp4" />
           </motion.video>
         ) : (
           <>
             <video
               ref={videoRef}
               muted
-              loop
               playsInline
               preload="metadata"
-              poster="/home/hero-poster.jpg"
               onPlay={() => setVideoPlaying(true)}
               onError={() => setVideoError(true)}
-              className="absolute inset-0 z-0 h-full w-full object-cover object-center"
+              className={`absolute inset-0 z-0 h-full w-full object-cover object-center portrait:object-[30%_50%] ${
+                videoPlaying ? "" : "opacity-0"
+              }`}
             >
               <source
-                src="/Mercedes_Benz_Reveal_Video_Generated.mp4"
+                src={HERO_VIDEO_VERTICAL}
+                media={HERO_VERTICAL_MEDIA}
                 type="video/mp4"
               />
+              <source src={HERO_VIDEO} type="video/mp4" />
             </video>
             {!videoPlaying && !videoError && (
               <motion.button
@@ -638,44 +702,49 @@ export default function Home() {
           </>
         )}
 
-        {/* Scrim de legibilidad — lateral izquierdo (desktop, bottom-left)
-            + vertical inferior (mobile, centrado-abajo) + vignette superior.
-            No es decorativo: existe para que "Automotores Mega SA" no se
-            pierda contra el video en movimiento. */}
-        <div className="absolute inset-0 z-10 bg-[linear-gradient(90deg,rgba(0,0,0,0.72)_0%,rgba(0,0,0,0.32)_38%,transparent_65%),radial-gradient(ellipse_75%_70%_at_18%_88%,rgba(0,0,0,0.92),transparent_62%),linear-gradient(to_top,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.2)_38%,transparent_65%),radial-gradient(ellipse_at_top,transparent_50%,rgba(0,0,0,0.4))]" />
+        {/* Scrims de legibilidad. Celular: franja oscura arriba (título) y
+            abajo (ubicación + botón); el centro queda libre para el auto.
+            Compu: franja oscura abajo (título + columna derecha) y un velo
+            leve a la izquierda. Pensado para cualquier video del hero: el
+            texto vive en las franjas, no encima del auto. */}
+        <div className="absolute inset-0 z-10 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.55)_22%,transparent_42%),linear-gradient(to_top,rgba(0,0,0,0.92)_0%,rgba(0,0,0,0.5)_20%,transparent_40%)] lg:bg-[linear-gradient(to_top,rgba(0,0,0,0.92)_0%,rgba(0,0,0,0.55)_24%,transparent_50%),linear-gradient(90deg,rgba(0,0,0,0.5)_0%,transparent_45%),linear-gradient(to_bottom,rgba(0,0,0,0.8)_0%,rgba(0,0,0,0.45)_12%,transparent_26%)]" />
 
-        {/* Copy — bottom-left en desktop, centrado-abajo en mobile */}
-        <div className="relative z-20 flex h-full flex-col items-center justify-end px-6 pb-16 text-center md:items-start md:px-12 md:pb-24 md:text-left">
-          <div className="mx-auto max-w-3xl md:mx-0">
+        {/* Copy (Mateo 2026-11-11: «Centrado»). Celular: el nombre centrado
+            arriba en una línea; abajo la ubicación y el link (sin la línea
+            vertical: Mateo la sacó). Compu: el nombre en una línea abajo a la izquierda;
+            ubicación + link abajo a la derecha. El nombre va siempre junto. */}
+        <div className="relative z-20 flex h-full flex-col px-6 pb-[max(2rem,5svh)] pt-[calc(var(--nav-h)+4svh)] items-center justify-between text-center lg:flex-row lg:items-end lg:justify-between lg:gap-12 lg:px-12 lg:pb-[max(3rem,8svh)] lg:pt-0 lg:text-left">
+          <div className="flex flex-col items-center lg:block">
             <p
               ref={heroEyebrowRef}
-              className="text-eyebrow mb-4 font-mono uppercase tracking-[0.14em] text-silver-300"
+              className="text-eyebrow mb-4 flex items-center gap-3 whitespace-nowrap font-mono uppercase tracking-[0.1em] text-silver-300 sm:tracking-[0.14em] lg:mb-5 justify-center lg:justify-start"
             >
-              Leonardo Guzman
+              <span aria-hidden className="hidden h-px w-8 bg-silver-300/70 lg:block" />
+              Concesionario Oficial Mercedes-Benz
             </p>
 
             <h1
               ref={heroH1Ref}
-              className="text-display-1 mb-4 text-balance font-display font-medium text-white [letter-spacing:-0.01em]"
+              className="whitespace-nowrap font-display font-medium leading-[0.95] text-white [letter-spacing:-0.015em] text-[clamp(2rem,11.3vw,4rem)] lg:text-[clamp(4.5rem,7.2vw,9.5rem)] lg:leading-[0.92]"
             >
               Automotores Mega SA
             </h1>
+          </div>
 
-            <div ref={heroSubRef}>
-              <p className="text-lead mb-2 font-light text-silver-100">
-                Concesionario Oficial Mercedes-Benz
-              </p>
-              <p className="mb-10 text-base font-light text-silver-300 md:text-lg">
-                Argentina, Entre Ríos
-              </p>
-            </div>
+          <div className="flex flex-col gap-4 items-center lg:shrink-0 lg:items-end lg:pb-[0.6vw] lg:text-right">
+            <p
+              ref={heroSubRef}
+              className="text-sm font-light tracking-[0.04em] text-silver-100 md:text-base"
+            >
+              Argentina, Entre Ríos
+            </p>
 
             <div ref={heroCtaRef}>
               <Link
-                href="/experiencia"
-                className="group inline-flex items-center gap-4 text-white transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] hover:text-silver-300"
+                href="/vehicles"
+                className="group inline-flex items-center gap-4 py-2 text-white transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] hover:text-silver-300 lg:py-0"
               >
-                <span className="border-b border-white pb-1 text-xs font-bold uppercase tracking-[0.2em] transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] group-hover:border-silver-300">
+                <span className="border-b border-white pb-1 text-xs font-bold uppercase tracking-[0.2em] transition-colors duration-[var(--dur-micro)] group-hover:border-silver-300">
                   Conocé nuestros vehículos
                 </span>
                 <ArrowRight
@@ -850,7 +919,7 @@ export default function Home() {
               ref={bandEyebrowRef}
               className="text-eyebrow mb-4 font-mono uppercase tracking-[0.14em] text-silver-300"
             >
-              Experiencia
+              Autos · SUVs · Vans · Sprinter · Trucks
             </p>
             <h2
               ref={bandTitleRef}
@@ -859,8 +928,8 @@ export default function Home() {
               Hay cosas que una ficha técnica no puede contar.
             </h2>
             <div ref={bandCtaRef}>
-              <CtaSweep href="/experiencia" variant="ghost">
-                Viví la gama
+              <CtaSweep href="/vehicles" variant="ghost">
+                Ver toda la gama
               </CtaSweep>
             </div>
           </div>

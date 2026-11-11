@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // /experiencia se quitó del sitio (2026-11-11, Mateo): los links viejos van a la gama.
+  async redirects() {
+    return [{ source: "/experiencia/:path*", destination: "/vehicles", permanent: true }];
+  },
   async headers() {
     return [
       {

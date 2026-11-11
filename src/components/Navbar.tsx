@@ -1,19 +1,30 @@
 "use client";
 
+import { flushSync } from "react-dom";
 import Link from "next/link";
-import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Menu, X, Instagram, Facebook, Phone } from "lucide-react";
-import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { SITE, waLink, WA_GENERIC_MESSAGE } from "@/lib/site";
-import { EASE, DUR } from "@/lib/motion-tokens";
+import { EASE } from "@/lib/motion-tokens";
+import { EstrellaMetal } from "@/components/nav/EstrellaMetal";
+import { BotonCromo } from "@/components/ui/BotonCromo";
+import { IconosContacto } from "@/components/ui/IconosContacto";
+import { GrillaModelos, PanelVehiculos } from "@/components/nav/MenuVehiculos";
 
-/** Links del navbar (chrome-global §2.4) — orden y copy FINAL. */
+gsap.registerPlugin(useGSAP);
+
+// Header (rediseño 2026-11-10, Mateo: «Header 2, logo, botón A»).
+// Escritorio: estrella de metal líquido + nombre · secciones · «Consultar» en cromo.
+// «Vehículos» abre un panel con toda la gama en fotos (referencia: genesis.com).
+// Celular: estrella · Consultar · menú; el menú baja como cortina y «Vehículos»
+// entra a una segunda pantalla con las pestañas y los autos.
+
+/** Secciones (chrome-global §2.4). «Vehículos» abre el panel; el resto son links. */
 const NAV_LINKS = [
-  { label: "Vehículos", href: "/vehicles" },
-  { label: "Experiencia", href: "/experiencia" },
   { label: "Usados", href: "/usados" },
   { label: "Financiación", href: "/financiacion" },
   { label: "Plan de Ahorro", href: "/plan-ahorro" },
@@ -21,39 +32,52 @@ const NAV_LINKS = [
   { label: "Contacto", href: "/contact" },
 ] as const;
 
-// Items del menú con numeración editorial 01–08 (Inicio + NAV_LINKS).
-const MENU_ITEMS = [{ label: "Inicio", href: "/" }, ...NAV_LINKS] as const;
+const WA = waLink(WA_GENERIC_MESSAGE);
+
+/** Texto que sube y se reemplaza al pasar el mouse (link vivo, sin subrayado). */
+function TextoRodante({ children }: { children: string }) {
+  return (
+    <span className="relative block overflow-hidden">
+      <span className="block transition-transform duration-[700ms] ease-[var(--ease-primary)] group-hover:-translate-y-full">{children}</span>
+      <span aria-hidden className="absolute inset-0 translate-y-full transition-transform duration-[700ms] ease-[var(--ease-primary)] group-hover:translate-y-0">
+        {children}
+      </span>
+    </span>
+  );
+}
 
 export default function Navbar() {
   const pathname = usePathname();
-  const hideOnRoutes =
-    pathname.startsWith("/crm") || pathname.startsWith("/admin");
+  const hideOnRoutes = pathname.startsWith("/crm") || pathname.startsWith("/admin");
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // menú del celular
+  const [vista, setVista] = useState<"menu" | "vehiculos">("menu");
+  const [panel, setPanel] = useState(false); // panel de Vehículos (escritorio)
   const [scrolled, setScrolled] = useState(false);
-  // Tema dual: "cine" (negro, default) ↔ "papel" cuando una sección
-  // [data-nav-theme="papel"] alcanza la franja superior del viewport.
   const [paper, setPaper] = useState(false);
   const [paperColor, setPaperColor] = useState<string | null>(null);
-  // Trackea el pathname que produjo el último reset de "paper" — permite
-  // resetear el tema al cambiar de ruta durante el render (en vez de un
-  // setState síncrono dentro del efecto) antes de que el observer más abajo
-  // determine el valor real de la nueva página.
   const [paperResetPathname, setPaperResetPathname] = useState(pathname);
   if (paperResetPathname !== pathname) {
     setPaperResetPathname(pathname);
     if (!hideOnRoutes) setPaper(false);
+    setPanel(false);
   }
   const [amg, setAmg] = useState(
     () => typeof document !== "undefined" && document.documentElement.hasAttribute("data-amg")
   );
   const reduced = useReducedMotion();
 
-  // Refs para restaurar el foco al trigger y para atrapar el foco en el overlay.
   const triggerRef = useRef<HTMLButtonElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const abrirT = useRef<number | undefined>(undefined);
+  const cerrarT = useRef<number | undefined>(undefined);
+  const abiertoPorMouse = useRef(-Infinity);
+  const tlMenu = useRef<gsap.core.Timeline | null>(null);
+  // Lo que pidió el usuario (abrir/cerrar), aunque la animación no haya terminado:
+  // isOpen recién pasa a false al final del cierre y el botón tocaba «cerrar» dos veces.
+  const menuPedido = useRef(false);
 
-  // Mobile (ref. Polestar): se esconde al bajar y vuelve apenas se sube.
+  // Celular: se esconde al bajar y vuelve apenas se sube (ref. Polestar).
   const [navHidden, setNavHidden] = useState(false);
   const lastY = useRef(0);
 
@@ -70,16 +94,13 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Tema dual cine/papel según la sección que está debajo del header.
   useEffect(() => {
     if (hideOnRoutes) return;
-
     let observer: IntersectionObserver | null = null;
     const intersecting = new Set<Element>();
-
-    // Las secciones papel se montan con la página (post page-transition).
     const attach = () => {
-      // En el celular también cuentan las secciones blancas del detalle de vehículo
-      // (data-nav-mobile); en escritorio el header de esas páginas sigue como estaba.
       const mobile = window.innerWidth < 1024;
       const sections = document.querySelectorAll(
         mobile ? '[data-nav-theme="papel"], [data-nav-mobile="papel"]' : '[data-nav-theme="papel"]'
@@ -92,20 +113,16 @@ export default function Navbar() {
             else intersecting.delete(entry.target);
           }
           setPaper(intersecting.size > 0);
-          // Color exacto de la sección clara de abajo (blanco puro o papel): el header
-          // mobile lo copia para no dejar una franja de otro tono.
           const first = intersecting.values().next().value as Element | undefined;
           if (first) {
             const bg = getComputedStyle(first).backgroundColor;
             if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") setPaperColor(bg);
           }
         },
-        // Franja superior del viewport (donde vive el navbar)
         { rootMargin: "0px 0px -92% 0px", threshold: 0 }
       );
       sections.forEach((s) => observer!.observe(s));
     };
-
     const t = window.setTimeout(attach, 600);
     return () => {
       window.clearTimeout(t);
@@ -113,19 +130,23 @@ export default function Navbar() {
     };
   }, [pathname, hideOnRoutes]);
 
-  // Modo AMG: el atributo lo setea VehiclesClient en <html>. Default false en
-  // server y primer render cliente (sin hydration mismatch); tras hidratar se lee
-  // el valor real y se observan cambios de brand → los acentos animan al entrar.
+  // Modo AMG (atributo en <html> que setea VehiclesClient).
   useEffect(() => {
     const root = document.documentElement;
-    const observer = new MutationObserver(() => {
-      setAmg(root.hasAttribute("data-amg"));
-    });
+    const observer = new MutationObserver(() => setAmg(root.hasAttribute("data-amg")));
     observer.observe(root, { attributes: true, attributeFilter: ["data-amg"] });
     return () => observer.disconnect();
   }, []);
 
-  // Scroll-lock del body con restauración de scrollY al cerrar el menú.
+  // Escape cierra el panel de Vehículos.
+  useEffect(() => {
+    if (!panel) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setPanel(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [panel]);
+
+  // Scroll trabado mientras está abierto el menú del celular.
   useEffect(() => {
     if (!isOpen) return;
     const scrollY = window.scrollY;
@@ -143,21 +164,62 @@ export default function Navbar() {
     };
   }, [isOpen]);
 
-  // Foco atrapado dentro del overlay + Escape para cerrar + foco de vuelta al trigger.
+
+  // Menú del celular: cortina 1,0 s power3.inOut y links cada 0,07 s (patrón aprobado en Sanalys).
+  const { contextSafe } = useGSAP(() => {
+    gsap.set(overlayRef.current, { yPercent: -101, visibility: "hidden" });
+  });
+  const abrirMenu = () =>
+    contextSafe(() => {
+      const r = !!reduced;
+      setVista("menu");
+      setIsOpen(true);
+      // Mismo criterio que el panel de escritorio: la orden nueva mata a la anterior, si no
+      // el cierre que seguía corriendo escondía el menú recién abierto.
+      menuPedido.current = true;
+      tlMenu.current?.kill();
+      tlMenu.current = gsap
+        .timeline()
+        .set(overlayRef.current, { visibility: "visible" })
+        .to(overlayRef.current, { yPercent: 0, duration: r ? 0 : 1.0, ease: "power3.inOut" })
+        .fromTo(".mm-link > span", { yPercent: 110 }, { yPercent: 0, duration: r ? 0 : 1.0, ease: "expo.out", stagger: 0.07 }, r ? 0 : 0.45)
+        .fromTo(".mm-pie", { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: r ? 0 : 0.8, ease: "power3.out" }, r ? 0 : 0.85);
+    })();
+  const cerrarMenu = () =>
+    contextSafe(() => {
+      const r = !!reduced;
+      menuPedido.current = false;
+      tlMenu.current?.kill();
+      tlMenu.current = gsap
+        .timeline({ onComplete: () => { setIsOpen(false); gsap.set(overlayRef.current, { visibility: "hidden" }); } })
+        .to(overlayRef.current, { yPercent: -101, duration: r ? 0 : 0.85, ease: "power3.inOut" });
+    })();
+  const irAVehiculos = () =>
+    contextSafe(() => {
+      // flushSync: la pantalla de Vehículos tiene que existir antes de animarla (si no,
+      // GSAP no la encontraba —«target .mm-vehiculos not found»— y aparecía de golpe).
+      flushSync(() => setVista("vehiculos"));
+      if (!reduced) gsap.fromTo(".mm-vehiculos", { xPercent: 100 }, { xPercent: 0, duration: 0.9, ease: "expo.inOut" });
+    })();
+  const volverAlMenu = () =>
+    contextSafe(() => {
+      if (reduced) return setVista("menu");
+      gsap.to(".mm-vehiculos", { xPercent: 100, duration: 0.7, ease: "power3.inOut", onComplete: () => setVista("menu") });
+    })();
+
+  // Foco dentro del menú del celular + Escape + foco de vuelta al botón.
   useEffect(() => {
     if (!isOpen) return;
     const overlay = overlayRef.current;
     if (!overlay) return;
     const trigger = triggerRef.current;
     const focusables = () =>
-      Array.from(
-        overlay.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        )
+      Array.from(overlay.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')).filter(
+        (el) => el.offsetParent !== null
       );
     focusables()[0]?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { setIsOpen(false); return; }
+      if (e.key === "Escape") return cerrarMenu();
       if (e.key !== "Tab") return;
       const els = focusables();
       if (els.length === 0) return;
@@ -170,77 +232,61 @@ export default function Navbar() {
       document.removeEventListener("keydown", onKey);
       trigger?.focus();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  // Panel de escritorio: abre al pasar el mouse (con 120 ms de intención) o con clic.
+  const pedirPanel = () => {
+    window.clearTimeout(cerrarT.current);
+    abrirT.current = window.setTimeout(() => {
+      abiertoPorMouse.current = performance.now();
+      setPanel(true);
+    }, 120);
+  };
+  // El clic sobre «Vehículos» llega justo después de que el mouse ya lo abrió: si se
+  // invertía, lo cerraba en la cara del usuario. Dentro del primer segundo, el clic abre.
+  const clicPanel = () => {
+    window.clearTimeout(abrirT.current);
+    window.clearTimeout(cerrarT.current);
+    const recien = performance.now() - abiertoPorMouse.current < 1000;
+    setPanel((v) => (v && !recien ? false : true));
+  };
+  const soltarPanel = () => {
+    window.clearTimeout(abrirT.current);
+    cerrarT.current = window.setTimeout(() => setPanel(false), 220);
+  };
 
   if (hideOnRoutes) return null;
 
-  // Paletas del tema dual
-  const textStrong = paper ? "text-ink" : "text-white";
-  const textMuted = paper ? "text-ink-60" : "text-gray-400";
-  const underlineBg = paper ? "bg-ink" : "bg-white";
-  // Escritorio: vidrio esmerilado (sin cambios). Celular: color pleno de la sección
-  // de abajo, sin el gris translúcido que dejaba el blur sobre fondos claros.
-  const scrolledBg = paper
-    ? "bg-[var(--nav-paper)] lg:bg-paper-0/85 lg:backdrop-blur-2xl lg:backdrop-saturate-150 border-b border-stroke-ink"
-    : "bg-black lg:bg-black/55 lg:backdrop-blur-2xl lg:backdrop-saturate-150 border-b border-white/[0.08]";
-
-  const underline = (active: boolean) =>
-    `absolute -bottom-2 left-0 right-0 h-[1.5px] ${amg ? "bg-[#5AC3B6]" : underlineBg} transition-[clip-path,background-color] duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
-      active
-        ? "[clip-path:inset(0_0%_0_0)]"
-        : "[clip-path:inset(0_100%_0_0)] group-hover:[clip-path:inset(0_0%_0_0)]"
-    }`;
-
-  // Coreografía del menú mobile: stagger 45ms por item (y + opacity desde tokens).
-  const menuContainer = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: reduced ? 0 : 0.045, // 45ms entre items (INTENT)
-        delayChildren: reduced ? 0 : 0.05,
-      },
-    },
-  };
-  const menuItem = {
-    hidden: { opacity: 0, y: reduced ? 0 : 12 }, // y = PAGE_TRANSITION.y
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: DUR.element, ease: EASE.secondary },
-    },
-  };
+  // Con el panel abierto el header queda oscuro, como el panel (Mateo: con el header
+  // claro «se pierde la imagen del logo»).
+  const claro = paper && !panel;
+  const textStrong = claro ? "text-ink" : "text-white";
+  const textMuted = claro ? "text-ink-60" : "text-white/55";
+  const scrolledBg = claro
+    ? "bg-[var(--nav-paper)] lg:bg-paper-0/90 lg:backdrop-blur-2xl lg:backdrop-saturate-150"
+    : "bg-black lg:bg-black/55 lg:backdrop-blur-2xl lg:backdrop-saturate-150";
+  const fondo = isOpen ? "bg-transparent" : panel ? "bg-[#0b0b0d]" : scrolled ? scrolledBg : "bg-transparent";
+  const vehiculosActivo = pathname.startsWith("/vehicles");
 
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 h-[var(--nav-h)] flex items-center transition-[background-color,border-color,transform] duration-[550ms] ease-[var(--ease-secondary)] motion-reduce:transition-none ${
-          scrolled ? scrolledBg : "bg-transparent"
-        } ${navHidden && !isOpen ? "max-lg:-translate-y-full" : "translate-y-0"}`}
+        onMouseLeave={soltarPanel}
+        onMouseEnter={() => panel && window.clearTimeout(cerrarT.current)}
+        className={`fixed top-0 left-0 right-0 ${isOpen ? "z-[70]" : "z-50"} h-[var(--nav-h)] flex items-center transition-[background-color,transform] duration-[550ms] ease-[var(--ease-secondary)] motion-reduce:transition-none ${fondo} ${
+          navHidden && !isOpen ? "max-lg:-translate-y-full" : "translate-y-0"
+        }`}
         style={{ "--nav-paper": paperColor ?? "var(--color-paper-0)" } as React.CSSProperties}
       >
-        <div className="w-full px-6 md:px-12">
-          <div className="hidden lg:grid lg:grid-cols-[auto_1fr_auto] items-center gap-8">
-            {/* Logo — quieto en reposo; micro-giro de énfasis al hover
-                (decisión del usuario 2026-07-13: vida sin idle loop) */}
-            <Link href="/" className="flex items-center gap-4 group">
-              <div className="relative w-12 h-12 transition-transform duration-300 ease-[var(--ease-secondary)] group-hover:rotate-[30deg]">
-                <Image
-                  src="/logo-mercedes-benz.png"
-                  alt="Mercedes-Benz Logo"
-                  fill
-                  sizes="48px"
-                  className="object-contain"
-                  priority
-                />
-              </div>
-
-              <div className="flex flex-col">
+        <div className="w-full px-6 md:px-12 lg:px-8 xl:px-12">
+          {/* Escritorio */}
+          <div className="hidden lg:grid lg:grid-cols-[auto_1fr_auto] items-center gap-6 xl:gap-10">
+            <Link href="/" className="flex shrink-0 items-center gap-4 whitespace-nowrap" aria-label={`${SITE.name}, inicio`}>
+              <EstrellaMetal className="h-12 w-12" />
+              <span className="flex flex-col">
                 <span className="flex items-baseline gap-2">
-                  <span
-                    className={`text-lg font-medium tracking-tight leading-none uppercase ${textStrong}`}
-                  >
-                    {SITE.name}
-                  </span>
+                  <span className={`text-[15px] font-medium uppercase leading-none tracking-[0.08em] transition-colors duration-500 ${textStrong}`}>{SITE.name}</span>
                   <AnimatePresence>
                     {amg && (
                       <motion.span
@@ -249,246 +295,155 @@ export default function Navbar() {
                         className="font-sans text-[11px] font-medium tracking-[0.3em] leading-none uppercase text-[#5AC3B6]"
                         initial={{ clipPath: reduced ? "inset(0 0% 0 0)" : "inset(0 100% 0 0)" }}
                         animate={{ clipPath: "inset(0 0% 0 0)" }}
-                        exit={{
-                          clipPath: "inset(0 100% 0 0)",
-                          transition: { duration: reduced ? 0 : 0.2, ease: EASE.secondary },
-                        }}
-                        transition={{
-                          duration: reduced ? 0 : 0.4,
-                          delay: reduced ? 0 : 0.2,
-                          ease: EASE.secondary,
-                        }}
+                        exit={{ clipPath: "inset(0 100% 0 0)", transition: { duration: reduced ? 0 : 0.2, ease: EASE.secondary } }}
+                        transition={{ duration: reduced ? 0 : 0.4, delay: reduced ? 0 : 0.2, ease: EASE.secondary }}
                       >
                         / AMG
                       </motion.span>
                     )}
                   </AnimatePresence>
                 </span>
-                <span
-                  className={`text-xs font-medium tracking-[0.15em] leading-none mt-1 uppercase ${textMuted}`}
-                >
+                <span className={`mt-1.5 text-[11px] font-medium uppercase leading-none tracking-[0.22em] transition-colors duration-500 ${textMuted}`}>
                   {SITE.dealerShort}
                 </span>
-              </div>
+              </span>
             </Link>
 
-            {/* Desktop Links - Centered */}
-            <div className="flex items-center justify-center gap-8 xl:gap-9">
+            <div className="flex items-center justify-center gap-4 xl:gap-10">
+              <button
+                type="button"
+                onMouseEnter={pedirPanel}
+                onClick={clicPanel}
+                aria-expanded={panel}
+                aria-controls="panel-vehiculos"
+                className={`group flex items-center gap-1.5 text-[12px] font-medium xl:text-[13px] uppercase tracking-[0.1em] transition-colors duration-500 xl:tracking-[0.14em] ${
+                  claro ? "" : "[text-shadow:0_1px_10px_rgba(0,0,0,0.65)]"
+                } ${
+                  panel || vehiculosActivo ? textStrong : claro ? "text-ink-60 hover:text-ink" : "text-white/90 hover:text-white"
+                }`}
+              >
+                <TextoRodante>Vehículos</TextoRodante>
+                <ChevronDown size={14} className={`transition-transform duration-700 ease-[var(--ease-primary)] ${panel ? "rotate-180" : ""}`} />
+              </button>
               {NAV_LINKS.map((link) => {
                 const active = pathname.startsWith(link.href);
-                const linkColor = active
-                  ? textStrong
-                  : paper
-                    ? `text-ink-60 ${amg ? "hover:text-[#5AC3B6]" : "hover:text-ink"}`
-                    : `text-gray-300 ${amg ? "hover:text-[#5AC3B6]" : "hover:text-white"}`;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
+                    onMouseEnter={soltarPanel}
                     aria-current={active ? "page" : undefined}
-                    className={`relative text-xs font-medium transition-colors duration-[var(--dur-micro)] tracking-[0.08em] uppercase group whitespace-nowrap ${linkColor}`}
+                    className={`group whitespace-nowrap text-[12px] font-medium xl:text-[13px] uppercase tracking-[0.1em] transition-colors duration-500 xl:tracking-[0.14em] ${
+                      claro ? "" : "[text-shadow:0_1px_10px_rgba(0,0,0,0.65)]"
+                    } ${
+                      active ? textStrong : claro ? "text-ink-60 hover:text-ink" : `text-white/90 ${amg ? "hover:text-[#5AC3B6]" : "hover:text-white"}`
+                    }`}
                   >
-                    {link.label}
-                    <span className={underline(active)}></span>
+                    <TextoRodante>{link.label}</TextoRodante>
                   </Link>
                 );
               })}
             </div>
 
-            {/* Social - Desktop Right Side */}
-            <div
-              className={`flex items-center gap-4 pl-5 ml-1 border-l ${
-                paper ? "border-stroke-ink" : "border-white/10"
-              }`}
-            >
-              <a
-                href={SITE.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:opacity-70 transition-opacity duration-[var(--dur-micro)]"
-                aria-label="Instagram de Leonardo Guzman"
-              >
-                <Instagram className={`w-5 h-5 ${textStrong}`} strokeWidth={1.5} />
-              </a>
-              <a
-                href={SITE.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:opacity-70 transition-opacity duration-[var(--dur-micro)]"
-                aria-label="Facebook de Leonardo Guzman"
-              >
-                <Facebook className={`w-5 h-5 ${textStrong}`} strokeWidth={1.5} />
-              </a>
-              <a
-                href={SITE.whatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:opacity-70 transition-opacity duration-[var(--dur-micro)]"
-                aria-label="WhatsApp de Leonardo Guzman"
-              >
-                <WhatsAppIcon className={`w-5 h-5 ${textStrong}`} />
-              </a>
-              <a
-                href={SITE.phoneHref}
-                className="hover:opacity-70 transition-opacity duration-[var(--dur-micro)]"
-                aria-label="Llamar a Leonardo Guzman"
-              >
-                <Phone className={`w-5 h-5 ${textStrong}`} strokeWidth={1.5} />
-              </a>
+            <div className="shrink-0">
+              <BotonCromo href={WA} externo>Consultar</BotonCromo>
             </div>
           </div>
 
-          {/* Mobile (2026-11-06, Mateo): solo la estrella a la izquierda, "Consultar"
-              metálico centrado y el menú solo con las barras a la derecha. */}
+          {/* Celular: estrella · Consultar · menú (D-037: sin nombre, sin «MENÚ» en texto) */}
           <div className="lg:hidden grid grid-cols-[1fr_auto_1fr] items-center">
             <Link href="/" aria-label={`Inicio — ${SITE.name}`} className="justify-self-start">
-              <div className="relative w-9 h-9">
-                <Image
-                  src="/logo-mercedes-benz.png"
-                  alt="Mercedes-Benz Logo"
-                  fill
-                  sizes="36px"
-                  className="object-contain"
-                  priority
-                />
-              </div>
+              <EstrellaMetal className="h-10 w-10" />
             </Link>
-
-            {/* Siempre "Consultar" (Mateo: "Volver" no decía a dónde). Acero
-                metálico, estilos en globals.css (.cm-btn). */}
-            <a
-              href={waLink(WA_GENERIC_MESSAGE)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="cm-btn"
-            >
-              <span className="cm-label">Consultar</span>
-            </a>
-
-            {/* Menú: solo las barras; la X vive en el overlay, en este mismo lugar */}
+            <BotonCromo href={WA} externo className="h-10 px-5">Consultar</BotonCromo>
             <button
               ref={triggerRef}
-              onClick={() => setIsOpen(true)}
-              aria-label="Abrir menú"
+              onClick={() => (menuPedido.current ? cerrarMenu() : abrirMenu())}
+              aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
-              className={`justify-self-end -mr-2.5 flex items-center justify-center min-w-[44px] min-h-[44px] transition-colors duration-[550ms] ${textStrong}`}
+              className={`relative justify-self-end -mr-2 h-11 w-11 transition-colors duration-[550ms] ${isOpen ? "text-white" : textStrong}`}
             >
-              <Menu size={24} strokeWidth={1.25} aria-hidden />
+              <span className={`absolute left-1/2 top-1/2 h-[1.5px] w-6 -translate-x-1/2 bg-current transition-transform duration-700 ease-[var(--ease-primary)] ${isOpen ? "rotate-45" : "-translate-y-[4px]"}`} />
+              <span className={`absolute left-1/2 top-1/2 h-[1.5px] w-6 -translate-x-1/2 bg-current transition-transform duration-700 ease-[var(--ease-primary)] ${isOpen ? "-rotate-45" : "translate-y-[4px]"}`} />
             </button>
           </div>
         </div>
 
         <AnimatePresence>
-          {amg && (
+          {amg && !panel && (
             <motion.span
               key="amg-hairline"
               aria-hidden="true"
               className="pointer-events-none absolute bottom-0 left-0 right-0 h-[1px] bg-[#5AC3B6]/40"
               initial={{ scaleX: reduced ? 1 : 0, transformOrigin: "left center" }}
               animate={{ scaleX: 1, transformOrigin: "left center" }}
-              exit={{
-                scaleX: 0,
-                transformOrigin: "right center",
-                transition: { duration: reduced ? 0 : 0.35, ease: EASE.secondary },
-              }}
+              exit={{ scaleX: 0, transformOrigin: "right center", transition: { duration: reduced ? 0 : 0.35, ease: EASE.secondary } }}
               transition={{ duration: reduced ? 0 : 0.65, ease: EASE.secondary }}
             />
           )}
         </AnimatePresence>
+
+        <PanelVehiculos abierto={panel} onCerrar={() => setPanel(false)} />
       </nav>
 
-      {/* Mobile Menu Overlay — negro pleno, identidad editorial (numeración + display) */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            id="mobile-menu"
-            ref={overlayRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menú de navegación"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: DUR.micro, ease: EASE.secondary }} // exit rápido ~0.18s
-            className="fixed inset-0 z-[60] bg-black lg:hidden flex flex-col px-6 pt-24 pb-8 overflow-y-auto"
-          >
-            {/* Único botón de cierre — en el mismo lugar que las barras */}
-            <button
-              onClick={() => setIsOpen(false)}
-              aria-label="Cerrar menú"
-              className="absolute top-0 right-[14px] h-[var(--nav-h)] min-w-[44px] flex items-center justify-center text-white"
-            >
-              <X size={24} strokeWidth={1.25} aria-hidden />
+      {/* Velo detrás del panel de escritorio */}
+      <div
+        aria-hidden
+        onClick={() => setPanel(false)}
+        className={`fixed inset-0 z-40 hidden bg-black/45 transition-opacity duration-700 lg:block ${panel ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      />
+
+      {/* Menú del celular: baja como cortina */}
+      <div
+        id="mobile-menu"
+        ref={overlayRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menú de navegación"
+        aria-hidden={!isOpen}
+        data-lenis-prevent
+        className="fixed inset-0 z-[60] overflow-hidden bg-black text-white lg:hidden"
+      >
+        <div className="flex h-full flex-col overflow-y-auto px-6 pb-8 pt-24">
+          <nav className="flex flex-col gap-y-3">
+            <button type="button" onClick={irAVehiculos} className="mm-link group flex items-center justify-between overflow-hidden text-left">
+              <span className="block font-display text-[2.6rem] leading-[1.05]">Vehículos</span>
+              <span className="text-white/40">›</span>
             </button>
-
-            {/* Links: numeración mono + display grande, coreografía por item */}
-            <motion.nav
-              variants={menuContainer}
-              initial="hidden"
-              animate="visible"
-              className="flex flex-col gap-y-5"
-            >
-              {MENU_ITEMS.map((item, i) => {
-                const active =
-                  item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-                return (
-                  <motion.div key={item.href} variants={menuItem} className="flex items-baseline gap-4">
-                    <span
-                      className={`font-mono text-xs tracking-[0.2em] tabular-nums pt-1 ${
-                        active ? "text-white" : "text-white/30"
-                      }`}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <Link
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                      aria-current={active ? "page" : undefined}
-                      className={`font-display leading-[1.02] tracking-tight text-4xl ${
-                        active ? "text-white font-semibold" : "text-white/60 font-normal"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </motion.nav>
-
-            {/* Bloque contacto jerarquizado: WhatsApp dominante + secundarios.
-                Anclado cerca de la lista (no mt-auto) para no dejar aire muerto al fondo. */}
-            <motion.div variants={menuItem} initial="hidden" animate="visible" className="mt-14">
-              <a
-                href={waLink(WA_GENERIC_MESSAGE)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 h-14 w-full bg-whatsapp text-black text-sm font-semibold uppercase tracking-[0.15em]"
-              >
-                <WhatsAppIcon className="w-5 h-5" />
-                Escribir por WhatsApp
-              </a>
-              <div className="mt-5 flex items-center justify-between">
-                <a
-                  href={SITE.phoneHref}
-                  className="flex items-center gap-2 text-white/60 text-xs uppercase tracking-[0.15em] min-h-[44px]"
-                  aria-label="Llamar a Leonardo Guzman"
+            {[{ label: "Inicio", href: "/" }, ...NAV_LINKS].map((item) => {
+              const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={cerrarMenu}
+                  aria-current={active ? "page" : undefined}
+                  className="mm-link block overflow-hidden"
                 >
-                  <Phone className="w-4 h-4" strokeWidth={1.5} /> Llamar
-                </a>
-                <div className="flex items-center gap-5">
-                  <a href={SITE.instagram} target="_blank" rel="noopener noreferrer" className="text-white/60 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Instagram de Leonardo Guzman">
-                    <Instagram className="w-6 h-6" strokeWidth={1.5} />
-                  </a>
-                  <a href={SITE.facebook} target="_blank" rel="noopener noreferrer" className="text-white/60 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Facebook de Leonardo Guzman">
-                    <Facebook className="w-6 h-6" strokeWidth={1.5} />
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
+                  <span className={`block font-display text-[2.6rem] leading-[1.05] ${active ? "text-white" : "text-white/60"}`}>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Contacto: solo los íconos (Mateo: sacar «Escribir por WhatsApp») */}
+          <div className="mm-pie mt-12">
+            <IconosContacto />
+          </div>
+        </div>
+
+        {/* Segunda pantalla: la gama en fotos */}
+        {vista === "vehiculos" && (
+          <div className="mm-vehiculos absolute inset-0 overflow-y-auto bg-[#0b0b0d] px-5 pb-10 pt-20 text-white">
+            <button type="button" onClick={volverAlMenu} className="mb-5 flex min-h-[44px] items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em]">
+              <ArrowLeft size={16} /> Menú
+            </button>
+            <p className="mb-5 font-display text-[2.4rem] leading-none">Vehículos</p>
+            <GrillaModelos onElegir={cerrarMenu} columnas="grid-cols-2" entrar={1} />
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </>
   );
 }
