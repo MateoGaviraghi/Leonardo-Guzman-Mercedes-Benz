@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import {
-  AnimatePresence,
   motion,
   useMotionValue,
   useSpring,
@@ -13,24 +12,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
-import ThreeDVehicleCarousel from "@/components/ThreeDVehicleCarousel";
-import VehicleCardSkeleton from "@/components/VehicleCardSkeleton";
+import GamaAnillo from "@/components/home/GamaAnillo";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
-import { DUR, EASE, GSAP_EASE, EXIT, HERO_DELAY } from "@/lib/motion-tokens";
+import { DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
 import { waLink, WA_GENERIC_MESSAGE } from "@/lib/site";
-import { isPublicVehicle } from "@/lib/vehicles/hidden";
-import type { Vehicle } from "@/data/vehicles";
 
 import { pegar } from "@/lib/texto";
-/** Categorías del tab nav (home §Acto 2). IDs = claves del filtro cliente
- *  existente (NO tocar); labels = copy final de la spec. */
-const CATEGORY_TABS = [
-  { id: "AUTOS", label: "Autos" },
-  { id: "SUV", label: "SUVs" },
-  { id: "VANS", label: "Vans" },
-  { id: "SPRINTER", label: "Sprinter" },
-  { id: "TRUCKS", label: "Trucks" },
-] as const;
 
 const HERO_VIDEO = "/home/hero-clase-e.mp4";
 const HERO_INICIO = "/home/hero-clase-e-inicio.jpg";
@@ -130,12 +117,6 @@ function usePrefersReducedMotion() {
 }
 
 export default function Home() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("AUTOS");
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState(false);
-  const [retrying, setRetrying] = useState(false);
-
   const reducedMotion = usePrefersReducedMotion();
 
 
@@ -163,16 +144,6 @@ export default function Home() {
   const heroH1Ref = useRef<HTMLHeadingElement>(null);
   const heroSubRef = useRef<HTMLDivElement>(null);
   const heroCtaRef = useRef<HTMLDivElement>(null);
-
-  // Refs de reveal (GSAP ScrollTrigger) — Acto 2
-  const headerRef = useRef<HTMLDivElement>(null);
-
-  // Refs — Acto 3 (banda inmersiva)
-  const bandSectionRef = useRef<HTMLElement>(null);
-  const bandImageRef = useRef<HTMLDivElement>(null);
-  const bandEyebrowRef = useRef<HTMLParagraphElement>(null);
-  const bandTitleRef = useRef<HTMLHeadingElement>(null);
-  const bandCtaRef = useRef<HTMLDivElement>(null);
 
   // Refs — Acto 4 (cierre papel)
   const paperPhotoRef = useRef<HTMLDivElement>(null);
@@ -214,101 +185,6 @@ export default function Home() {
     photoRotateYRaw.set(0);
     setIsPhotoActive(false);
   }, [photoRotateXRaw, photoRotateYRaw]);
-
-  // Fetch vehicles from API — NO TOCAR el fetching (mandato de spec).
-  // Único agregado: capturar el error en estado local (estado error-de-fetch,
-  // hoy inexistente).
-  const fetchVehicles = useCallback(async () => {
-    try {
-      const response = await fetch("/api/vehicles");
-      const data = await response.json();
-      if (data.success) {
-        // El fetch no cambia; solo se descartan los ocultos (lib/vehicles/hidden).
-        setVehicles(
-          ((data.vehicles || []) as Vehicle[]).filter((v) => isPublicVehicle(v.id))
-        );
-        setFetchError(false);
-      } else {
-        setFetchError(true);
-      }
-    } catch (error) {
-      console.error("Error fetching vehicles:", error);
-      setFetchError(true);
-    } finally {
-      setLoading(false);
-      setRetrying(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Falso positivo: fetchVehicles solo llama a setState después del await.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchVehicles();
-  }, [fetchVehicles]);
-
-  const handleRetry = () => {
-    setRetrying(true);
-    setLoading(true);
-    fetchVehicles();
-  };
-
-  // Filtrar vehículos según categoría — NO TOCAR (mandato de spec).
-  const getVehiclesByCategory = () => {
-    const autoCategories = [
-      "sedanes",
-      "hatchback",
-      "coupes",
-      "cabrios-roadsters",
-    ];
-
-    let filtered: Vehicle[] = [];
-
-    switch (selectedCategory) {
-      case "AUTOS":
-        filtered = vehicles.filter((v) =>
-          autoCategories.includes(v.category.toLowerCase()),
-        );
-        break;
-      case "SUV":
-        filtered = vehicles.filter(
-          (v) =>
-            v.category.toLowerCase() === "suv" ||
-            v.category.toLowerCase() === "suvs" ||
-            v.category.toLowerCase() === "suv-todoterreno",
-        );
-        break;
-      case "VANS":
-        filtered = vehicles.filter((v) => v.category.toLowerCase() === "vans");
-        break;
-      case "SPRINTER":
-        filtered = vehicles.filter(
-          (v) => v.category.toLowerCase() === "sprinter",
-        );
-        break;
-      case "TRUCKS":
-        filtered = vehicles.filter(
-          (v) =>
-            v.category.toLowerCase().includes("truck") ||
-            v.category.toLowerCase() === "accelo" ||
-            v.category.toLowerCase() === "atego" ||
-            v.category.toLowerCase() === "actros" ||
-            v.category.toLowerCase() === "arocs" ||
-            v.category.toLowerCase() === "axor",
-        );
-        break;
-      default:
-        filtered = [];
-    }
-
-    // Sin límite: el carrusel 3D cilíndrico (Acto 2) muestra todos los
-    // vehículos reales de la categoría — a diferencia del grid anterior,
-    // más caras = cilindro más rico, no un problema de layout.
-    return filtered;
-  };
-
-  const currentVehicles = getVehiclesByCategory();
-  const activeLabel =
-    CATEGORY_TABS.find((c) => c.id === selectedCategory)?.label ?? "";
 
   // ---- Acto 1 — Hero cinematográfico: SplitText chars + stagger ----
   useEffect(() => {
@@ -427,27 +303,6 @@ export default function Home() {
 
     const triggers: ScrollTrigger[] = [];
 
-    const reveal = (el: Element | null, start: string) => {
-      if (!el || reduced) return; // reduced: visible de una, sin animación
-      gsap.set(el, { opacity: 0, y: 16 });
-      triggers.push(
-        ScrollTrigger.create({
-          trigger: el,
-          start,
-          once: true,
-          onEnter: () =>
-            gsap.to(el, {
-              opacity: 1,
-              y: 0,
-              duration: DUR.element,
-              ease: GSAP_EASE.secondary,
-            }),
-        }),
-      );
-    };
-
-    reveal(headerRef.current, "top 80%");
-
     // Foto: reveal por clip-path (asimétrico respecto al texto — evita el
     // fade-up uniforme). Texto: fade+y con delay corto.
     if (paperPhotoRef.current) {
@@ -498,81 +353,6 @@ export default function Home() {
 
     return () => {
       triggers.forEach((t) => t.kill());
-    };
-  }, []);
-
-  // ---- Acto 3 — banda inmersiva: parallax scrub + SplitText heading ----
-  useEffect(() => {
-    if (typeof window === "undefined" || !bandSectionRef.current) return;
-
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    const els = [bandEyebrowRef.current, bandCtaRef.current].filter(
-      (el): el is NonNullable<typeof el> => Boolean(el),
-    );
-
-    if (reduced) {
-      gsap.set(els, { opacity: 1, y: 0 });
-      if (bandTitleRef.current) gsap.set(bandTitleRef.current, { opacity: 1 });
-      return;
-    }
-
-    gsap.set(els, { opacity: 0, y: 16 });
-    if (bandTitleRef.current)
-      gsap.set(bandTitleRef.current, { autoAlpha: 0 });
-
-    // Sin parallax en esta imagen: el cliente exige verla COMPLETA y
-    // cualquier movimiento requiere zoom (scale>1) que la recorta. La banda
-    // es quietud pura — el motion vive en el texto y el CTA.
-
-    let split: SplitText | undefined;
-    const reveal = ScrollTrigger.create({
-      trigger: bandSectionRef.current,
-      start: "top 70%",
-      once: true,
-      onEnter: () => {
-        gsap.to(bandEyebrowRef.current, {
-          opacity: 1,
-          y: 0,
-          duration: DUR.element,
-          ease: GSAP_EASE.secondary,
-        });
-        if (bandTitleRef.current) {
-          document.fonts.ready.then(() => {
-            if (!bandTitleRef.current) return;
-            split = SplitText.create(bandTitleRef.current, {
-              type: "lines",
-              mask: "lines",
-              autoSplit: true,
-              onSplit(self) {
-                return gsap
-                  .timeline()
-                  .set(bandTitleRef.current, { autoAlpha: 1 })
-                  .from(self.lines, {
-                    yPercent: 110,
-                    duration: DUR.element,
-                    ease: GSAP_EASE.primary,
-                    stagger: 0.08,
-                  });
-              },
-            });
-          });
-        }
-        gsap.to(bandCtaRef.current, {
-          opacity: 1,
-          y: 0,
-          duration: DUR.element,
-          ease: GSAP_EASE.secondary,
-          delay: 0.2,
-        });
-      },
-    });
-
-    return () => {
-      reveal.kill();
-      split?.revert();
     };
   }, []);
 
@@ -763,207 +543,8 @@ export default function Home() {
         />
       </section>
 
-      {/* ───────────── Acto 2 — Build (carrusel 3D editorial) ───────────── */}
-      <section className="bg-black py-[var(--spacing-section)]">
-        <div className="mx-auto max-w-[1400px] px-6 md:px-12">
-          {/* Header centrado: eyebrow, título, CTA — mismo patrón de
-              fill-sweep que el resto de los CTAs rectos del sitio */}
-          <div
-            ref={headerRef}
-            className="mb-12 flex flex-col items-center gap-6 border-b border-white/10 pb-10 text-center"
-          >
-            <div>
-              <p className="text-eyebrow mb-3 font-mono uppercase tracking-[0.14em] text-silver-300">
-                La gama
-              </p>
-              <h2 className="text-h1 font-display font-medium text-white">
-                Ingeniería de precisión.
-              </h2>
-            </div>
-            <CtaSweep href="/vehicles" variant="ghost">
-              Ver todos los modelos
-              <ArrowRight
-                size={14}
-                className="transition-transform duration-[var(--dur-micro)] ease-[var(--ease-micro)] group-hover/cta:translate-x-1"
-              />
-            </CtaSweep>
-          </div>
-
-          {/* Tabs de categoría — control segmentado de una sola pieza: un
-              solo borde exterior, divisores internos 1px, el fondo activo
-              se desliza entre segmentos (layoutId) en vez de saltar. */}
-          <nav
-            aria-label="Categorías de vehículos"
-            className="mb-12 flex justify-center"
-          >
-            <div className="flex max-w-full divide-x divide-white/20 overflow-x-auto border border-white/20">
-              {CATEGORY_TABS.map((cat) => {
-                const active = selectedCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setSelectedCategory(cat.id)}
-                    aria-pressed={active}
-                    className={`relative shrink-0 whitespace-nowrap px-5 py-3 min-h-[44px] text-eyebrow font-mono uppercase tracking-[0.14em] transition-[color,letter-spacing] duration-[var(--dur-micro)] ease-[var(--ease-micro)] ${
-                      active
-                        ? "text-mb-black"
-                        : "text-silver-300 hover:tracking-[0.18em] hover:text-white"
-                    }`}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId="category-tab-active-bg"
-                        className="absolute inset-0 z-0 bg-white"
-                        transition={{ duration: 0.25, ease: EASE.secondary }}
-                      />
-                    )}
-                    <span className="relative z-10">{cat.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </nav>
-
-          {/* Carrusel 3D cilíndrico: loading / datos / empty / error-de-fetch
-              (los tres últimos estados se conservan como estaban) */}
-          <div className="min-h-[420px]">
-            {loading ? (
-              <div className="grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <VehicleCardSkeleton key={i} />
-                ))}
-              </div>
-            ) : fetchError ? (
-              <div className="flex flex-col items-center gap-5 py-16 text-center">
-                <p className="text-base text-silver-300">
-                  No pudimos cargar los vehículos.
-                </p>
-                <div className="flex flex-col items-center gap-5 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={handleRetry}
-                    disabled={retrying}
-                    className="group/retry relative inline-flex min-w-[140px] items-center justify-center overflow-hidden border border-white/25 px-6 py-2.5 text-xs font-medium uppercase tracking-[0.08em] text-white transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] hover:border-white/70 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-mb-blue focus-visible:outline-offset-2"
-                  >
-                    <span
-                      aria-hidden
-                      className="absolute inset-0 origin-left scale-x-0 bg-white transition-transform duration-[var(--dur-element)] ease-[var(--ease-scrub)] group-hover/retry:scale-x-100"
-                    />
-                    <span className="relative z-10 transition-colors duration-[var(--dur-micro)] group-hover/retry:text-mb-black">
-                      {retrying ? "Cargando…" : "Reintentar"}
-                    </span>
-                  </button>
-                  <a
-                    href={waLink(WA_GENERIC_MESSAGE)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-silver-300 underline underline-offset-4 transition-colors duration-[var(--dur-micro)] hover:text-white"
-                  >
-                    Consultar por WhatsApp
-                  </a>
-                </div>
-              </div>
-            ) : currentVehicles.length > 0 ? (
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={selectedCategory}
-                  exit={{
-                    opacity: 0,
-                    y: -10,
-                    transition: { duration: EXIT.element, ease: "easeIn" },
-                  }}
-                >
-                  <ThreeDVehicleCarousel
-                    vehicles={currentVehicles}
-                    reducedMotion={reducedMotion}
-                  />
-                </motion.div>
-              </AnimatePresence>
-            ) : (
-              <div className="flex flex-col items-center gap-3 py-16 text-center">
-                <h3 className="text-h3 font-display font-medium text-white">
-                  Muy pronto.
-                </h3>
-                <p className="max-w-md text-sm text-silver-500">
-                  ¿Buscás un modelo de esta categoría? Escribime y te aviso
-                  apenas ingrese.
-                </p>
-                <a
-                  href={waLink(
-                    `Hola Leonardo. Quiero consultar por la categoría ${activeLabel}.`,
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-white underline underline-offset-4 transition-colors duration-[var(--dur-micro)] hover:text-silver-300"
-                >
-                  Consultar por WhatsApp
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ───────────── Acto 3 — Clímax por quietud (banda inmersiva) ───────────── */}
-      <section
-        ref={bandSectionRef}
-        className="relative w-full overflow-hidden bg-black"
-      >
-        {/* Franja superior de NEGRO PURO reservada para el texto: el título
-            nunca puede caer sobre un vehículo, sin importar el aspect ratio
-            del viewport — la imagen vive abajo, en su propio bloque. */}
-        <div className="relative z-20 flex flex-col items-center px-6 pb-10 pt-14 text-center md:px-12 md:pb-12 md:pt-20">
-          <div className="w-full max-w-6xl">
-            <p
-              ref={bandEyebrowRef}
-              className="text-eyebrow mb-4 font-mono uppercase tracking-[0.14em] text-silver-300"
-            >
-              Autos · SUVs · Vans · Sprinter · Trucks
-            </p>
-            <h2
-              ref={bandTitleRef}
-              className="text-display-2 mb-8 text-balance font-display font-medium text-white"
-            >
-              Hay cosas que una ficha técnica no puede contar.
-            </h2>
-            <div ref={bandCtaRef}>
-              <CtaSweep href="/vehicles" variant="ghost">
-                Ver toda la gama
-              </CtaSweep>
-            </div>
-          </div>
-        </div>
-        {/* Imagen en bloque propio, anclada abajo. Crop sesgado bajo el
-            centro: prioriza vehículos + piso, recorta la franja negra
-            superior de la foto (ya la aporta el bloque de texto). */}
-        {/* Video de la gama completa (1.6 MB) — cine real en vez de una foto
-            estática de baja resolución: full-bleed con object-cover (en video
-            en movimiento el crop es natural, no "corta" nada perceptible).
-            Reduced-motion: cae a la foto estática completa (contain). */}
-        <div ref={bandImageRef} className="relative h-[44vh] min-h-[19rem] w-full md:h-[60vh] md:min-h-[26rem]">
-          {reducedMotion ? (
-            <Image
-              src="/foto-home-expericia.png"
-              alt="Gama Mercedes-Benz: autos, SUVs, vans, Sprinter y camiones"
-              fill
-              sizes="100vw"
-              className="object-contain"
-            />
-          ) : (
-            <video
-              src="/heros Vehiculos/MercedesBenz-todos.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-hidden
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          )}
-        </div>
-      </section>
+      {/* ───────────── Acto 2 — La gama (D-065: anillo 3D atado al scroll) ───────────── */}
+      <GamaAnillo />
 
       {/* ───────────── Acto 4 — Resolución (cierre papel) ───────────── */}
       <section

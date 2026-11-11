@@ -47,6 +47,10 @@ export default function SmoothScrollProvider({
       smoothWheel: true,
     });
 
+    // Expuesto para saltos puntuales del scroll (p. ej. la gama del inicio vuelve al
+    // primer modelo al cambiar de pestaña). Se borra al desmontar.
+    (window as Window & { __lenis?: Lenis }).__lenis = lenis;
+
     // Sync: cada vez que Lenis emite scroll, ScrollTrigger recalcula triggers.
     lenis.on("scroll", ScrollTrigger.update);
 
@@ -61,6 +65,7 @@ export default function SmoothScrollProvider({
     return () => {
       gsap.ticker.remove(ticker);
       lenis.destroy();
+      delete (window as Window & { __lenis?: Lenis }).__lenis;
     };
   }, []);
 
