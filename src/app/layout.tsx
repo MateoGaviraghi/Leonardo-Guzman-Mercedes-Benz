@@ -4,7 +4,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { MainWrapper } from "@/components/MainWrapper";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
-import WhatsAppChip from "@/components/WhatsAppChip";
 import "./globals.css";
 
 // Tipografías (2026-11-10, Mateo: «usar la más similares posible o idénticas» a las
@@ -104,7 +103,6 @@ export default function RootLayout({
           <Navbar />
           <MainWrapper>{children}</MainWrapper>
           <Footer />
-          <WhatsAppChip />
         </SmoothScrollProvider>
       </body>
     </html>

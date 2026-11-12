@@ -6,9 +6,9 @@ import { EASE, EXIT } from "@/lib/motion-tokens";
 
 /**
  * Back-to-top — restyle DS (mb-black/silver, sin verde, sin rounded-full).
- * Apilado ARRIBA del chip de WhatsApp (fixed, h-14=56px, mismo right offset)
- * para que nunca se superpongan: bottom = offset base + 68px + safe-area.
- * WhatsAppChip.tsx NO se toca (fuera de scope).
+ * En la esquina de abajo a la derecha. Antes iba apilado arriba del chip de
+ * WhatsApp (+68 px); el chip se sacó del sitio el 2026-11-12 (Mateo: «eliminemos
+ * ese logo de WhatsApp, ahí no sirve de nada hoy porque ya está el Consultar»).
  */
 export function BackToTop({ isAMG }: { isAMG: boolean }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -31,7 +31,7 @@ export function BackToTop({ isAMG }: { isAMG: boolean }) {
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: EXIT.element, ease: EASE.secondary }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className={`group fixed right-[clamp(16px,4vw,32px)] bottom-[calc(clamp(16px,4vw,32px)+68px+env(safe-area-inset-bottom))] z-40 flex h-12 w-12 items-center justify-center rounded-md border transition-colors duration-[var(--dur-element)] ease-[var(--ease-secondary)] md:h-14 md:w-14 ${
+          className={`group fixed right-[clamp(16px,4vw,32px)] bottom-[calc(clamp(16px,4vw,32px)+env(safe-area-inset-bottom))] z-40 flex h-12 w-12 items-center justify-center rounded-md border transition-colors duration-[var(--dur-element)] ease-[var(--ease-secondary)] md:h-14 md:w-14 ${
             isAMG
               ? "border-amg-teal/40 bg-neutral-900/90 hover:bg-neutral-800 hover:border-amg-teal/70"
               : "border-silver-700/60 bg-mb-black hover:border-silver-500 hover:bg-black"

@@ -23,7 +23,9 @@
   --color-paper-0: #f5f4f1;
   --color-paper-1: #ecebe7;
   --color-ink: #0b0b0d;
-  --color-ink-60: rgba(11, 11, 13, 0.6);
+  /* 0.6 → 0.78 (2026-11-12, Mateo: «no me gusta que uses esos grises, tanto con fondo
+     negro como claro, porque no se notan»). El nombre queda por compatibilidad. */
+  --color-ink-60: rgba(11, 11, 13, 0.78);
   --color-stroke-ink: rgba(11, 11, 13, 0.12);
   --color-silver-100: #e4e6e8;
   --color-silver-300: #c6c9ce;
@@ -55,6 +57,7 @@
   --text-lead--line-height: 1.5;
   --text-eyebrow: 0.75rem;
   --text-eyebrow--line-height: 1;
+  --text-eyebrow--font-weight: 500; /* un punto más grueso: se perdía (2026-11-12) */
 
   /* Legacy (usos existentes; migrar a display-1/display-2) */
   --text-display: clamp(2.75rem, 6vw + 1rem, 5.5rem);

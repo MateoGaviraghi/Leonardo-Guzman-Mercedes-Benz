@@ -14,7 +14,8 @@
 //   autos y estoy dos horas para llegar al otro». Al cambiar de pestaña el scroll vuelve al
 //   comienzo del pin y el largo se recalcula (sin salto: la sección está quieta). Antes era
 //   fijo (240 %) para todas las pestañas.
-// - Entrada (al asomar la sección, top 75 %): el título sube letra por letra; la línea de
+// - Entrada (al asomar la sección, top 75 %, con los recortes ya decodificados): el título
+//   sube por renglón (antes letra por letra; cambiado el 2026-11-12 para el celular); la línea de
 //   las pestañas se dibuja de izquierda a derecha y las pestañas suben; el anillo llega
 //   girando desde el fondo (1,6 s expo.out); la barra de abajo entra al final.
 // - Cambio de pestaña: el anillo se va girando hacia el fondo (0,55 s power3.in), cambian
@@ -328,7 +329,11 @@ export default function GamaAnillo() {
       gsap.set([".gm-eyebrow", ".gm-vertodos", ".gm-pestana", ".gm-barra"], { autoAlpha: 0, y: 18 });
       gsap.set(".gm-linea", { scaleX: 0 });
       // (la opacidad va en `escena`: en un elemento con preserve-3d aplanaría el anillo)
-      gsap.set(entrada.current, { rotationY: -70, z: -700 });
+      // celular: llegada más corta y menos profunda (2026-11-12, Mateo: «tanto en esta
+      // sección como en la anterior entran muy tildadas»): -700 de profundidad con 8
+      // recortes en 3D es lo más pesado de la entrada para la placa de un teléfono
+      const chico = window.matchMedia("(max-width: 1023px)").matches;
+      gsap.set(entrada.current, chico ? { rotationY: -32, z: -240 } : { rotationY: -70, z: -700 });
       gsap.set(escena.current, { autoAlpha: 0 });
       gsap.set(".gm-piso", { autoAlpha: 0, scale: 0.6 });
       gsap.set(titulo, { autoAlpha: 0 });
@@ -339,12 +344,13 @@ export default function GamaAnillo() {
         .add(() => {
           gsap.set(titulo, { autoAlpha: 1 });
           if (!split) return;
-          gsap.from(split.chars, { yPercent: 115, duration: 1.2, stagger: 0.022, ease: "expo.out" });
+          // por renglón (antes letra por letra: decenas de piezas a la vez)
+          gsap.from(split.lines, { yPercent: 112, duration: 1.4, stagger: 0.1, ease: "expo.out" });
         }, 0.08)
         .to(".gm-vertodos", { autoAlpha: 1, y: 0, duration: 1 }, 0.35)
         .to(".gm-linea", { scaleX: 1, duration: 1.4, ease: "expo.inOut" }, 0.2)
         .to(".gm-pestana", { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.05 }, 0.45)
-        .to(entrada.current, { rotationY: 0, z: 0, duration: 1.8 }, 0.3)
+        .to(entrada.current, { rotationY: 0, z: 0, duration: chico ? 1.6 : 1.8 }, 0.3)
         .to(escena.current, { autoAlpha: 1, duration: 1.1, ease: "power2.out" }, 0.3)
         .to(".gm-piso", { autoAlpha: 1, scale: 1, duration: 1.4 }, 0.7)
         .to(".gm-barra", { autoAlpha: 1, y: 0, duration: 1, stagger: 0.08 }, 0.85)
@@ -353,15 +359,19 @@ export default function GamaAnillo() {
         });
 
       document.fonts.ready.then(() => {
-        split = SplitText.create(titulo, { type: "chars,words", mask: "chars" });
+        split = SplitText.create(titulo, { type: "lines", mask: "lines" });
         gsap.set(split.masks, { paddingBottom: "0.18em", marginBottom: "-0.18em" });
       });
 
+      const imgs = Array.from(seccion.current!.querySelectorAll<HTMLImageElement>("img"));
+      const listas = Promise.all(imgs.map((i) => (i.decode ? i.decode().catch(() => {}) : Promise.resolve())));
       ScrollTrigger.create({
         trigger: seccion.current,
         start: "top 75%",
         once: true,
-        onEnter: () => tl.play(),
+        // arranca con los recortes ya decodificados: decodificar en medio de la
+        // animación es lo que la traba en el celular
+        onEnter: () => void listas.then(() => tl.play()),
       });
 
       return () => split?.revert();

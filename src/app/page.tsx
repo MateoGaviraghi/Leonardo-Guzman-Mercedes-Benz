@@ -13,6 +13,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import GamaAnillo from "@/components/home/GamaAnillo";
+import ComoComprarlo from "@/components/home/ComoComprarlo";
 import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
 import { DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
 import { waLink, WA_GENERIC_MESSAGE } from "@/lib/site";
@@ -545,6 +546,7 @@ export default function Home() {
 
       {/* ───────────── Acto 2 — La gama (D-065: anillo 3D atado al scroll) ───────────── */}
       <GamaAnillo />
+      <ComoComprarlo />
 
       {/* ───────────── Acto 4 — Resolución (cierre papel) ───────────── */}
       <section

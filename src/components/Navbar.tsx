@@ -236,23 +236,29 @@ export default function Navbar() {
   }, [isOpen]);
 
   // Panel de escritorio: abre al pasar el mouse (con 120 ms de intención) o con clic.
+  // Cada pedido cancela el anterior del mismo tipo. Antes solo se guardaba el último:
+  // al cruzar varios links rápido quedaban cierres sueltos que cerraban el panel apenas
+  // se volvía a abrir (Mateo, 2026-11-12: «no funciona bien… más que nada el cerrar»).
   const pedirPanel = () => {
     window.clearTimeout(cerrarT.current);
+    window.clearTimeout(abrirT.current);
     abrirT.current = window.setTimeout(() => {
       abiertoPorMouse.current = performance.now();
       setPanel(true);
     }, 120);
   };
   // El clic sobre «Vehículos» llega justo después de que el mouse ya lo abrió: si se
-  // invertía, lo cerraba en la cara del usuario. Dentro del primer segundo, el clic abre.
+  // invertía, lo cerraba en la cara del usuario. Esa protección duraba 1 s y bloqueaba el
+  // cierre (Mateo, 2026-11-12: «no funciona bien… más que nada el cerrar»): ahora 0,35 s.
   const clicPanel = () => {
     window.clearTimeout(abrirT.current);
     window.clearTimeout(cerrarT.current);
-    const recien = performance.now() - abiertoPorMouse.current < 1000;
+    const recien = performance.now() - abiertoPorMouse.current < 350;
     setPanel((v) => (v && !recien ? false : true));
   };
   const soltarPanel = () => {
     window.clearTimeout(abrirT.current);
+    window.clearTimeout(cerrarT.current);
     cerrarT.current = window.setTimeout(() => setPanel(false), 220);
   };
 
@@ -262,7 +268,7 @@ export default function Navbar() {
   // claro «se pierde la imagen del logo»).
   const claro = paper && !panel;
   const textStrong = claro ? "text-ink" : "text-white";
-  const textMuted = claro ? "text-ink-60" : "text-white/55";
+  const textMuted = claro ? "text-ink-60" : "text-white/80"; // antes /55: no se leía
   const scrolledBg = claro
     ? "bg-[var(--nav-paper)] lg:bg-paper-0/90 lg:backdrop-blur-2xl lg:backdrop-saturate-150"
     : "bg-black lg:bg-black/55 lg:backdrop-blur-2xl lg:backdrop-saturate-150";
@@ -282,7 +288,7 @@ export default function Navbar() {
         <div className="w-full px-6 md:px-12 lg:px-8 xl:px-12">
           {/* Escritorio */}
           <div className="hidden lg:grid lg:grid-cols-[auto_1fr_auto] items-center gap-6 xl:gap-10">
-            <Link href="/" className="flex shrink-0 items-center gap-4 whitespace-nowrap" aria-label={`${SITE.name}, inicio`}>
+            <Link href="/" onMouseEnter={soltarPanel} className="flex shrink-0 items-center gap-4 whitespace-nowrap" aria-label={`${SITE.name}, inicio`}>
               <EstrellaMetal className="h-12 w-12" />
               <span className="flex flex-col">
                 <span className="flex items-baseline gap-2">
@@ -345,7 +351,8 @@ export default function Navbar() {
               })}
             </div>
 
-            <div className="shrink-0">
+            {/* ir al logo o a «Consultar» también cierra el panel, como los otros links */}
+            <div className="shrink-0" onMouseEnter={soltarPanel}>
               <BotonCromo href={WA} externo>Consultar</BotonCromo>
             </div>
           </div>
@@ -384,7 +391,11 @@ export default function Navbar() {
           )}
         </AnimatePresence>
 
-        <PanelVehiculos abierto={panel} onCerrar={() => setPanel(false)} />
+        {/* entrar al panel cancela un cierre pedido al pasar por el logo o «Consultar»
+            (camino en diagonal hacia «Cerrar», arriba a la derecha) */}
+        <div onMouseEnter={() => window.clearTimeout(cerrarT.current)}>
+          <PanelVehiculos abierto={panel} onCerrar={() => setPanel(false)} />
+        </div>
       </nav>
 
       {/* Velo detrás del panel de escritorio */}

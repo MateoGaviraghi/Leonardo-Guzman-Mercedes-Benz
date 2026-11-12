@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
 import { MODELOS_MENU, PESTANAS, type PestanaMenu } from "@/lib/vehicles/menu-modelos";
 import { pegar } from "@/lib/texto";
 
@@ -241,8 +241,19 @@ export function PanelVehiculos({ abierto, onCerrar }: { abierto: boolean; onCerr
         id="panel-vehiculos"
         data-lenis-prevent
         style={{ visibility: "hidden" }}
-        className="pointer-events-auto max-h-[calc(100svh-var(--nav-h))] overflow-y-auto bg-[linear-gradient(180deg,#0b0b0d_0%,#121317_100%)] px-12 pb-12 pt-6 text-white shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)]"
+        className="pointer-events-auto relative max-h-[calc(100svh-var(--nav-h))] overflow-y-auto bg-[linear-gradient(180deg,#0b0b0d_0%,#121317_100%)] px-12 pb-12 pt-6 text-white shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)]"
       >
+        {/* Mateo (2026-11-12): «no funciona bien el botón del header para abrir y cerrar
+            vehículos, más que nada el cerrar»: además del clic en «Vehículos», Escape, el
+            fondo oscuro y sacar el mouse, un botón visible para cerrar. */}
+        <button
+          type="button"
+          onClick={onCerrar}
+          className="group absolute left-12 top-[calc(1.5rem+0.875rem)] z-10 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.2em] text-white/60 transition-colors duration-500 hover:text-white"
+        >
+          <X size={16} className="transition-transform duration-700 ease-[var(--ease-primary)] group-hover:rotate-90" />
+          Cerrar
+        </button>
         <GrillaModelos onElegir={onCerrar} entrar={vueltas} />
       </div>
     </div>
