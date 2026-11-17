@@ -31,6 +31,10 @@
 //   (link del hero), pestañas debajo; al centro el anillo; abajo nombre + combustible,
 //   flechas con «02 / 08» y «Ver modelo» (BotonCromo, D-054).
 // - Recortes de `menu-modelos.ts` (900 px de ancho): en pantalla, a lo sumo 640 px.
+// - Sin catálogo (2026-11-17, Mateo: «eliminar la página de vehículos, no tiene mucho sentido
+//   con lo que hicimos en el header»): la gama es el lugar de «ver todos». Se llega con
+//   `/#gama` o `/#gama-<pestaña>` (hero, «Ver todos» del menú, footer, ficha, links viejos
+//   de /vehicles): baja al comienzo de la sección y abre esa pestaña. Sale «Ver todos los modelos».
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -59,7 +63,6 @@ const reducido = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const modelosDe = (p: PestanaMenu) => MODELOS_MENU.filter((m) => m.pestana === p);
-const nombreDe = (p: PestanaMenu) => PESTANAS.find((x) => x.id === p)!;
 
 function Pestanas({ pestana, onCambiar }: { pestana: PestanaMenu; onCambiar: (p: PestanaMenu) => void }) {
   const lista = useRef<HTMLDivElement>(null);
@@ -252,9 +255,49 @@ export default function GamaAnillo() {
       setFrente(f);
     }
   };
+  const cambiarRef = useRef<(p: PestanaMenu) => void>(() => {});
   useEffect(() => {
     pintarRef.current = pintar;
   });
+
+  // ── Llegar desde un link: /#gama o /#gama-<pestaña> ──
+  useEffect(() => {
+    const llegar = (hash: string) => {
+      const m = /^#gama(?:-([a-z]+))?$/.exec(hash);
+      if (!m) return false;
+      const tab = PESTANAS.find((t) => t.id === m[1])?.id;
+      const bajar = () => {
+        const st = disparador.current;
+        const y = st ? st.start : seccion.current!.getBoundingClientRect().top + window.scrollY;
+        const lenis = (window as Window & { __lenis?: { scrollTo: (y: number, o?: { immediate?: boolean; force?: boolean }) => void } }).__lenis;
+        if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+        else window.scrollTo(0, y);
+        ScrollTrigger.update();
+        if (tab) cambiarRef.current(tab);
+      };
+      requestAnimationFrame(() => requestAnimationFrame(bajar));
+      return true;
+    };
+    llegar(window.location.hash);
+    // en el inicio, un link a /#gama… no navega: baja y cambia la pestaña acá mismo
+    const alClic = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const u = new URL(a.href, window.location.href);
+      if (u.origin !== window.location.origin || u.pathname !== "/" || window.location.pathname !== "/") return;
+      if (!u.hash.startsWith("#gama")) return;
+      e.preventDefault();
+      history.pushState(null, "", u.hash);
+      llegar(u.hash);
+    };
+    const alHash = () => llegar(window.location.hash);
+    document.addEventListener("click", alClic, true);
+    window.addEventListener("hashchange", alHash);
+    return () => {
+      document.removeEventListener("click", alClic, true);
+      window.removeEventListener("hashchange", alHash);
+    };
+  }, []);
 
   // ── Geometría del anillo para los modelos visibles ──
   useGSAP(
@@ -326,7 +369,7 @@ export default function GamaAnillo() {
 
       // Estados iniciales (solo con JS: sin JS, todo queda visible)
       const titulo = seccion.current!.querySelector("h2")!;
-      gsap.set([".gm-eyebrow", ".gm-vertodos", ".gm-pestana", ".gm-barra"], { autoAlpha: 0, y: 18 });
+      gsap.set([".gm-eyebrow", ".gm-pestana", ".gm-barra"], { autoAlpha: 0, y: 18 });
       gsap.set(".gm-linea", { scaleX: 0 });
       // (la opacidad va en `escena`: en un elemento con preserve-3d aplanaría el anillo)
       // celular: llegada más corta y menos profunda (2026-11-12, Mateo: «tanto en esta
@@ -347,7 +390,6 @@ export default function GamaAnillo() {
           // por renglón (antes letra por letra: decenas de piezas a la vez)
           gsap.from(split.lines, { yPercent: 112, duration: 1.4, stagger: 0.1, ease: "expo.out" });
         }, 0.08)
-        .to(".gm-vertodos", { autoAlpha: 1, y: 0, duration: 1 }, 0.35)
         .to(".gm-linea", { scaleX: 1, duration: 1.4, ease: "expo.inOut" }, 0.2)
         .to(".gm-pestana", { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.05 }, 0.45)
         .to(entrada.current, { rotationY: 0, z: 0, duration: chico ? 1.6 : 1.8 }, 0.3)
@@ -416,6 +458,10 @@ export default function GamaAnillo() {
     });
   };
 
+  useEffect(() => {
+    cambiarRef.current = cambiar;
+  });
+
   // ── Flechas: llevan el scroll hasta el modelo anterior / siguiente ──
   const ir = (paso: number) => {
     const destino = Math.min(Math.max(frente + paso, 0), n - 1);
@@ -430,31 +476,21 @@ export default function GamaAnillo() {
   };
 
   const indice = Math.min(frente, n - 1);
-  const p = nombreDe(pestana);
 
   return (
     <section
       ref={seccion}
+      id="gama"
       aria-label="La gama"
       className="relative flex h-svh min-h-[600px] flex-col overflow-hidden bg-black pb-[clamp(5rem,11svh,6rem)] pt-[calc(var(--nav-h,80px)+clamp(0.75rem,3svh,2.5rem))] lg:pb-[clamp(1.25rem,4svh,2.75rem)]"
     >
-      {/* arriba: título + «Ver todos los modelos», pestañas debajo */}
+      {/* arriba: título, pestañas debajo */}
       <div className="relative z-10 mx-auto w-full max-w-[1600px] px-6 md:px-12">
         <div className="flex flex-col items-center gap-3 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
           <div>
             <p className="gm-eyebrow text-eyebrow mb-3 font-mono uppercase tracking-[0.14em] text-silver-300">La gama</p>
             <h2 className="text-h1 font-display font-medium leading-[1] text-white">Ingeniería de precisión.</h2>
           </div>
-          {/* el mismo link que el hero («Conocé nuestros vehículos») */}
-          <Link
-            href={p.verTodos}
-            className="gm-vertodos group inline-flex items-center gap-3 pb-1 text-white transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] hover:text-silver-300"
-          >
-            <span className="border-b border-white pb-1 text-[11px] font-bold uppercase tracking-[0.2em] transition-colors duration-[var(--dur-micro)] group-hover:border-silver-300">
-              Ver todos los modelos
-            </span>
-            <ArrowRight size={16} className="transition-transform duration-[var(--dur-micro)] ease-[var(--ease-micro)] group-hover:translate-x-1" />
-          </Link>
         </div>
         <div className="mt-5 lg:mt-7">
           <Pestanas pestana={pestana} onCambiar={cambiar} />

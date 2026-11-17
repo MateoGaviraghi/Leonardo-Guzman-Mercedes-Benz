@@ -340,7 +340,7 @@ export default function Home() {
 
             <div ref={heroCtaRef}>
               <Link
-                href="/vehicles"
+                href="/#gama"
                 className="group inline-flex items-center gap-4 py-2 text-white transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] hover:text-silver-300 lg:py-0"
               >
                 <span className="border-b border-white pb-1 text-xs font-bold uppercase tracking-[0.2em] transition-colors duration-[var(--dur-micro)] group-hover:border-silver-300">

@@ -111,7 +111,7 @@ export function CtaSection({ isAMG }: { isAMG: boolean }) {
 
           {/* Secundario outline — rectangular, sin rounded-full; borde se dibuja (scaleX). */}
           <Link
-            href="/vehicles"
+            href="/#gama"
             className={`relative inline-flex items-center justify-center px-10 py-4 border border-transparent font-light text-sm tracking-wider uppercase transition-colors duration-[var(--dur-element)] ease-[var(--ease-secondary)] ${
               isAMG
                 ? "text-white hover:bg-amg-teal/10"

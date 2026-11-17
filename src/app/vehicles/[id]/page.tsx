@@ -11,10 +11,10 @@ export default async function VehicleDetailPage({
 }) {
   const { id } = await params;
 
-  // Oculto (lib/vehicles/hidden): un link viejo aterriza en el catálogo, no
-  // en el 404 por defecto de Next.
+  // Oculto (lib/vehicles/hidden): un link viejo aterriza en la gama del inicio (el
+  // catálogo ya no existe), no en el 404 por defecto de Next.
   if (!isPublicVehicle(id)) {
-    redirect("/vehicles");
+    redirect("/#gama");
   }
 
   return <VehicleDetailView id={id} />;

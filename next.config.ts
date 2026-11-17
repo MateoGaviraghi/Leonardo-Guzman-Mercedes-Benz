@@ -26,9 +26,21 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
-  // /experiencia se quitó del sitio (2026-11-11, Mateo): los links viejos van a la gama.
+  // /experiencia se quitó del sitio (2026-11-11, Mateo) y el catálogo /vehicles también
+  // (2026-11-17, Mateo: «eliminar la página de vehículos»): los links viejos van a la gama
+  // del inicio, abierta en la pestaña de esa categoría. Las fichas /vehicles/<id> siguen.
   async redirects() {
-    return [{ source: "/experiencia/:path*", destination: "/vehicles", permanent: true }];
+    const q = (key: string, value: string) => ({ type: "query" as const, key, value });
+    return [
+      { source: "/experiencia/:path*", destination: "/#gama", permanent: true },
+      { source: "/vehicles", has: [q("category", "auto"), q("brand", "amg")], destination: "/#gama-amg", permanent: true },
+      { source: "/vehicles", has: [q("category", "auto")], destination: "/#gama-autos", permanent: true },
+      { source: "/vehicles", has: [q("category", "suv")], destination: "/#gama-suv", permanent: true },
+      { source: "/vehicles", has: [q("category", "vans")], destination: "/#gama-vans", permanent: true },
+      { source: "/vehicles", has: [q("category", "sprinter")], destination: "/#gama-sprinter", permanent: true },
+      { source: "/vehicles", has: [q("category", "trucks")], destination: "/#gama-camiones", permanent: true },
+      { source: "/vehicles", destination: "/#gama", permanent: true },
+    ];
   },
   async headers() {
     return [

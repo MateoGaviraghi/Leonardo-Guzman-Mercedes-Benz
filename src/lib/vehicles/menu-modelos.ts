@@ -23,12 +23,12 @@ export interface ModeloMenu {
 }
 
 export const PESTANAS: { id: PestanaMenu; nombre: string; corto?: string; verTodos: string }[] = [
-  { id: "autos", nombre: "Autos", verTodos: "/vehicles?category=auto&brand=mercedes-benz" },
-  { id: "suv", nombre: "SUV", verTodos: "/vehicles?category=suv&brand=mercedes-benz" },
-  { id: "amg", nombre: "Mercedes-AMG", corto: "AMG", verTodos: "/vehicles?category=auto&brand=amg" },
-  { id: "vans", nombre: "Vans", verTodos: "/vehicles?category=vans" },
-  { id: "sprinter", nombre: "Sprinter", verTodos: "/vehicles?category=sprinter" },
-  { id: "camiones", nombre: "Camiones", verTodos: "/vehicles?category=trucks" },
+  { id: "autos", nombre: "Autos", verTodos: "/#gama-autos" },
+  { id: "suv", nombre: "SUV", verTodos: "/#gama-suv" },
+  { id: "amg", nombre: "Mercedes-AMG", corto: "AMG", verTodos: "/#gama-amg" },
+  { id: "vans", nombre: "Vans", verTodos: "/#gama-vans" },
+  { id: "sprinter", nombre: "Sprinter", verTodos: "/#gama-sprinter" },
+  { id: "camiones", nombre: "Camiones", verTodos: "/#gama-camiones" },
 ];
 
 const R = (slug: string) => `/menu-modelos/${slug}.webp`;

@@ -38,7 +38,7 @@ export function BackButton({ fadeOnScroll = false }: { fadeOnScroll?: boolean })
     if (typeof window !== "undefined" && window.history.length > 2) {
       router.back();
     } else {
-      router.push("/vehicles");
+      router.push("/#gama");
     }
   };
 

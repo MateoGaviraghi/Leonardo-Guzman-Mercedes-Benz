@@ -28,11 +28,11 @@ import { pegar } from "@/lib/texto";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const VEHICULOS = [
-  { label: "Autos", href: "/vehicles?category=auto" },
-  { label: "SUVs", href: "/vehicles?category=suv" },
-  { label: "Vans", href: "/vehicles?category=vans" },
-  { label: "Sprinter", href: "/vehicles?category=sprinter" },
-  { label: "Trucks", href: "/vehicles?category=trucks" },
+  { label: "Autos", href: "/#gama-autos" },
+  { label: "SUVs", href: "/#gama-suv" },
+  { label: "Vans", href: "/#gama-vans" },
+  { label: "Sprinter", href: "/#gama-sprinter" },
+  { label: "Trucks", href: "/#gama-camiones" },
 ];
 const SERVICIOS = [
   { label: "Financiación", href: "/financiacion" },
