@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title:
     "Sobre mí — Leonardo Guzmán, asesor Mercedes-Benz | Automotores Mega, Paraná",
   description:
-    "Promotor oficial Mercedes-Benz en Automotores Mega S.A., Paraná. 25 años de experiencia en el rubro automotriz. Atención personal en todas las etapas.",
+    "Promotor oficial Mercedes-Benz en Automotores Mega S.A., Paraná. Más de 30 años de experiencia en el rubro automotriz. Atención personal en todas las etapas.",
 };
 
 export default function AboutLayout({

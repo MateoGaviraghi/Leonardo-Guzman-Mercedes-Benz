@@ -2,23 +2,17 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-} from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import GamaAnillo from "@/components/home/GamaAnillo";
 import ComoComprarlo from "@/components/home/ComoComprarlo";
-import WhatsAppIcon from "@/components/icons/WhatsAppIcon";
+import Leonardo from "@/components/home/Leonardo";
 import { DUR, GSAP_EASE, HERO_DELAY } from "@/lib/motion-tokens";
-import { waLink, WA_GENERIC_MESSAGE } from "@/lib/site";
 
-import { pegar } from "@/lib/texto";
 
 const HERO_VIDEO = "/home/hero-clase-e.mp4";
 const HERO_INICIO = "/home/hero-clase-e-inicio.jpg";
@@ -34,73 +28,6 @@ const HERO_VERTICAL_MEDIA = "(orientation: portrait)";
  *  vuelta, lenta, y termina en el mismo cuadro. Al terminar se vuelve acá, así
  *  el encendido pasa una sola vez. */
 const HERO_LOOP_DESDE = 8.5417;
-
-// Tilt 3D de la foto de Leonardo (Acto 4) — mismo mecanismo que
-// VehicleCard: spring de damping alto, sin overshoot. Rango un poco más
-// contenido que el de las cards (es un retrato, no un producto).
-const PHOTO_TILT_DEG = 6;
-const PHOTO_TILT_SPRING = { stiffness: 260, damping: 30, mass: 0.6 };
-
-/**
- * CTA rectangular con fill-sweep al hover (home §reglas 1/7). Ghost = borde
- * que se llena de blanco, texto pasa a negro. Whatsapp = fondo verde fijo,
- * el sweep es un brillo sutil. Geometría recta siempre — cero border-radius.
- */
-function CtaSweep({
-  href,
-  children,
-  variant = "ghost",
-  external = false,
-}: {
-  href: string;
-  children: React.ReactNode;
-  variant?: "ghost" | "whatsapp";
-  external?: boolean;
-}) {
-  const isWhatsapp = variant === "whatsapp";
-  const className = `group/cta relative inline-flex items-center justify-center gap-3 overflow-hidden border px-8 py-3.5 text-sm font-medium transition-colors duration-[var(--dur-micro)] ease-[var(--ease-micro)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-    isWhatsapp
-      ? "border-whatsapp bg-whatsapp text-white focus-visible:outline-ink"
-      : "border-white/25 text-white hover:border-white/70 focus-visible:outline-mb-blue"
-  }`;
-
-  const inner = (
-    <>
-      <span
-        aria-hidden
-        className={`absolute inset-0 origin-left scale-x-0 transition-transform duration-[var(--dur-element)] ease-[var(--ease-scrub)] group-hover/cta:scale-x-100 ${
-          isWhatsapp ? "bg-white/20" : "bg-white"
-        }`}
-      />
-      <span
-        className={`relative z-10 flex items-center gap-3 transition-colors duration-[var(--dur-micro)] ${
-          isWhatsapp ? "" : "group-hover/cta:text-mb-black"
-        }`}
-      >
-        {children}
-      </span>
-    </>
-  );
-
-  if (external) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-      >
-        {inner}
-      </a>
-    );
-  }
-
-  return (
-    <Link href={href} className={className}>
-      {inner}
-    </Link>
-  );
-}
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(
@@ -145,47 +72,6 @@ export default function Home() {
   const heroH1Ref = useRef<HTMLHeadingElement>(null);
   const heroSubRef = useRef<HTMLDivElement>(null);
   const heroCtaRef = useRef<HTMLDivElement>(null);
-
-  // Refs — Acto 4 (cierre papel)
-  const paperPhotoRef = useRef<HTMLDivElement>(null);
-  const paperTextRef = useRef<HTMLDivElement>(null);
-
-  // Tilt 3D de la foto de Leonardo — mismo patrón que VehicleCard
-  // (rotateX/rotateY con spring). Desactivado en
-  // touch / prefers-reduced-motion.
-  const photoTiltEnabled = useRef(false);
-  useEffect(() => {
-    photoTiltEnabled.current =
-      window.matchMedia("(pointer: fine)").matches &&
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  }, []);
-  const photoRotateXRaw = useMotionValue(0);
-  const photoRotateYRaw = useMotionValue(0);
-  const photoRotateX = useSpring(photoRotateXRaw, PHOTO_TILT_SPRING);
-  const photoRotateY = useSpring(photoRotateYRaw, PHOTO_TILT_SPRING);
-
-  const handlePhotoPointerMove = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!photoTiltEnabled.current) return;
-      const rect = e.currentTarget.getBoundingClientRect();
-      const px = (e.clientX - rect.left) / rect.width;
-      const py = (e.clientY - rect.top) / rect.height;
-      photoRotateYRaw.set((px - 0.5) * PHOTO_TILT_DEG * 2);
-      photoRotateXRaw.set(-(py - 0.5) * PHOTO_TILT_DEG * 2);
-    },
-    [photoRotateXRaw, photoRotateYRaw],
-  );
-
-  // will-change-transform transiente: solo mientras hay interacción
-  // (patrón AutonomySection.tsx) — evita promover una capa de compositor
-  // permanente para un retrato que no se mueve fuera de hover/focus.
-  const [isPhotoActive, setIsPhotoActive] = useState(false);
-
-  const handlePhotoPointerLeave = useCallback(() => {
-    photoRotateXRaw.set(0);
-    photoRotateYRaw.set(0);
-    setIsPhotoActive(false);
-  }, [photoRotateXRaw, photoRotateYRaw]);
 
   // ---- Acto 1 — Hero cinematográfico: SplitText chars + stagger ----
   useEffect(() => {
@@ -286,74 +172,6 @@ export default function Home() {
       window.clearTimeout(safety);
       tl.kill();
       split?.revert();
-    };
-  }, []);
-
-  // ---- Reveals estáticos: header A2 ----
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const w = window as Window & { __gsapScrollTriggerRegistered?: boolean };
-    if (!w.__gsapScrollTriggerRegistered) {
-      gsap.registerPlugin(ScrollTrigger);
-      w.__gsapScrollTriggerRegistered = true;
-    }
-
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    const triggers: ScrollTrigger[] = [];
-
-    // Foto: reveal por clip-path (asimétrico respecto al texto — evita el
-    // fade-up uniforme). Texto: fade+y con delay corto.
-    if (paperPhotoRef.current) {
-      if (reduced) {
-        gsap.set(paperPhotoRef.current, { clipPath: "inset(0% 0% 0% 0%)" });
-      } else {
-        gsap.set(paperPhotoRef.current, {
-          clipPath: "inset(0% 0% 100% 0%)",
-        });
-        triggers.push(
-          ScrollTrigger.create({
-            trigger: paperPhotoRef.current,
-            start: "top 78%",
-            once: true,
-            onEnter: () =>
-              gsap.to(paperPhotoRef.current, {
-                clipPath: "inset(0% 0% 0% 0%)",
-                duration: DUR.hero,
-                ease: GSAP_EASE.primary,
-              }),
-          }),
-        );
-      }
-    }
-
-    if (paperTextRef.current) {
-      if (reduced) {
-        gsap.set(paperTextRef.current, { opacity: 1, y: 0 });
-      } else {
-        gsap.set(paperTextRef.current, { opacity: 0, y: 16 });
-        triggers.push(
-          ScrollTrigger.create({
-            trigger: paperTextRef.current,
-            start: "top 78%",
-            once: true,
-            onEnter: () =>
-              gsap.to(paperTextRef.current, {
-                opacity: 1,
-                y: 0,
-                duration: DUR.element,
-                ease: GSAP_EASE.secondary,
-                delay: 0.12,
-              }),
-          }),
-        );
-      }
-    }
-
-    return () => {
-      triggers.forEach((t) => t.kill());
     };
   }, []);
 
@@ -548,81 +366,8 @@ export default function Home() {
       <GamaAnillo />
       <ComoComprarlo />
 
-      {/* ───────────── Acto 4 — Resolución (cierre papel) ───────────── */}
-      <section
-        data-nav-theme="papel"
-        className="section-paper py-[var(--spacing-section)]"
-      >
-        <div className="mx-auto max-w-[1400px] px-6 md:px-12">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center lg:gap-16">
-            <div className="relative lg:col-span-5">
-              {/* Card 3D: mismo tilt interactivo que VehicleCard (rotateX/Y
-                  con spring). El clip-path de
-                  entrada (GSAP scroll reveal) sigue viviendo en este mismo
-                  ref — sin marco offset decorativo detrás. */}
-              <div
-                ref={paperPhotoRef}
-                onPointerEnter={() => setIsPhotoActive(true)}
-                onPointerMove={handlePhotoPointerMove}
-                onPointerLeave={handlePhotoPointerLeave}
-                style={{ perspective: 1200 }}
-                className="group relative aspect-[3/4] overflow-hidden border border-ink/10 shadow-[var(--shadow-e2)]"
-              >
-                <motion.div
-                  style={{
-                    rotateX: photoRotateX,
-                    rotateY: photoRotateY,
-                    transformStyle: "preserve-3d",
-                  }}
-                  className={`absolute inset-0 ${isPhotoActive ? "will-change-transform" : ""}`}
-                >
-                  <Image
-                    src="/foto-home.jpg"
-                    alt="Leonardo Guzman"
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 500px"
-                    className="object-cover object-top"
-                  />
-                </motion.div>
-              </div>
-            </div>
-
-            <div ref={paperTextRef} className="lg:col-span-7">
-              <p className="text-eyebrow mb-4 font-mono uppercase tracking-[0.14em] text-ink-60">
-                Leonardo Guzman · Paraná, Entre Ríos
-              </p>
-              <h2 className="text-h1 mb-8 font-display font-medium text-ink">
-                {pegar("La compra más importante empieza con una conversación.")}
-              </h2>
-              <div className="max-w-[65ch] space-y-5">
-                <p className="text-base leading-relaxed text-ink">
-                  {pegar("Soy Leonardo Guzman, promotor de ventas en Automotores Mega, concesionario oficial Mercedes-Benz en Paraná. Llevo 25 años en el rubro automotriz, y si algo aprendí es que un vehículo así no se elige apurado: se conversa, se compara, se prueba.")}
-                </p>
-                <p className="text-base leading-relaxed text-ink-60">
-                  {pegar("Mi trabajo es que llegues a la decisión con toda la información — modelo, financiación, plan de ahorro — y que el proceso sea tan serio como el auto.")}
-                </p>
-              </div>
-              <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-                <CtaSweep
-                  href={waLink(WA_GENERIC_MESSAGE)}
-                  variant="whatsapp"
-                  external
-                >
-                  <WhatsAppIcon className="h-[18px] w-[18px]" />
-                  Escribime por WhatsApp
-                </CtaSweep>
-                <Link
-                  href="/about"
-                  className="group/history relative text-sm font-medium text-ink"
-                >
-                  Conocé mi historia
-                  <span className="absolute -bottom-0.5 left-0 right-0 h-px bg-ink transition-[height] duration-[var(--dur-micro)] ease-[var(--ease-micro)] group-hover/history:h-[2px] group-focus-visible/history:h-[2px]" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ───────────── Acto 4 — Leonardo (D-070: el recorrido de tu Mercedes) ───────────── */}
+      <Leonardo />
     </div>
   );
 }

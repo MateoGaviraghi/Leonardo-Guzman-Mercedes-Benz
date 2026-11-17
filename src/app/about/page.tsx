@@ -14,9 +14,10 @@ import { waLink } from "@/lib/site";
 import { pegar } from "@/lib/texto";
 // redesign-about-contact.md §R2 — la ficha: la atribución vive EN el label,
 // siempre (prohibido "años en Mercedes"). Valores finales exactos del
-// checklist #6: 25 / +45 / +40.000, sin sufijo de palabra.
+// checklist #6: +30 / +45 / +40.000, sin sufijo de palabra. Leonardo: «más de 30 años en
+// el rubro automotriz», no 25 (Mateo, 2026-11-13; D-071).
 const STATS = [
-  { targetValue: 25, prefix: "", label: "AÑOS EN EL RUBRO AUTOMOTRIZ" },
+  { targetValue: 30, prefix: "+", label: "AÑOS EN EL RUBRO AUTOMOTRIZ" },
   {
     targetValue: 45,
     prefix: "+",
@@ -789,7 +790,7 @@ export default function AboutPage() {
                   ref={premiseLeadRef}
                   className="mt-3 text-[1.1875rem] leading-[1.6] text-ink"
                 >
-                  {pegar("“Veinticinco años en el rubro automotriz me enseñaron una cosa: un Mercedes-Benz se elige con calma, con información y con alguien que responda del otro lado.”")}
+                  {pegar("“Más de treinta años en el rubro automotriz me enseñaron una cosa: un Mercedes-Benz se elige con calma, con información y con alguien que responda del otro lado.”")}
                 </p>
               </div>
             </div>
