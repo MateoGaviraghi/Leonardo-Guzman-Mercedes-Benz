@@ -96,14 +96,11 @@ export default function Leonardo() {
         if (i === 1) tl.to(".rc-auto", { autoAlpha: 1, duration: 0.25 }, t + 0.25);
         tl.to(".rc-auto", { scale: esc(i), xPercent: reducido ? 0 : i === 1 ? 8 : 0, duration: 0.8, ease: "power2.inOut" }, t);
       }
-      // entrega (paso 3): cono de luz y faros encendidos
+      // entrega (paso 3): se prenden los faros, nada más (2026-11-17, Mateo: «no se iluminan
+      // correctamente las luces… parece súper arruinada la foto… solo quiero que sea el faro»;
+      // salieron el cono de luz de arriba y el haz hacia adelante)
       const t3 = T0 + 2 * PASO;
-      tl.fromTo(".rc-cono", { opacity: 0 }, { opacity: 1, duration: 0.4 }, t3 + 0.35).fromTo(
-        ".rc-faro",
-        { opacity: 0, scale: 0.4 },
-        { opacity: 1, scale: 1, duration: 0.25, ease: "power2.out" },
-        t3 + 0.5,
-      );
+      tl.fromTo(".rc-faro", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }, t3 + 0.5);
       // el auto se corre a un costado en la posventa para dejar lugar al cierre
       if (!reducido) tl.to(".rc-auto", { xPercent: 6, duration: 0.8, ease: "power2.inOut" }, T0 + 3 * PASO);
       tl.to({}, { duration: 0.3 }); // un respiro al final antes de soltar
@@ -209,14 +206,18 @@ export default function Leonardo() {
         aria-hidden
         className="rc-auto pointer-events-none absolute inset-x-0 bottom-[clamp(1.5rem,6svh,4rem)] z-20 mx-auto w-[min(94vw,62svh)] lg:left-auto lg:right-[3vw] lg:mx-0 lg:w-[min(50vw,96svh)]"
       >
-        {/* cono de luz de la entrega */}
-        <span className="rc-cono absolute -top-[90%] left-1/2 h-[190%] w-[120%] -translate-x-1/2 bg-[radial-gradient(ellipse_38%_55%_at_50%_45%,rgba(255,255,255,0.13),rgba(255,255,255,0.05)_45%,rgba(255,255,255,0)_75%)] opacity-0" />
         {/* luz en el piso */}
         <span className="absolute bottom-[4%] left-[6%] h-[22%] w-[88%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,255,255,0.14),rgba(255,255,255,0))]" />
         <Image src="/menu-modelos/clase-e.webp" alt="" width={900} height={420} priority={false} className="relative h-auto w-full" />
-        {/* faros: el delantero visible está a ~35 % del ancho y ~51 % del alto del recorte */}
-        <span className="rc-faro absolute left-[27%] top-[44%] h-[16%] w-[16%] rounded-full bg-[radial-gradient(closest-side,rgba(235,245,255,0.95),rgba(170,205,255,0.45)_45%,rgba(170,205,255,0))] opacity-0 mix-blend-screen" />
-        <span className="rc-faro absolute left-[-30%] top-[40%] h-[26%] w-[62%] bg-[radial-gradient(ellipse_at_right,rgba(200,225,255,0.35),rgba(200,225,255,0)_70%)] opacity-0 mix-blend-screen" />
+        {/* faros, justo sobre las ópticas del recorte (900 × 420): la de adelante ocupa
+            x 245–355, y 195–232 (inclinada); la del otro lado asoma en x ≈ 105, y ≈ 198.
+            Solo un brillo con la forma de la óptica, sin blend (con `mix-blend-screen` dentro
+            del auto escalado se veía un rectángulo claro) */}
+        <span className="rc-faro absolute left-[27.5%] top-[45.5%] h-[8%] w-[11.5%] opacity-0">
+          {/* la inclinación va adentro: GSAP escala el de afuera y pisaría el `rotate` */}
+          <span className="block h-full w-full -rotate-[8deg] rounded-[50%] bg-[radial-gradient(closest-side,rgba(240,248,255,0.9),rgba(200,225,255,0.45)_55%,rgba(200,225,255,0))]" />
+        </span>
+        <span className="rc-faro absolute left-[10.4%] top-[45%] h-[5%] w-[3.4%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(240,248,255,0.75),rgba(200,225,255,0))] opacity-0" />
       </div>
 
       {/* contador de escena */}
