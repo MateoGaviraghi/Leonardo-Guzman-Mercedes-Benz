@@ -10,17 +10,26 @@ import { SITE } from "@/lib/site";
 // no hay WebGL en vivo: se muestra el cuadro que corresponde a la posición del mouse o
 // del dedo, vuelve al centro con un rebote suave al soltar, y cada 5 s uno de los cuatro
 // se balancea solo (Mateo: «1 sí, 2 laca»). Con movimiento reducido quedan quietos de frente.
-// Google Maps queda afuera a propósito (OQ-017).
+// Google Maps: solo en el footer (2026-11-17, Mateo: «sacá el de wsp porque ya está arriba y
+// poné el de Google Maps»); el menú del celular sigue sin Maps (OQ-017). Cada lugar elige sus
+// logos con `logos`.
 
 const CUADROS = 25;
 const CENTRO = (CUADROS - 1) / 2;
 
-const ICONOS = [
+const MAPS = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `Automotores Mega SA, ${SITE.address.line1}, Paraná, Entre Ríos`,
+)}`;
+
+const TODOS = [
   { logo: "whatsapp", href: SITE.whatsapp, etiqueta: "WhatsApp de Leonardo Guzman", externo: true },
   { logo: "instagram", href: SITE.instagram, etiqueta: "Instagram de Leonardo Guzman", externo: true },
   { logo: "telefono", href: SITE.phoneHref, etiqueta: "Llamar a Leonardo Guzman", externo: false },
   { logo: "gmail", href: `mailto:${SITE.email}`, etiqueta: "Escribir un mail a Leonardo Guzman", externo: false },
+  { logo: "maps", href: MAPS, etiqueta: "Cómo llegar a Automotores Mega SA en Google Maps", externo: true },
 ] as const;
+type Logo = (typeof TODOS)[number]["logo"];
+const MENU: Logo[] = ["whatsapp", "instagram", "telefono", "gmail"];
 
 // Posición (en cuadros, 0 a 24) de cada ícono; se escribe directo al estilo, sin re-render.
 function pintar(el: HTMLElement | null, pos: number) {
@@ -29,7 +38,8 @@ function pintar(el: HTMLElement | null, pos: number) {
   el.style.backgroundPositionX = `${(f / (CUADROS - 1)) * 100}%`;
 }
 
-export function IconosContacto({ className = "" }: { className?: string }) {
+export function IconosContacto({ className = "", logos = MENU }: { className?: string; logos?: Logo[] }) {
+  const ICONOS = TODOS.filter((ic) => logos.includes(ic.logo));
   const caras = useRef<(HTMLSpanElement | null)[]>([]);
   const pos = useRef<number[]>(ICONOS.map(() => CENTRO));
   const objetivo = useRef<number[]>(ICONOS.map(() => CENTRO));
@@ -85,7 +95,7 @@ export function IconosContacto({ className = "" }: { className?: string }) {
       cancelAnimationFrame(raf);
       window.clearInterval(reloj);
     };
-  }, []);
+  }, [ICONOS]);
 
   const mover = (i: number) => (e: React.PointerEvent<HTMLAnchorElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
