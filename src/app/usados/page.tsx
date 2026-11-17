@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Send } from "lucide-react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -11,6 +11,12 @@ import { pegar } from "@/lib/texto";
 type FieldName = "name" | "phone" | "email" | "vehicle" | "message";
 
 /** Beneficios (contenido verbatim — spec /usados). */
+const USADOS_VIDEO = "/usados/usados.mp4";
+const USADOS_VIDEO_VERTICAL = "/usados/usados-vertical.mp4";
+const USADOS_FINAL = "/usados/usados-final.jpg";
+const USADOS_FINAL_VERTICAL = "/usados/usados-vertical-final.jpg";
+const USADOS_VERTICAL_MEDIA = "(orientation: portrait)";
+
 const BENEFITS = [
   {
     index: "01",
@@ -33,19 +39,21 @@ const FOCUS_RING =
 
 /** Reduced-motion reactivo — copiado localmente (patrón src/app/page.tsx y
  *  src/app/contact/page.tsx; este archivo no importa nada de ahí). */
+// useSyncExternalStore: en la hidratación usa el valor del servidor (false) y
+// después el real, así el hero no rompe la hidratación (React #418) cuando el
+// sistema pide menos movimiento.
+const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
+function suscribirReduced(cb: () => void) {
+  const mq = window.matchMedia(REDUCED_QUERY);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
 function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  return useSyncExternalStore(
+    suscribirReduced,
+    () => window.matchMedia(REDUCED_QUERY).matches,
+    () => false,
   );
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return reduced;
 }
 
 /**
@@ -419,34 +427,49 @@ export default function UsadosPage() {
         className="relative h-[100svh] w-full overflow-hidden bg-mb-black"
       >
         {!reducedMotion ? (
+          // Video de Flow (D-067): oscuro → se prenden auto, van y camión
+          // (~6 s) → deriva. Corre una sola vez y queda en el último cuadro:
+          // repetirlo apagaría todo cada 8 s.
           <video
             autoPlay
             muted
-            loop
             playsInline
-            preload="metadata"
+            preload="auto"
+            aria-hidden
             className="absolute inset-0 z-0 h-full w-full object-cover"
           >
-            <source src="/SUV_Reveal_Video_Generation.mp4" type="video/mp4" />
+            <source
+              src={USADOS_VIDEO_VERTICAL}
+              media={USADOS_VERTICAL_MEDIA}
+              type="video/mp4"
+            />
+            <source src={USADOS_VIDEO} type="video/mp4" />
           </video>
         ) : (
-          // Reduced-motion: sin autoplay de video — poster estático oscuro
-          // (no existe un frame poster dedicado para este clip; se sustituye
-          // por un degradé de marca, mismo criterio que /contact).
-          <div
-            aria-hidden
-            className="absolute inset-0 z-0 bg-[linear-gradient(160deg,#0d0d0f_0%,#050505_70%)]"
-          />
+          // Movimiento reducido: el último cuadro, con los tres prendidos.
+          <picture>
+            <source
+              srcSet={USADOS_FINAL_VERTICAL}
+              media={USADOS_VERTICAL_MEDIA}
+            />
+            <img
+              src={USADOS_FINAL}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 z-0 h-full w-full object-cover"
+            />
+          </picture>
         )}
 
         {/* Scrim: vignette superior + masa inferior — garantiza AA para el
             copy anclado abajo, sin aplanar el video en el resto del frame. */}
         <div
           aria-hidden
-          className="absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(5,5,5,0.94)_0%,rgba(5,5,5,0.62)_28%,rgba(5,5,5,0.14)_56%,transparent_72%),linear-gradient(to_bottom,rgba(5,5,5,0.55)_0%,transparent_26%)]"
+          className="absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(5,5,5,0.7)_0%,rgba(5,5,5,0.2)_18%,transparent_36%),linear-gradient(to_bottom,rgba(5,5,5,0.6)_0%,rgba(5,5,5,0.3)_22%,transparent_38%)]"
         />
 
-        <div className="relative z-20 flex h-full flex-col items-center justify-center px-6 text-center">
+        {/* Texto arriba: abajo están el auto, la van y el camión del video. */}
+        <div className="relative z-20 flex h-full flex-col items-center justify-start px-6 pt-[clamp(6rem,12svh,8.5rem)] text-center">
           <h1
             ref={heroH1Ref}
             className="text-display-1 mb-5 text-balance font-display font-medium text-white [letter-spacing:-0.01em]"
