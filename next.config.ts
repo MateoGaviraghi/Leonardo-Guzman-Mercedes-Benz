@@ -16,7 +16,10 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
     ],
-    unoptimized: false,
+    // true: el plan gratis de Vercel llegó al límite de optimizaciones
+    // (402 OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED, 2026-11-18); las fotos se
+    // sirven tal cual están en public/.
+    unoptimized: true,
     formats: ["image/avif", "image/webp"],
     // Next 16 solo acepta las calidades listadas acá (por defecto [75]); una
     // calidad fuera de la lista da 400 en /_next/image. 20 = fondo desenfocado
