@@ -68,7 +68,7 @@ const CAMINOS: Camino[] = [
   {
     n: "03",
     nombre: "Usados",
-    frase: "Selección Premium: calidad certificada e historia comprobada.",
+    frase: "Autos, utilitarios y camiones Mercedes-Benz usados, en Automotores Mega SA.",
     href: "/usados",
     autos: ["/menu-modelos/actros.webp", "/menu-modelos/sprinter-combi.webp"], // Camiones + Sprinter
   },

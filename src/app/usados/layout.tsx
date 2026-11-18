@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   title: "Usados — Leonardo Guzmán | Mercedes-Benz, Paraná",
   description:
-    "Vehículos usados Mercedes-Benz con calidad certificada e historia comprobada. Consultá el stock disponible con Leonardo Guzmán en Automotores Mega S.A., Paraná, Entre Ríos.",
+    "Autos, utilitarios y camiones Mercedes-Benz usados en Automotores Mega SA, Paraná, Entre Ríos. Consultá las unidades disponibles con Leonardo Guzmán.",
 };
 
 export default function UsadosLayout({ children }: { children: ReactNode }) {
