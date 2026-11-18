@@ -436,7 +436,7 @@ export default function UsadosPage() {
             playsInline
             preload="auto"
             aria-hidden
-            className="absolute inset-0 z-0 h-full w-full object-cover"
+            className="absolute inset-0 z-0 h-full w-full object-cover landscape:object-top"
           >
             <source
               src={USADOS_VIDEO_VERTICAL}
@@ -456,7 +456,7 @@ export default function UsadosPage() {
               src={USADOS_FINAL}
               alt=""
               aria-hidden
-              className="absolute inset-0 z-0 h-full w-full object-cover"
+              className="absolute inset-0 z-0 h-full w-full object-cover landscape:object-top"
             />
           </picture>
         )}
@@ -474,14 +474,14 @@ export default function UsadosPage() {
             ref={heroH1Ref}
             className="text-display-1 mb-5 text-balance font-display font-medium text-white [letter-spacing:-0.01em]"
           >
-            Selección Premium
+            Usados <span className="whitespace-nowrap">Selección Premium</span>
           </h1>
           <p
             ref={heroSubRef}
-            className="max-w-xl text-lead font-light text-silver-100"
+            className="text-balance text-lead font-light text-silver-100"
           >
-            <span className="whitespace-nowrap">Calidad certificada.</span>{" "}
-            <span className="whitespace-nowrap">Historia comprobada.</span>
+            {pegar("Autos, utilitarios y camiones Mercedes-Benz usados")}{" "}
+            <span className="whitespace-nowrap">en Automotores Mega SA, Paraná.</span>
           </p>
         </div>
 
