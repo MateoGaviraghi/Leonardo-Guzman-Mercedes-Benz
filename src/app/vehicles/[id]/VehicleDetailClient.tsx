@@ -13,11 +13,13 @@ import { SpecsSection } from "@/components/vehicle-detail/SpecsSection";
 import { AutonomySection } from "@/components/vehicle-detail/AutonomySection";
 import { CtaSection } from "@/components/vehicle-detail/CtaSection";
 import { BackToTop } from "@/components/vehicle-detail/BackToTop";
+import { FormatosFotos } from "@/components/vehicle-detail/FormatosFotos";
 
 export default function VehicleDetailClient({
   vehicle: initialVehicle,
   hasColorImages = false,
   colorImages,
+  formatos,
 }: {
   vehicle: Vehicle;
   /** Server detectó si hay archivos `1.<formato>` en /public/vehicles/<id>/colors/.
@@ -26,6 +28,8 @@ export default function VehicleDetailClient({
   hasColorImages?: boolean;
   /** Colores que existen (número y formato), contados en el servidor. */
   colorImages?: { num: number; format: string }[];
+  /** Formato de cada foto de este auto (`src/data/formatos-fotos.json`). */
+  formatos?: Record<string, string>;
 }) {
   const vehicleId = initialVehicle.id;
   const vehicle = initialVehicle;
@@ -52,6 +56,7 @@ export default function VehicleDetailClient({
   }, []);
 
   return (
+    <FormatosFotos vehicleId={vehicleId} formatos={formatos}>
     <div className={`min-h-screen ${isAMG ? "bg-neutral-950" : "bg-black"}`}>
       <BackButton />
       <HeroSection vehicle={vehicle} isAMG={isAMG} basePath={basePath} />
@@ -72,5 +77,6 @@ export default function VehicleDetailClient({
       <CtaSection isAMG={isAMG} />
       <BackToTop isAMG={isAMG} />
     </div>
+    </FormatosFotos>
   );
 }

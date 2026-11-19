@@ -37,3 +37,41 @@ for (const id of ids) {
 
 fs.writeFileSync(salida, JSON.stringify(lista, null, 2) + "\n");
 console.log(`lista-fotos: ${Object.keys(lista).length} autos con colores → src/data/fotos-vehiculos.json`);
+
+// Arma src/data/formatos-fotos.json: el formato de cada foto de cada auto
+// ({ "<id>": { "exterior/1": "jpg", "hero/hero-mobile": "jpg", … } }). Con esto
+// MultiFormatImage pide el archivo que existe y no prueba avif → webp → jpg
+// (cada intento fallido era un 404). Si una foto tiene dos formatos, gana el
+// primero de este orden, el mismo que probaba MultiFormatImage.
+const ORDEN = ["avif", "webp", "jpg", "jpeg", "png"];
+const salidaFormatos = path.join(raiz, "src", "data", "formatos-fotos.json");
+const formatos = {};
+let cuenta = 0;
+
+function recorrer(dir, rel, mapa) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.isDirectory()) {
+      recorrer(path.join(dir, e.name), rel ? `${rel}/${e.name}` : e.name, mapa);
+      continue;
+    }
+    const punto = e.name.lastIndexOf(".");
+    if (punto < 1) continue;
+    const ext = e.name.slice(punto + 1).toLowerCase();
+    if (!ORDEN.includes(ext)) continue;
+    const clave = (rel ? `${rel}/` : "") + e.name.slice(0, punto);
+    const previo = mapa[clave];
+    if (!previo) cuenta++;
+    if (!previo || ORDEN.indexOf(ext) < ORDEN.indexOf(previo)) mapa[clave] = ext;
+  }
+}
+
+for (const id of ids) {
+  const mapa = {};
+  recorrer(path.join(dirAutos, id), "", mapa);
+  if (Object.keys(mapa).length) {
+    formatos[id] = Object.fromEntries(Object.entries(mapa).sort(([a], [b]) => a.localeCompare(b)));
+  }
+}
+
+fs.writeFileSync(salidaFormatos, JSON.stringify(formatos, null, 1) + "\n");
+console.log(`lista-fotos: ${cuenta} fotos con su formato → src/data/formatos-fotos.json`);

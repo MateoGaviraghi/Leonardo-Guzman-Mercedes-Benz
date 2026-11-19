@@ -5,6 +5,7 @@ import { pegarTextos } from "@/lib/texto";
 import VehicleDetailClient from "./VehicleDetailClient";
 import TruckDetailClient from "./TruckDetailClient";
 import fotosVehiculos from "@/data/fotos-vehiculos.json";
+import formatosFotos from "@/data/formatos-fotos.json";
 
 // Armado de la página de un vehículo, compartido por la página pública
 // (`/vehicles/[id]`) y la vista previa del admin (`/vehicles/vista-previa/[id]`)
@@ -25,6 +26,13 @@ const FOTOS: Record<
   { colores: { num: number; format: string }[]; hayColores: boolean }
 > = fotosVehiculos;
 
+/**
+ * Formato de cada foto de cada auto (misma lista del build). Al cliente le llega
+ * solo la parte del auto que se muestra, para que MultiFormatImage pida el archivo
+ * que existe en vez de probar avif → webp → jpg (cada intento fallido, un 404).
+ */
+const FORMATOS: Record<string, Record<string, string>> = formatosFotos;
+
 export default async function VehicleDetailView({ id }: { id: string }) {
   const { data, error } = await supabase
     .from("vehicles")
@@ -40,7 +48,7 @@ export default async function VehicleDetailView({ id }: { id: string }) {
   const isTruck = TRUCK_CATEGORIES.includes(vehicle.category?.toLowerCase());
 
   if (isTruck) {
-    return <TruckDetailClient vehicle={vehicle} />;
+    return <TruckDetailClient vehicle={vehicle} formatos={FORMATOS[id]} />;
   }
 
   const colorImages = FOTOS[id]?.colores ?? [];
@@ -51,6 +59,7 @@ export default async function VehicleDetailView({ id }: { id: string }) {
       vehicle={pegarTextos(vehicle)}
       hasColorImages={hasColorImages}
       colorImages={colorImages}
+      formatos={FORMATOS[id]}
     />
   );
 }

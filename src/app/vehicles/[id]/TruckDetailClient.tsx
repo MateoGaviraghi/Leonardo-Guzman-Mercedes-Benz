@@ -10,14 +10,18 @@ import { TruckSections } from "@/components/truck-detail/TruckSections";
 import { TruckSpecs } from "@/components/truck-detail/TruckSpecs";
 import { TruckPdfModal } from "@/components/truck-detail/TruckPdfModal";
 import { TruckCta } from "@/components/truck-detail/TruckCta";
+import { FormatosFotos } from "@/components/vehicle-detail/FormatosFotos";
 
 /* ═══════════════════════════════════════════════
    MAIN COMPONENT — orquestador delgado (WU-T0)
    ═══════════════════════════════════════════════ */
 export default function TruckDetailClient({
   vehicle,
+  formatos,
 }: {
   vehicle: Vehicle;
+  /** Formato de cada foto de este camión (`src/data/formatos-fotos.json`). */
+  formatos?: Record<string, string>;
 }) {
   const basePath = `/vehicles/${vehicle.id}`;
   const pdfs = vehicle.truckPdfs || [];
@@ -25,6 +29,7 @@ export default function TruckDetailClient({
   const openModels = () => setModelsOpen(true);
 
   return (
+    <FormatosFotos vehicleId={vehicle.id} formatos={formatos}>
     <div className="min-h-screen bg-black text-white selection:bg-white/20">
       <BackButton fadeOnScroll />
       <TruckPdfModal pdfs={pdfs} isOpen={modelsOpen} onClose={() => setModelsOpen(false)} />
@@ -36,5 +41,6 @@ export default function TruckDetailClient({
       <TruckSpecs vehicle={vehicle} />
       <TruckCta vehicle={vehicle} basePath={basePath} pdfs={pdfs} onOpenModels={openModels} />
     </div>
+    </FormatosFotos>
   );
 }
