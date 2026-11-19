@@ -41,7 +41,17 @@ export function FormatosFotos({
  * corre al arrancar).
  */
 export function useFormatoFoto(basePath: string): string | null | undefined {
+  return useFormatoDe()(basePath);
+}
+
+/**
+ * Lo mismo que `useFormatoFoto`, pero devuelve la función: para componentes que
+ * arman varias rutas en un `map` (no se puede llamar un hook por foto).
+ */
+export function useFormatoDe(): (basePath: string) => string | null | undefined {
   const ctx = useContext(FormatosContext);
-  if (!ctx || !basePath.startsWith(ctx.base)) return undefined;
-  return ctx.mapa[basePath.slice(ctx.base.length)] ?? null;
+  return (basePath) => {
+    if (!ctx || !basePath.startsWith(ctx.base)) return undefined;
+    return ctx.mapa[basePath.slice(ctx.base.length)] ?? null;
+  };
 }

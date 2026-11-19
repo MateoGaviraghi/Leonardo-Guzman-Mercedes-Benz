@@ -14,14 +14,7 @@ import { NumberTicker } from "./NumberTicker";
 import { SlidingTabs } from "./SlidingTabs";
 import { EmptyMedia } from "./EmptyMedia";
 import { buildAvailableTabs } from "./utils";
-
-// Helper to check if image exists
-const getImagePath = (
-  basePath: string,
-  formats = ["avif", "webp", "jpg", "jpeg", "png"]
-) => {
-  return `${basePath}.${formats[0]}`; // Default to first format, Next.js will handle errors
-};
+import { useFormatoDe } from "./FormatosFotos";
 
 /** Shift Card (cult-ui) — parallax interno transform-only, SOLO desktop/pointer:fine.
  * La imagen se desplaza levemente (máx ~8px) siguiendo el puntero dentro del card.
@@ -133,13 +126,19 @@ export function AutonomySection({
   const card2ImgWrapRef = useRef<HTMLDivElement>(null);
   const card2Active = useShiftCard(card2ContainerRef, card2ImgWrapRef);
 
-  // Handle image error
+  // Formato de cada foto según la lista del build (D-080). Sin lista (auto subido
+  // después del build) se pide .avif como antes; si falla, queda el vacío.
+  const formatoDe = useFormatoDe();
+  const getImagePath = (imagePath: string) =>
+    `${imagePath}.${formatoDe(imagePath) ?? "avif"}`;
+
   const handleImageError = (imagePath: string) => {
     setImageErrors((prev) => new Set(prev).add(imagePath));
   };
 
-  // Check if image has error
-  const hasImageError = (imagePath: string) => imageErrors.has(imagePath);
+  // `null`: la lista dice que la foto no existe → vacío sin pedir nada.
+  const hasImageError = (imagePath: string) =>
+    formatoDe(imagePath) === null || imageErrors.has(imagePath);
 
   if (
     !(
