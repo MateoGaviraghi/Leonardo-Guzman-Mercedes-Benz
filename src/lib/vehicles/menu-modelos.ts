@@ -4,7 +4,9 @@
 // carga o se oculta un auto en `vehicles`, se agrega o se saca su línea acá.
 // Fotos: recortes oficiales sin fondo de mercedes-benz.com.ar (originales en
 // carga/originales/menu-modelos/), normalizados a 900×420 en public/menu-modelos/.
-// Vans, Sprinter y camiones no tienen recorte oficial: se recortaron con rembg
+// Vans, Sprinter, camiones y el AMG GT 63 (la web oficial tiene un solo recorte
+// para los dos GT; el del GT 63 sale de una foto de estudio hecha con ChatGPT desde
+// la oficial, carga/para-chatgpt/12-gt63-menu/) no tienen recorte oficial propio: se recortaron con rembg
 // (isnet-general-use) desde nuestras fotos oficiales, revisados uno por uno
 // (originales en carga/originales/menu-modelos/rembg/). Los 6 camiones salen
 // de fotos de estudio hechas con ChatGPT desde nuestras fotos oficiales (mismo camión,
@@ -54,7 +56,7 @@ export const MODELOS_MENU: ModeloMenu[] = [
   { nombre: "Clase G", pestana: "suv", href: v("89ceb92d-c9d4-4fd1-940b-81fac745f9c9"), foto: R("clase-g"), recorte: true, combustible: "Nafta" },
   // Mercedes-AMG (filas propias + tarjetas AMG de D-049, que abren la ficha del modelo)
   { nombre: "Mercedes-AMG GT 43 Coupé", pestana: "amg", href: v("cd9b669a-9398-41ff-8f24-6dda7aa8241a"), foto: R("amg-gt-coupe"), recorte: true, combustible: "Nafta" },
-  { nombre: "Mercedes-AMG GT 63 S E PERFORMANCE", pestana: "amg", href: v("f055ac99-c94c-4196-81d9-5d41548623aa"), foto: R("amg-gt-coupe"), recorte: true, combustible: "Híbrido" },
+  { nombre: "Mercedes-AMG GT 63 S E PERFORMANCE", pestana: "amg", href: v("f055ac99-c94c-4196-81d9-5d41548623aa"), foto: R("amg-gt-63"), recorte: true, combustible: "Híbrido" },
   { nombre: "Mercedes-AMG SL 63 S E PERFORMANCE", pestana: "amg", href: v("a8f27db4-f288-42ae-b7e0-bb6a6a56bf5c"), foto: R("amg-sl"), recorte: true, combustible: "Híbrido" },
   { nombre: "Mercedes-AMG Clase C Sedán", pestana: "amg", href: v("056daaea-0882-478d-a010-0bb9edd9074e"), foto: R("amg-clase-c"), recorte: true, combustible: "Nafta" },
   { nombre: "Mercedes-AMG Clase A Hatchback", pestana: "amg", href: v("e7a7cac6-5c3d-49cc-9d62-fae1d08eb720"), foto: R("amg-clase-a"), recorte: true, combustible: "Nafta" },
